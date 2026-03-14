@@ -17,7 +17,7 @@ const linkStyle = (isActive) => ({
   transition: 'var(--transition)',
 });
 
-export default function AppLayout({ user, onLogout }) {
+export default function AppLayout({ user, setUser, onLogout }) {
   const { t, locale, setLocale, localeNames } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -227,7 +227,7 @@ export default function AppLayout({ user, onLogout }) {
           </div>
         </header>
         <main style={{ flex: 1, overflow: 'auto', padding: 24 }}>
-          <Outlet context={{ user }} />
+          <Outlet context={{ user, setUser }} />
         </main>
       </div>
     </div>

@@ -10,7 +10,7 @@ const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
 async function fetchUserByEmail(email) {
   const { data, error } = await supabase
     .from('users')
-    .select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats')
+    .select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture')
     .eq('email', email)
     .maybeSingle();
   if (error || !data) return null;
@@ -24,8 +24,36 @@ const ROLES = [
   { id: 'admin', icon: '⚙️', key: 'roleAdmin' },
 ];
 
+/** Insert user row (same shape as app insertUser). */
+async function insertUser({ name, email, role, providerType }) {
+  const avatar = (name || email || '')
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || '?';
+  const isProvider = role === 'guide' || role === 'driver';
+  const payload = {
+    name: (name || email?.split('@')[0] || '').trim(),
+    email: (email || '').trim(),
+    role: isProvider ? 'provider' : role,
+    provider_type: isProvider ? (role === 'driver' ? 'transfer' : 'guide') : null,
+    avatar,
+    color: role === 'guide' ? '#5b8dee' : role === 'driver' ? '#c9a84c' : null,
+    bio: '',
+    rating: 0,
+    total_bookings: 0,
+    earnings: '₾0',
+  };
+  const { error } = await supabase.from('users').insert(payload);
+  return error;
+}
+
 export default function Login({ onLogin }) {
   const { t } = useLocale();
+  const [mode, setMode] = useState('login');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('tourist');
@@ -41,19 +69,58 @@ export default function Login({ onLogin }) {
     setLoading(true);
     try {
       if (useSupabaseAuth && password) {
-        const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ email, password });
-        if (authErr) {
-          setError(authErr.message || 'Invalid email or password');
-          setLoading(false);
-          return;
-        }
-        const u = await fetchUserByEmail(authData.user?.email || email);
-        if (u) {
-          onLogin(u);
-          navigate(redirect);
+        if (mode === 'signup') {
+          const { data: authData, error: authErr } = await supabase.auth.signUp({ email: email.trim(), password });
+          if (authErr) {
+            setError(authErr.message || 'Sign up failed');
+            setLoading(false);
+            return;
+          }
+          const insertErr = await insertUser({
+            name: name.trim() || email.split('@')[0],
+            email: authData.user?.email || email,
+            role: role === 'admin' ? 'tourist' : role,
+            providerType: role === 'guide' ? 'guide' : role === 'driver' ? 'transfer' : null,
+          });
+          if (insertErr) {
+            const u = await fetchUserByEmail(authData.user?.email || email);
+            if (u) {
+              onLogin(u);
+              navigate(redirect);
+            } else {
+              setError(insertErr.message || 'Account created but user row failed. Try signing in.');
+            }
+          } else {
+            const u = await fetchUserByEmail(authData.user?.email || email);
+            if (u) {
+              onLogin(u);
+              navigate(redirect);
+            } else {
+              onLogin({
+                id: authData.user?.id,
+                name: (name || email).trim().split('@')[0],
+                email: authData.user?.email || email,
+                role: role === 'guide' || role === 'driver' ? 'provider' : 'tourist',
+                type: role === 'guide' ? 'guide' : role === 'driver' ? 'transfer' : undefined,
+              });
+              navigate(redirect);
+            }
+          }
         } else {
-          onLogin({ id: authData.user?.id, name: authData.user?.email?.split('@')[0], email: authData.user?.email, role: 'tourist' });
-          navigate(redirect);
+          const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ email, password });
+          if (authErr) {
+            setError(authErr.message || 'Invalid email or password');
+            setLoading(false);
+            return;
+          }
+          const u = await fetchUserByEmail(authData.user?.email || email);
+          if (u) {
+            onLogin(u);
+            navigate(redirect);
+          } else {
+            onLogin({ id: authData.user?.id, name: authData.user?.email?.split('@')[0], email: authData.user?.email, role: 'tourist' });
+            navigate(redirect);
+          }
         }
       } else {
         const u = await fetchUserByEmail(email);
@@ -79,10 +146,16 @@ export default function Login({ onLogin }) {
       <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>
         {t('login.subtitle')}
       </p>
+      {useSupabaseAuth && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+          <button type="button" onClick={() => { setMode('login'); setError(''); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: `1px solid ${mode === 'login' ? 'var(--gold)' : 'var(--border)'}`, background: mode === 'login' ? 'var(--gold-soft)' : 'var(--surface)', color: mode === 'login' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: mode === 'login' ? 600 : 500, cursor: 'pointer' }}>Sign in</button>
+          <button type="button" onClick={() => { setMode('signup'); setError(''); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: `1px solid ${mode === 'signup' ? 'var(--gold)' : 'var(--border)'}`, background: mode === 'signup' ? 'var(--gold-soft)' : 'var(--surface)', color: mode === 'signup' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: mode === 'signup' ? 600 : 500, cursor: 'pointer' }}>Create account</button>
+        </div>
+      )}
       <div style={{ marginBottom: 24 }}>
         <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('login.iAm')}</label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-          {ROLES.map((r) => (
+          {(mode === 'signup' ? ROLES.filter((r) => r.id !== 'admin') : ROLES).map((r) => (
             <button
               key={r.id}
               type="button"
@@ -109,6 +182,12 @@ export default function Login({ onLogin }) {
         </div>
       </div>
       <form onSubmit={handleSubmit}>
+        {mode === 'signup' && useSupabaseAuth && (
+          <>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 6 }}>Full name</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" style={{ width: '100%', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '1rem', marginBottom: 20 }} />
+          </>
+        )}
         <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 6 }}>{t('login.email')}</label>
         <input
           type="email"
@@ -158,7 +237,7 @@ export default function Login({ onLogin }) {
             fontSize: '1rem',
           }}
         >
-          {loading ? t('login.signingIn') : t('login.signIn')}
+          {loading ? (mode === 'signup' ? 'Creating…' : t('login.signingIn')) : mode === 'signup' && useSupabaseAuth ? 'Create account' : t('login.signIn')}
         </button>
       </form>
     </div>

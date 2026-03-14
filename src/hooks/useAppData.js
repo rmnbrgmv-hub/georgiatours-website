@@ -120,6 +120,7 @@ export function mapUserRow(row) {
     maxSeats: row.max_seats,
     verified: !!row.verified,
     badges: Array.isArray(row.badges) ? row.badges : typeof row.badges === 'string' ? (() => { try { return JSON.parse(row.badges) || []; } catch (_) { return []; } })() : [],
+    profile_picture: row.profile_picture ?? row.profilePic ?? null,
   };
 }
 

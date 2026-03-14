@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
@@ -6,10 +6,13 @@ import { useLocale } from '../context/LocaleContext';
 import { mapBookingRow } from '../hooks/useAppData';
 
 export default function Profile() {
-  const { user } = useOutletContext();
+  const { user, setUser } = useOutletContext();
   const { t } = useLocale();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
+  const [profilePic, setProfilePic] = useState(user?.profile_picture || user?.profilePic || null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -19,6 +22,30 @@ export default function Profile() {
       .eq('tourist_id', user.id)
       .then(({ data }) => setBookings((data || []).map(mapBookingRow)));
   }, [user?.id]);
+
+  useEffect(() => {
+    setProfilePic(user?.profile_picture || user?.profilePic || null);
+  }, [user?.profile_picture, user?.profilePic]);
+
+  const handlePhotoChange = (e) => {
+    const file = e.target?.files?.[0];
+    if (!file || !user?.id || user.role !== 'provider') return;
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const base64 = ev.target?.result;
+      if (!base64 || typeof base64 !== 'string') {
+        setUploading(false);
+        return;
+      }
+      const { error } = await supabase.from('users').update({ profile_picture: base64 }).eq('id', user.id);
+      setUploading(false);
+      if (error) return;
+      setProfilePic(base64);
+      setUser?.((prev) => (prev ? { ...prev, profile_picture: base64 } : prev));
+    };
+    reader.readAsDataURL(file);
+  };
 
   if (!user) {
     return (
@@ -39,21 +66,33 @@ export default function Profile() {
 
       <div className="glass" style={{ padding: 28, borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: '50%',
-              background: user.color || 'var(--gold)',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '1.5rem',
-            }}
-          >
-            {(user.avatar || user.name || '').slice(0, 2).toUpperCase()}
+          <div style={{ position: 'relative' }}>
+            {profilePic ? (
+              <img src={profilePic} alt="" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${user.color || 'var(--gold)'}` }} />
+            ) : (
+              <div
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: '50%',
+                  background: user.color || 'var(--gold)',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '1.5rem',
+                }}
+              >
+                {(user.avatar || user.name || '').slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            {user.role === 'provider' && (
+              <>
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
+                <button type="button" disabled={uploading} onClick={() => fileInputRef.current?.click()} style={{ position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: '50%', border: '2px solid var(--surface)', background: 'var(--gold)', color: 'var(--bg)', cursor: uploading ? 'wait' : 'pointer', fontSize: 14 }}>{uploading ? '…' : '📷'}</button>
+              </>
+            )}
           </div>
           <div>
             <h2 style={{ fontWeight: 600, fontSize: '1.25rem', marginBottom: 4 }}>{user.name}</h2>

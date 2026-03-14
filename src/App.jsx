@@ -57,7 +57,7 @@ export default function App() {
         try { sessionStorage.removeItem('georgiatours-user'); } catch (_) {}
         return;
       }
-      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats').eq('email', authUser.email).maybeSingle();
+      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture').eq('email', authUser.email).maybeSingle();
       const u = data ? mapUserRow(data) : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist' };
       setUser(u);
       try { sessionStorage.setItem('georgiatours-user', JSON.stringify(u)); } catch (_) {}
@@ -94,7 +94,7 @@ export default function App() {
               <Route path="/provider/:id" element={<Provider />} />
               <Route path="/explore" element={user ? <Navigate to="/app/explore" replace /> : <Layout><Explore /></Layout>} />
 
-              <Route path="/app" element={user ? <AppLayout user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />}>
+              <Route path="/app" element={user ? <AppLayout user={user} setUser={setUser} onLogout={handleLogout} /> : <Navigate to="/login" replace />}>
                 <Route index element={<AppRedirectWithUser user={user} />} />
                 <Route path="explore" element={<Explore />} />
                 <Route path="map" element={<Map />} />
