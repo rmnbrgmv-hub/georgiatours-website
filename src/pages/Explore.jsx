@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
+import { useLocale } from '../context/LocaleContext';
 
 export default function Explore() {
+  const { t } = useLocale();
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('all');
@@ -49,10 +52,14 @@ export default function Explore() {
 
   return (
     <div style={{ padding: '40px 24px 80px', maxWidth: 1200, margin: '0 auto' }}>
+      <Helmet>
+        <title>Explore tours — GeorgiaTours</title>
+        <meta name="description" content="Browse van tours, guides, and transfers across Georgia." />
+      </Helmet>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '2rem', marginBottom: 8 }}>
-        Explore tours
+        {t('explore.title')}
       </h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 28 }}>Same live data as the app — book or connect with providers.</p>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 28 }}>{t('explore.subtitle')}</p>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 32 }}>
         <button
@@ -67,7 +74,7 @@ export default function Explore() {
             fontSize: '0.9rem',
           }}
         >
-          All
+          {t('explore.all')}
         </button>
         {['guide', 'van', 'transfer'].map((t) => (
           <button
@@ -98,7 +105,7 @@ export default function Explore() {
             fontSize: '0.9rem',
           }}
         >
-          <option value="">All regions</option>
+          <option value="">{t('explore.allRegions')}</option>
           {regions.map((r) => (
             <option key={r} value={r}>{r}</option>
           ))}
@@ -157,7 +164,7 @@ export default function Explore() {
         </div>
       )}
       {!loading && filtered.length === 0 && (
-        <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 60 }}>No tours match.</div>
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 60 }}>{t('explore.noMatch')}</div>
       )}
     </div>
   );

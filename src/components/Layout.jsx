@@ -1,7 +1,40 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { supabase } from '../supabase';
+import { useLocale } from '../context/LocaleContext';
 
 export default function Layout({ children, user, onLogout }) {
   const loc = useLocation();
+  const { t, locale, setLocale, localeNames } = useLocale();
+  const [newsEmail, setNewsEmail] = useState('');
+  const [newsStatus, setNewsStatus] = useState(''); // 'success' | 'error' | ''
+
+  const handleNewsletter = async (e) => {
+    e.preventDefault();
+    if (!newsEmail.trim()) return;
+    setNewsStatus('');
+    const { error } = await supabase.from('newsletter_subscribers').insert({ email: newsEmail.trim() });
+    if (error) {
+      setNewsStatus('error');
+      return;
+    }
+    setNewsStatus('success');
+    setNewsEmail('');
+  };
+
+  const navLink = (to, label) => (
+    <Link
+      to={to}
+      style={{
+        fontSize: '0.9rem',
+        fontWeight: 500,
+        color: loc.pathname === to ? 'var(--gold)' : 'var(--text-muted)',
+        transition: 'var(--transition)',
+      }}
+    >
+      {label}
+    </Link>
+  );
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -30,41 +63,15 @@ export default function Layout({ children, user, onLogout }) {
         >
           Georgia<span style={{ color: 'var(--gold)' }}>Tours</span>
         </Link>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-          <Link
-            to="/"
-            style={{
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              color: loc.pathname === '/' ? 'var(--gold)' : 'var(--text-muted)',
-              transition: 'var(--transition)',
-            }}
-          >
-            Home
-          </Link>
-          <Link
-            to="/explore"
-            style={{
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              color: loc.pathname === '/explore' ? 'var(--gold)' : 'var(--text-muted)',
-              transition: 'var(--transition)',
-            }}
-          >
-            Explore
-          </Link>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          {navLink('/', t('nav.home'))}
+          {navLink('/explore', t('nav.explore'))}
+          {navLink('/map', t('nav.map'))}
+          {navLink('/stories', t('nav.stories'))}
+          {navLink('/contact', t('nav.contact'))}
           {user ? (
             <>
-              <Link
-                to="/bookings"
-                style={{
-                  fontSize: '0.9rem',
-                  fontWeight: 500,
-                  color: loc.pathname === '/bookings' ? 'var(--gold)' : 'var(--text-muted)',
-                }}
-              >
-                Bookings
-              </Link>
+              {navLink('/bookings', t('nav.bookings'))}
               <button
                 onClick={onLogout}
                 style={{
@@ -76,7 +83,7 @@ export default function Layout({ children, user, onLogout }) {
                   fontSize: '0.85rem',
                 }}
               >
-                Sign out
+                {t('nav.signOut')}
               </button>
             </>
           ) : (
@@ -91,9 +98,28 @@ export default function Layout({ children, user, onLogout }) {
                 fontWeight: 600,
               }}
             >
-              Sign in
+              {t('nav.signIn')}
             </Link>
           )}
+          <div style={{ display: 'flex', gap: 4 }}>
+            {Object.entries(localeNames).map(([lang, label]) => (
+              <button
+                key={lang}
+                onClick={() => setLocale(lang)}
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  border: '1px solid var(--border)',
+                  background: locale === lang ? 'var(--gold-soft)' : 'transparent',
+                  color: locale === lang ? 'var(--gold)' : 'var(--text-muted)',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </nav>
       </header>
       <main style={{ flex: 1 }}>{children}</main>
@@ -102,15 +128,50 @@ export default function Layout({ children, user, onLogout }) {
           marginTop: 'auto',
           padding: '32px 24px',
           borderTop: '1px solid var(--border)',
-          textAlign: 'center',
           color: 'var(--text-dim)',
           fontSize: '0.8rem',
         }}
       >
-        <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1rem', color: 'var(--text-muted)', marginBottom: 4 }}>
-          Explore Georgia
-        </p>
-        <p>GeorgiaTours · Est. 2024 · Same experience, reimagined.</p>
+        <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1rem', color: 'var(--text-muted)', marginBottom: 8 }}>
+            {t('footer.tagline')}
+          </p>
+          <form onSubmit={handleNewsletter} style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
+            <input
+              type="email"
+              value={newsEmail}
+              onChange={(e) => setNewsEmail(e.target.value)}
+              placeholder={t('newsletter.placeholder')}
+              required
+              style={{
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border)',
+                background: 'var(--surface)',
+                color: 'var(--text)',
+                fontSize: '0.9rem',
+                minWidth: 200,
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-sm)',
+                border: 'none',
+                background: 'var(--gold)',
+                color: 'var(--bg)',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+              }}
+            >
+              {t('newsletter.subscribe')}
+            </button>
+          </form>
+          {newsStatus === 'success' && <p style={{ color: 'var(--gold)', marginBottom: 8 }}>{t('newsletter.subscribed')}</p>}
+          {newsStatus === 'error' && <p style={{ color: '#f87171', marginBottom: 8 }}>Something went wrong. Try again.</p>}
+          <p>{t('footer.copyright')}</p>
+        </div>
       </footer>
     </div>
   );

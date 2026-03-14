@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
+import { useLocale } from '../context/LocaleContext';
 
 export default function Home() {
+  const { t } = useLocale();
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,6 +39,12 @@ export default function Home() {
 
   return (
     <div>
+      <Helmet>
+        <title>GeorgiaTours — Explore Georgia</title>
+        <meta name="description" content="Discover tours and experiences across Georgia. Van tours, local guides, and transfers." />
+        <meta property="og:title" content="GeorgiaTours — Explore Georgia" />
+        <meta property="og:description" content="Discover tours and experiences across Georgia." />
+      </Helmet>
       {/* Hero */}
       <section
         style={{
@@ -54,7 +63,7 @@ export default function Home() {
             marginBottom: 16,
           }}
         >
-          Explore Georgia
+          {t('home.tagline')}
         </p>
         <h1
           style={{
@@ -67,10 +76,10 @@ export default function Home() {
             margin: '0 auto 20px',
           }}
         >
-          Discover tours & experiences across Georgia
+          {t('home.title')}
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', maxWidth: 480, margin: '0 auto 36px' }}>
-          Van tours, local guides, and transfers. One platform — the same trusted app, reimagined for the web.
+          {t('home.subtitle')}
         </p>
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link
@@ -85,7 +94,7 @@ export default function Home() {
               transition: 'var(--transition)',
             }}
           >
-            Explore tours
+            {t('home.exploreTours')}
           </Link>
           <Link
             to="/explore"
@@ -99,7 +108,7 @@ export default function Home() {
               fontSize: '1rem',
             }}
           >
-            View all
+            {t('home.viewAll')}
           </Link>
         </div>
       </section>
@@ -115,7 +124,7 @@ export default function Home() {
             color: 'var(--text)',
           }}
         >
-          Featured experiences
+          {t('home.featured')}
         </h2>
         {loading ? (
           <div style={{ color: 'var(--text-muted)', padding: 40 }}>Loading…</div>

@@ -1,10 +1,21 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
+import { appUrl } from '../config';
+import { useLocale } from '../context/LocaleContext';
+
+function photoUrl(p) {
+  if (!p) return '';
+  if (typeof p === 'string') return p;
+  return p.url ?? p.base64 ?? '';
+}
 
 export default function Tour({ user }) {
   const { id } = useParams();
+  const { t } = useLocale();
   const [tour, setTour] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [photoIndex, setPhotoIndex] = useState(0);
 
@@ -26,20 +37,34 @@ export default function Tour({ user }) {
             ...data,
             photos: Array.isArray(photos) ? photos : [],
           });
+          if (data.provider_id) {
+            supabase
+              .from('reviews')
+              .select('rating, text, tourist_name, date, created_at')
+              .eq('provider_id', data.provider_id)
+              .order('created_at', { ascending: false })
+              .limit(10)
+              .then(({ data: rev }) => setReviews(rev || []));
+          }
         }
         setLoading(false);
       });
   }, [id]);
 
   if (loading) return <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>;
-  if (!tour) return <div style={{ padding: 80, textAlign: 'center' }}>Tour not found. <Link to="/explore">Back to Explore</Link></div>;
+  if (!tour) return <div style={{ padding: 80, textAlign: 'center' }}>{t('tour.notFound')} <Link to="/explore">{t('tour.backToExplore')}</Link></div>;
 
-  const mainPhoto = tour.photos?.[photoIndex]?.base64 || tour.photos?.[photoIndex];
+  const mainPhoto = photoUrl(tour.photos?.[photoIndex]);
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px 80px' }}>
+      <Helmet>
+        <title>{tour.name} — GeorgiaTours</title>
+        <meta name="description" content={tour.description || tour.desc || `${tour.region} · ${tour.duration} · ₾${tour.price}`} />
+        <meta property="og:title" content={tour.name} />
+      </Helmet>
       <Link to="/explore" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 24, display: 'inline-block' }}>
-        ← Back to Explore
+        ← {t('tour.backToExplore')}
       </Link>
 
       <div
@@ -76,7 +101,7 @@ export default function Tour({ user }) {
                   padding: 0,
                 }}
               >
-                <img src={p.base64 || p} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={photoUrl(p)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </button>
             ))}
           </div>
@@ -106,9 +131,17 @@ export default function Tour({ user }) {
       </p>
       <p style={{ color: 'var(--text)', lineHeight: 1.7, marginBottom: 24 }}>{tour.description || tour.desc}</p>
 
+      {tour.provider_id && (
+        <p style={{ marginBottom: 16 }}>
+          <Link to={`/provider/${tour.provider_id}`} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>
+            View guide profile →
+          </Link>
+        </p>
+      )}
+
       {user ? (
         <a
-          href={`https://your-app-url.com/explore?tour=${id}`}
+          href={`${appUrl}/explore?tour=${id}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -121,7 +154,7 @@ export default function Tour({ user }) {
             fontSize: '1rem',
           }}
         >
-          Book in app →
+          {t('tour.bookInApp')} →
         </a>
       ) : (
         <Link
@@ -136,8 +169,38 @@ export default function Tour({ user }) {
             fontSize: '1rem',
           }}
         >
-          Sign in to book
+          {t('tour.signInToBook')}
         </Link>
+      )}
+
+      {reviews.length > 0 && (
+        <section style={{ marginTop: 48, paddingTop: 24, borderTop: '1px solid var(--border)' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.25rem', marginBottom: 16 }}>{t('tour.reviews')}</h2>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {reviews.map((r, i) => (
+              <li
+                key={i}
+                style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: 16,
+                  marginBottom: 12,
+                }}
+              >
+                <span style={{ color: 'var(--gold)' }}>{'★'.repeat(r.rating || 0)}{'☆'.repeat(5 - (r.rating || 0))}</span>
+                {r.text && <p style={{ margin: '8px 0 0', color: 'var(--text)', fontSize: '0.95rem' }}>{r.text}</p>}
+                <p style={{ marginTop: 6, color: 'var(--text-muted)', fontSize: '0.8rem' }}>{r.tourist_name} · {r.date || new Date(r.created_at).toLocaleDateString()}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {!loading && reviews.length === 0 && tour.provider_id && (
+        <section style={{ marginTop: 48, paddingTop: 24, borderTop: '1px solid var(--border)' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.25rem', marginBottom: 8 }}>{t('tour.reviews')}</h2>
+          <p style={{ color: 'var(--text-muted)' }}>{t('tour.noReviews')}</p>
+        </section>
       )}
     </div>
   );
