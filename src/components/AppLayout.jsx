@@ -52,7 +52,7 @@ export default function AppLayout({ user, onLogout }) {
     { id: 'people', label: t('nav.adminGroupPeople'), icon: '🗺️', items: [{ to: '/app/admin-providers', label: t('nav.providers'), icon: '👥' }, { to: '/app/admin-tours', label: t('nav.tours'), icon: '🗺️' }] },
     { id: 'more', label: t('nav.adminGroupMore'), icon: '💬', items: [{ to: '/app/admin-approvals', label: t('nav.approvals'), icon: '✅' }, { to: '/app/messages', label: t('nav.messages'), icon: '💬' }] },
   ];
-  const [adminOpen, setAdminOpen] = useState({ overview: true, data: true, people: true, more: true });
+  const [adminOpen, setAdminOpen] = useState({ overview: true, data: false, people: false, more: false });
   const toggleAdminGroup = (id) => setAdminOpen((o) => ({ ...o, [id]: !o[id] }));
 
   const nav = isAdmin ? null : isProvider ? providerNav : touristNav;
@@ -96,27 +96,31 @@ export default function AppLayout({ user, onLogout }) {
                 <button
                   type="button"
                   onClick={() => toggleAdminGroup(group.id)}
+                  aria-expanded={adminOpen[group.id]}
                   style={{
                     width: '100%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '10px 12px',
-                    background: 'transparent',
+                    background: adminOpen[group.id] ? 'var(--gold-soft)' : 'transparent',
                     border: 'none',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.8rem',
+                    color: adminOpen[group.id] ? 'var(--gold)' : 'var(--text-muted)',
+                    fontSize: '0.85rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     borderRadius: 'var(--radius-sm)',
                     fontFamily: 'inherit',
+                    transition: 'background 0.15s, color 0.15s',
                   }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-hover)'; e.currentTarget.style.color = 'var(--text)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = adminOpen[group.id] ? 'var(--gold-soft)' : 'transparent'; e.currentTarget.style.color = adminOpen[group.id] ? 'var(--gold)' : 'var(--text-muted)'; }}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span>{group.icon}</span>
                     {group.label}
                   </span>
-                  <span style={{ transform: adminOpen[group.id] ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▾</span>
+                  <span style={{ transform: adminOpen[group.id] ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s', display: 'inline-block' }}>▾</span>
                 </button>
                 {adminOpen[group.id] && (
                   <div style={{ paddingLeft: 8, marginTop: 2 }}>

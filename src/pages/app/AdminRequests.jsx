@@ -27,7 +27,7 @@ export default function AdminRequests() {
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('nav.requests')}</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>All trip requests.</p>
 
-      <CollapsibleSection title={`Requests (${requests.length})`} icon="📋">
+      <CollapsibleSection title={`Requests (${requests.length})`} icon="📋" defaultOpen={false}>
         {requests.length === 0 ? (
           <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>No requests.</div>
         ) : (

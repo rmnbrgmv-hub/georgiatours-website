@@ -38,7 +38,7 @@ export default function AdminTours() {
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('nav.tours')}</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>All tours and services.</p>
 
-      <CollapsibleSection title={`Tours (${tours.length})`} icon="🗺️">
+      <CollapsibleSection title={`Tours (${tours.length})`} icon="🗺️" defaultOpen={false}>
         {tours.length === 0 ? (
           <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>No tours.</div>
         ) : (

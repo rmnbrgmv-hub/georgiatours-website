@@ -97,8 +97,18 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
       onClick={onClose}
     >
       <div
-        className="glass"
-        style={{ padding: 24, borderRadius: 'var(--radius)', maxWidth: 440, width: '100%', maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--border)' }}
+        style={{
+          padding: 24,
+          borderRadius: 'var(--radius)',
+          maxWidth: 440,
+          width: '100%',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          border: '1px solid var(--border)',
+          background: 'var(--surface)',
+          opacity: 1,
+          boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>

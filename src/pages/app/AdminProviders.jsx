@@ -35,7 +35,7 @@ export default function AdminProviders() {
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('nav.providers')}</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Guides and drivers.</p>
 
-      <CollapsibleSection title={`Providers (${providers.length})`} icon="👥">
+      <CollapsibleSection title={`Providers (${providers.length})`} icon="👥" defaultOpen={false}>
         {providers.length === 0 ? (
           <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>No providers.</div>
         ) : (
