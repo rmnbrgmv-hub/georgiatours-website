@@ -73,7 +73,6 @@ export default function Tour(props) {
     const payload = {
       tourist_id: user.id,
       tourist_name: shortName,
-      service_id: tour.id,
       service_name: tour.name,
       provider_id: providerId,
       provider_name: tour.provider || '',
