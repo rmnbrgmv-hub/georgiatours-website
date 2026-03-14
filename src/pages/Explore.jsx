@@ -1,8 +1,9 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocale } from '../context/LocaleContext';
 import { useServices } from '../hooks/useAppData';
+import TourCard from '../components/TourCard';
 
 export default function Explore() {
   const { t } = useLocale();
@@ -27,11 +28,6 @@ export default function Explore() {
   });
 
   const regions = [...new Set(tours.flatMap((tour) => [tour.region, tour.area]).filter(Boolean))].sort();
-
-  const getPhoto = (tour) => {
-    const p = tour.photos?.[0];
-    return (p && (p.base64 || p.url || p)) || null;
-  };
 
   return (
     <div style={{ padding: '40px 24px 80px', maxWidth: 1200, margin: '0 auto' }}>
@@ -112,49 +108,11 @@ export default function Explore() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
           {filtered.map((t) => (
-            <Link
+            <TourCard
               key={t.id}
-              to={inApp ? `/app/tour/${t.id}` : `/tour/${t.id}`}
-              style={{
-                display: 'block',
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius)',
-                overflow: 'hidden',
-                transition: 'var(--transition)',
-              }}
-            >
-              <div style={{ aspectRatio: '16/10', background: 'var(--bg-elevated)' }}>
-                {getPhoto(t) ? (
-                  <img src={getPhoto(t)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <span style={{ fontSize: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                    {t.emoji || '🗺️'}
-                  </span>
-                )}
-              </div>
-              <div style={{ padding: 20 }}>
-                <span
-                  style={{
-                    background: 'var(--gold-soft)',
-                    color: 'var(--gold)',
-                    padding: '2px 8px',
-                    borderRadius: 6,
-                    fontSize: '0.7rem',
-                    fontWeight: 600,
-                  }}
-                >
-                  {t.type === 'van' ? 'Van' : t.type === 'guide' ? 'Guide' : 'Transfer'}
-                </span>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.05rem', marginTop: 10, marginBottom: 6 }}>
-                  {t.name}
-                </h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: 12 }}>
-                  {t.region} · {t.duration} · ⭐ {t.rating || '—'}
-                </p>
-                <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.35rem', color: 'var(--gold)' }}>₾{t.price}</p>
-              </div>
-            </Link>
+              tour={t}
+              linkTo={inApp ? `/app/tour/${t.id}` : `/tour/${t.id}`}
+            />
           ))}
         </div>
       )}

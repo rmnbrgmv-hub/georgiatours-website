@@ -4,6 +4,7 @@ import { supabase } from '../../supabase';
 import { mapServiceRow } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
 import CreateTourModal from '../../components/CreateTourModal';
+import TourCard from '../../components/TourCard';
 
 export default function ProviderTours() {
   const { user } = useOutletContext();
@@ -49,22 +50,19 @@ export default function ProviderTours() {
       {tours.length === 0 ? (
         <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>No tours yet.</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
           {tours.map((s) => (
-            <div key={s.id} className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                <div>
-                  <span style={{ background: 'var(--gold-soft)', color: 'var(--gold)', padding: '4px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>{s.type}</span>
-                  <h3 style={{ fontWeight: 600, marginTop: 12, marginBottom: 6 }}>{s.name}</h3>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: 8 }}>{s.region} · {s.duration}</p>
-                  <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.25rem', color: 'var(--gold)' }}>₾{s.price}</p>
+            <TourCard
+              key={s.id}
+              tour={s}
+              linkTo={`/app/tour/${s.id}`}
+              actions={
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => { setEditTour(s); setShowCreate(true); }} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 500 }}>Edit</button>
+                  <Link to={`/app/tour/${s.id}`} style={{ display: 'inline-flex', alignItems: 'center', padding: '8px 14px', color: 'var(--gold)', fontSize: '0.9rem', fontWeight: 500 }}>View →</Link>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" onClick={() => { setEditTour(s); setShowCreate(true); }} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer' }}>Edit</button>
-                  <Link to={`/app/tour/${s.id}`} style={{ display: 'inline-block', padding: '6px 12px', color: 'var(--gold)', fontSize: '0.9rem' }}>View →</Link>
-                </div>
-              </div>
-            </div>
+              }
+            />
           ))}
         </div>
       )}
