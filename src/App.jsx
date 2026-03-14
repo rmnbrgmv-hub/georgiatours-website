@@ -14,6 +14,9 @@ import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Bookings from './pages/Bookings';
 import Provider from './pages/Provider';
+import Requests from './pages/Requests';
+import Chat from './pages/Chat';
+import Profile from './pages/Profile';
 import { supabase } from './supabase';
 
 const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
@@ -83,7 +86,10 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/provider/:id" element={<Provider />} />
               <Route path="/login" element={<Login onLogin={handleLogin} />} />
+              <Route path="/requests" element={<Requests user={user} />} />
               <Route path="/bookings" element={<Bookings user={user} />} />
+              <Route path="/chat" element={<Chat user={user} />} />
+              <Route path="/profile" element={<Profile user={user} />} />
             </Routes>
           </Layout>
           </BrowserRouter>

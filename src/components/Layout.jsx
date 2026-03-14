@@ -69,11 +69,12 @@ export default function Layout({ children, user, onLogout }) {
           {navLink('/', t('nav.home'))}
           {navLink('/explore', t('nav.explore'))}
           {navLink('/map', t('nav.map'))}
-          {navLink('/stories', t('nav.stories'))}
-          {navLink('/contact', t('nav.contact'))}
           {user ? (
             <>
+              {navLink('/requests', t('nav.requests'))}
               {navLink('/bookings', t('nav.bookings'))}
+              {navLink('/chat', t('nav.chat'))}
+              {navLink('/profile', t('nav.profile'))}
               <button
                 onClick={onLogout}
                 style={{
@@ -103,6 +104,8 @@ export default function Layout({ children, user, onLogout }) {
               {t('nav.signIn')}
             </Link>
           )}
+          {navLink('/stories', t('nav.stories'))}
+          {navLink('/contact', t('nav.contact'))}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               type="button"

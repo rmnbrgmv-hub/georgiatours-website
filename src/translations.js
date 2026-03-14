@@ -1,6 +1,6 @@
 export const translations = {
   en: {
-    nav: { home: 'Home', explore: 'Explore', map: 'Map', stories: 'Stories', contact: 'Contact', bookings: 'Bookings', signIn: 'Sign in', signOut: 'Sign out', language: 'Language' },
+    nav: { home: 'Home', explore: 'Explore', map: 'Map', stories: 'Stories', contact: 'Contact', bookings: 'Bookings', requests: 'Requests', chat: 'Chat', profile: 'Profile', signIn: 'Sign in', signOut: 'Sign out', language: 'Language' },
     home: {
       tagline: 'Explore Georgia',
       title: 'Discover tours & experiences across Georgia',
@@ -18,9 +18,12 @@ export const translations = {
     footer: { tagline: 'Explore Georgia', copyright: 'GeorgiaTours · Est. 2024 · Same experience, reimagined.' },
     newsletter: { label: 'Newsletter', placeholder: 'Your email', subscribe: 'Subscribe', subscribed: 'Subscribed! Thank you.' },
     provider: { tours: 'Tours by this guide', noTours: 'No tours listed.' },
+    requests: { title: 'My requests', subtitle: 'Trip requests and offers from providers.', newRequest: 'New request', noRequests: 'No requests yet.', postRequest: 'Post request', offers: 'Offers', acceptOffer: 'Accept offer' },
+    chat: { title: 'Chat', subtitle: 'Message your guides and drivers.', noPartners: 'No conversations yet.', placeholder: 'Type a message…', send: 'Send' },
+    profile: { title: 'Profile', subtitle: 'Your account and stats.', bookings: 'Bookings', completed: 'Completed', reviewsLeft: 'Reviews left', memberSince: 'Member since' },
   },
   ka: {
-    nav: { home: 'მთავარი', explore: 'ტურები', map: 'რუკა', stories: 'ისტორიები', contact: 'კონტაქტი', bookings: 'ჯავშნები', signIn: 'შესვლა', signOut: 'გასვლა', language: 'ენა' },
+    nav: { home: 'მთავარი', explore: 'ტურები', map: 'რუკა', stories: 'ისტორიები', contact: 'კონტაქტი', bookings: 'ჯავშნები', requests: 'მოთხოვნები', chat: 'შეტყობინებები', profile: 'პროფილი', signIn: 'შესვლა', signOut: 'გასვლა', language: 'ენა' },
     home: {
       tagline: 'გაეცანი საქართველოს',
       title: 'აღმოაჩინე ტურები და შთაბეჭდილებები საქართველოში',
@@ -38,9 +41,12 @@ export const translations = {
     footer: { tagline: 'გაეცანი საქართველოს', copyright: 'GeorgiaTours · 2024' },
     newsletter: { label: 'სიახლეები', placeholder: 'თქვენი იმეილი', subscribe: 'გამოწერა', subscribed: 'გამოწერილია. მადლობა!' },
     provider: { tours: 'ამ ჰიდის ტურები', noTours: 'ტურები არ არის.' },
+    requests: { title: 'ჩემი მოთხოვნები', subtitle: 'მოგზაურობის მოთხოვნები და შეთავაზებები.', newRequest: 'ახალი მოთხოვნა', noRequests: 'ჯერ მოთხოვნები არ არის.', postRequest: 'გამოქვეყნება', offers: 'შეთავაზებები', acceptOffer: 'შეთავაზების მიღება' },
+    chat: { title: 'შეტყობინებები', subtitle: 'დაუკავშირდი ჰიდებს და მძღოლებს.', noPartners: 'ჯერ საუბარი არ არის.', placeholder: 'შეიყვანეთ შეტყობინება…', send: 'გაგზავნა' },
+    profile: { title: 'პროფილი', subtitle: 'თქვენი ანგარიში.', bookings: 'ჯავშნები', completed: 'დასრულებული', reviewsLeft: 'შეფასებები', memberSince: 'წევრი' },
   },
   ru: {
-    nav: { home: 'Главная', explore: 'Туры', map: 'Карта', stories: 'Истории', contact: 'Контакты', bookings: 'Брони', signIn: 'Войти', signOut: 'Выйти', language: 'Язык' },
+    nav: { home: 'Главная', explore: 'Туры', map: 'Карта', stories: 'Истории', contact: 'Контакты', bookings: 'Брони', requests: 'Заявки', chat: 'Чат', profile: 'Профиль', signIn: 'Войти', signOut: 'Выйти', language: 'Язык' },
     home: {
       tagline: 'Открой Грузию',
       title: 'Туры и впечатления по Грузии',
@@ -58,9 +64,12 @@ export const translations = {
     footer: { tagline: 'Открой Грузию', copyright: 'GeorgiaTours · 2024' },
     newsletter: { label: 'Рассылка', placeholder: 'Ваш email', subscribe: 'Подписаться', subscribed: 'Подписка оформлена. Спасибо!' },
     provider: { tours: 'Туры этого гида', noTours: 'Туры не указаны.' },
+    requests: { title: 'Мои заявки', subtitle: 'Заявки на поездки и предложения от гидов.', newRequest: 'Новая заявка', noRequests: 'Пока нет заявок.', postRequest: 'Опубликовать', offers: 'Предложения', acceptOffer: 'Принять' },
+    chat: { title: 'Чат', subtitle: 'Переписка с гидами и водителями.', noPartners: 'Пока нет диалогов.', placeholder: 'Введите сообщение…', send: 'Отправить' },
+    profile: { title: 'Профиль', subtitle: 'Ваш аккаунт и статистика.', bookings: 'Брони', completed: 'Завершено', reviewsLeft: 'Отзывы', memberSince: 'С нами с' },
   },
   ar: {
-    nav: { home: 'الرئيسية', explore: 'الجولات', map: 'الخريطة', stories: 'قصص', contact: 'اتصل', bookings: 'الحجوزات', signIn: 'تسجيل الدخول', signOut: 'خروج', language: 'اللغة' },
+    nav: { home: 'الرئيسية', explore: 'الجولات', map: 'الخريطة', stories: 'قصص', contact: 'اتصل', bookings: 'الحجوزات', requests: 'الطلبات', chat: 'المحادثة', profile: 'الملف', signIn: 'تسجيل الدخول', signOut: 'خروج', language: 'اللغة' },
     home: {
       tagline: 'اكتشف جورجيا',
       title: 'جولات وتجارب في جورجيا',
@@ -78,6 +87,9 @@ export const translations = {
     footer: { tagline: 'اكتشف جورجيا', copyright: 'GeorgiaTours · 2024' },
     newsletter: { label: 'النشرة', placeholder: 'بريدك', subscribe: 'اشترك', subscribed: 'تم الاشتراك. شكراً!' },
     provider: { tours: 'جولات هذا المرشد', noTours: 'لا جولات.' },
+    requests: { title: 'طلباتي', subtitle: 'طلبات الرحلات وعروض المرشدين.', newRequest: 'طلب جديد', noRequests: 'لا طلبات بعد.', postRequest: 'نشر', offers: 'عروض', acceptOffer: 'قبول العرض' },
+    chat: { title: 'المحادثة', subtitle: 'مراسلة المرشدين والسائقين.', noPartners: 'لا محادثات بعد.', placeholder: 'اكتب رسالة…', send: 'إرسال' },
+    profile: { title: 'الملف', subtitle: 'حسابك وإحصائياتك.', bookings: 'الحجوزات', completed: 'مكتمل', reviewsLeft: 'المراجعات', memberSince: 'عضو منذ' },
   },
 };
 
