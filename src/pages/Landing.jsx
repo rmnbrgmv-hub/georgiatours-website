@@ -11,6 +11,18 @@ export default function Landing() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'var(--bg)', position: 'relative', overflow: 'hidden' }}>
+      {/* Theme & language — fixed top-right so always visible */}
+      <div style={{ position: 'fixed', top: 24, right: 24, display: 'flex', gap: 12, alignItems: 'center', zIndex: 10 }}>
+        <button type="button" onClick={toggleTheme} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+        <select value={locale} onChange={(e) => setLocale(e.target.value)} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}>
+          {Object.entries(localeNames).map(([code, label]) => (
+            <option key={code} value={code}>{label}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Collage layer: wave tile grid with edge fades */}
       <div className="landing-hero-collage" aria-hidden>
         <div className="landing-hero-collage-inner">
@@ -28,16 +40,6 @@ export default function Landing() {
 
       {/* Main greeting (above collage) */}
       <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
-        <div style={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 12, alignItems: 'center' }}>
-          <button type="button" onClick={toggleTheme} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
-          <select value={locale} onChange={(e) => setLocale(e.target.value)} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}>
-            {Object.entries(localeNames).map(([code, label]) => (
-              <option key={code} value={code}>{label}</option>
-            ))}
-          </select>
-        </div>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(2rem, 5vw, 3rem)', marginBottom: 8, color: 'var(--text)', textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
           Georgia<span style={{ color: 'var(--gold)' }}>Tours</span>
         </h1>

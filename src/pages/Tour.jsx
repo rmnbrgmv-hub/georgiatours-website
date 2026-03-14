@@ -2,7 +2,6 @@ import { useParams, Link, useOutletContext, useLocation } from 'react-router-dom
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
-import { appUrl } from '../config';
 import { useLocale } from '../context/LocaleContext';
 import { mapServiceRow } from '../hooks/useAppData';
 
@@ -141,10 +140,8 @@ export default function Tour(props) {
       )}
 
       {user ? (
-        <a
-          href={`${appUrl}/explore?tour=${id}`}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          to={`/app/explore${id ? `?tour=${id}` : ''}`}
           style={{
             display: 'inline-block',
             background: 'var(--gold)',
@@ -156,7 +153,7 @@ export default function Tour(props) {
           }}
         >
           {t('tour.bookInApp')} →
-        </a>
+        </Link>
       ) : (
         <Link
           to="/login"
