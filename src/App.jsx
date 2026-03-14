@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { LocaleProvider } from './context/LocaleContext';
@@ -14,6 +14,9 @@ import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Bookings from './pages/Bookings';
 import Provider from './pages/Provider';
+import { supabase } from './supabase';
+
+const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
 
 export default function App() {
   const [user, setUser] = useState(() => {
@@ -25,6 +28,30 @@ export default function App() {
     }
   });
 
+  useEffect(() => {
+    if (!useSupabaseAuth) return;
+    const syncUser = async (authUser) => {
+      if (!authUser?.email) {
+        setUser(null);
+        try { sessionStorage.removeItem('georgiatours-user'); } catch (_) {}
+        return;
+      }
+      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color').eq('email', authUser.email).maybeSingle();
+      const u = data
+        ? { id: data.id, name: data.name, email: data.email, role: data.role, avatar: data.avatar, color: data.color, type: data.provider_type }
+        : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist' };
+      setUser(u);
+      try { sessionStorage.setItem('georgiatours-user', JSON.stringify(u)); } catch (_) {}
+    };
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) syncUser(session.user);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      syncUser(session?.user ?? null);
+    });
+    return () => subscription?.unsubscribe();
+  }, []);
+
   const handleLogin = (u) => {
     setUser(u);
     try {
@@ -33,6 +60,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    if (useSupabaseAuth) supabase.auth.signOut();
     setUser(null);
     try {
       sessionStorage.removeItem('georgiatours-user');

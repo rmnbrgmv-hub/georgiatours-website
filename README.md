@@ -27,12 +27,22 @@ Run `supabase/migrations/001_website_tables.sql` in the Supabase SQL Editor to c
 
 RLS allows anonymous `INSERT` only. The `reviews` table is from the main app; ensure `services` has `provider_id` and `reviews` exists for tour reviews to show.
 
+## Same database as the app
+
+Use the **same Supabase project** as the GeorgiaTours app so that:
+
+- **Users** — same accounts; login on the website uses the same `users` table.
+- **Tours** — Explore and Tour pages read from the same `services` table.
+- **Bookings** — Bookings page shows the same `bookings` for the logged-in user.
+
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env` to your app’s Supabase project (same values as in the app). If you leave them unset, the code uses the same default project as the app.
+
 ## Setup
 
 ```bash
 npm install
 cp .env.example .env
-# Edit .env: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, optional VITE_APP_URL, VITE_USE_SUPABASE_AUTH
+# Edit .env: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (same as app), optional VITE_APP_URL, VITE_USE_SUPABASE_AUTH
 npm run dev
 ```
 
