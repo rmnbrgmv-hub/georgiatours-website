@@ -2,10 +2,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Layout({ children, user, onLogout }) {
   const loc = useLocation();
   const { t, locale, setLocale, localeNames } = useLocale();
+  const { theme, toggleTheme } = useTheme();
   const [newsEmail, setNewsEmail] = useState('');
   const [newsStatus, setNewsStatus] = useState(''); // 'success' | 'error' | ''
 
@@ -101,24 +103,46 @@ export default function Layout({ children, user, onLogout }) {
               {t('nav.signIn')}
             </Link>
           )}
-          <div style={{ display: 'flex', gap: 4 }}>
-            {Object.entries(localeNames).map(([lang, label]) => (
-              <button
-                key={lang}
-                onClick={() => setLocale(lang)}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: 6,
-                  border: '1px solid var(--border)',
-                  background: locale === lang ? 'var(--gold-soft)' : 'transparent',
-                  color: locale === lang ? 'var(--gold)' : 'var(--text-muted)',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                }}
-              >
-                {label}
-              </button>
-            ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
+              aria-label="Toggle theme"
+              style={{
+                padding: '8px 10px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border)',
+                background: 'var(--surface-hover)',
+                color: 'var(--text)',
+                fontSize: '1.1rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {Object.entries(localeNames).map(([lang, label]) => (
+                <button
+                  key={lang}
+                  onClick={() => setLocale(lang)}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border)',
+                    background: locale === lang ? 'var(--gold-soft)' : 'transparent',
+                    color: locale === lang ? 'var(--gold)' : 'var(--text-muted)',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </nav>
       </header>

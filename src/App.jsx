@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { LocaleProvider } from './context/LocaleContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
@@ -40,8 +41,9 @@ export default function App() {
 
   return (
     <HelmetProvider>
-      <LocaleProvider>
-        <BrowserRouter>
+      <ThemeProvider>
+        <LocaleProvider>
+          <BrowserRouter>
           <Layout user={user} onLogout={handleLogout}>
             <Routes>
               <Route path="/" element={<Home />} />
@@ -56,8 +58,9 @@ export default function App() {
               <Route path="/bookings" element={<Bookings user={user} />} />
             </Routes>
           </Layout>
-        </BrowserRouter>
-      </LocaleProvider>
+          </BrowserRouter>
+        </LocaleProvider>
+      </ThemeProvider>
     </HelmetProvider>
   );
 }
