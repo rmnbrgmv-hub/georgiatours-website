@@ -81,4 +81,4 @@ export const translations = {
   },
 };
 
-export const localeNames = { en: 'EN', ka: 'ქართ', ru: 'RU', ar: 'العربية' };
+export const localeNames = { en: 'En', ka: 'ქართ', ru: 'Ru', ar: 'العربية' };
