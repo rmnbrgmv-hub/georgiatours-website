@@ -11,12 +11,23 @@ export default function AdminTours() {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const refetch = () => {
+    supabase.from('services').select('*').then(({ data }) => {
+      setTours((data || []).map(mapServiceRow));
+    });
+  };
+
   useEffect(() => {
     supabase.from('services').select('*').then(({ data }) => {
       setTours((data || []).map(mapServiceRow));
       setLoading(false);
     });
   }, []);
+
+  const setSuspended = async (tourId, suspended) => {
+    const { error } = await supabase.from('services').update({ suspended: !!suspended }).eq('id', tourId);
+    if (!error) refetch();
+  };
 
   if (!user) return null;
   if (user.role !== 'admin') return <Navigate to="/app" replace />;
@@ -35,11 +46,12 @@ export default function AdminTours() {
             {tours.map((s) => (
               <div key={s.id} className="glass" style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
                 <div>
-                  <div style={{ fontWeight: 600 }}>{s.name}</div>
+                  <div style={{ fontWeight: 600, opacity: s.suspended ? 0.6 : 1 }}>{s.name}{s.suspended ? ' (suspended)' : ''}</div>
                   <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{s.provider} · {s.region} · {s.type}</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ color: 'var(--gold)' }}>₾{s.price}</span>
+                  <button type="button" onClick={() => setSuspended(s.id, !s.suspended)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: s.suspended ? 'var(--cyan-soft)' : 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer' }}>{s.suspended ? 'Resume' : 'Suspend'}</button>
                   <Link to={`/app/tour/${s.id}`} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>View →</Link>
                 </div>
               </div>

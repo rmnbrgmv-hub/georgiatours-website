@@ -28,27 +28,50 @@ export default function Chat() {
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
-      const { data: bookingData } = await supabase.from('bookings').select('provider_id, provider_name').eq('tourist_id', user.id);
-      const ids = [...new Set((bookingData || []).map((b) => b.provider_id).filter(Boolean))];
-      if (ids.length === 0) {
-        setLoading(false);
-        return;
+      if (user.role === 'provider') {
+        const { data: bookingData } = await supabase.from('bookings').select('tourist_id, tourist_name').eq('provider_id', user.id);
+        const ids = [...new Set((bookingData || []).map((b) => b.tourist_id).filter(Boolean))];
+        if (ids.length === 0) {
+          setPartners([]);
+          setLoading(false);
+          return;
+        }
+        const { data: users } = await supabase.from('users').select('id, name, avatar, color').in('id', ids);
+        const byId = {};
+        (users || []).forEach((u) => { byId[u.id] = u; });
+        const list = (bookingData || [])
+          .filter((b, i, arr) => arr.findIndex((x) => x.tourist_id === b.tourist_id) === i)
+          .map((b) => ({
+            id: b.tourist_id,
+            name: byId[b.tourist_id]?.name || b.tourist_name || 'Tourist',
+            avatar: byId[b.tourist_id]?.avatar,
+            color: byId[b.tourist_id]?.color || 'var(--gold)',
+          }));
+        setPartners(list);
+      } else {
+        const { data: bookingData } = await supabase.from('bookings').select('provider_id, provider_name').eq('tourist_id', user.id);
+        const ids = [...new Set((bookingData || []).map((b) => b.provider_id).filter(Boolean))];
+        if (ids.length === 0) {
+          setPartners([]);
+          setLoading(false);
+          return;
+        }
+        const { data: users } = await supabase.from('users').select('id, name, avatar, color').in('id', ids);
+        const byId = {};
+        (users || []).forEach((u) => { byId[u.id] = u; });
+        const list = (bookingData || [])
+          .filter((b, i, arr) => arr.findIndex((x) => x.provider_id === b.provider_id) === i)
+          .map((b) => ({
+            id: b.provider_id,
+            name: byId[b.provider_id]?.name || b.provider_name || 'Provider',
+            avatar: byId[b.provider_id]?.avatar,
+            color: byId[b.provider_id]?.color || 'var(--gold)',
+          }));
+        setPartners(list);
       }
-      const { data: users } = await supabase.from('users').select('id, name, avatar, color').in('id', ids);
-      const byId = {};
-      (users || []).forEach((u) => { byId[u.id] = u; });
-      const list = (bookingData || [])
-        .filter((b, i, arr) => arr.findIndex((x) => x.provider_id === b.provider_id) === i)
-        .map((b) => ({
-          id: b.provider_id,
-          name: byId[b.provider_id]?.name || b.provider_name || 'Provider',
-          avatar: byId[b.provider_id]?.avatar,
-          color: byId[b.provider_id]?.color || 'var(--gold)',
-        }));
-      setPartners(list);
       setLoading(false);
     })();
-  }, [user?.id]);
+  }, [user?.id, user?.role]);
 
   useEffect(() => {
     if (!user?.id || !selected?.id) return;

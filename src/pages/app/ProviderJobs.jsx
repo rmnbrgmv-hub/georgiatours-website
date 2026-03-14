@@ -30,6 +30,10 @@ export default function ProviderJobs() {
     await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', id);
     setJobs((j) => j.map((x) => (x.id === id ? { ...x, status: 'cancelled' } : x)));
   };
+  const startJob = async (id) => {
+    await supabase.from('bookings').update({ status: 'active' }).eq('id', id);
+    setJobs((j) => j.map((x) => (x.id === id ? { ...x, status: 'active' } : x)));
+  };
   const markDone = async (id) => {
     await supabase.from('bookings').update({ status: 'provider_done' }).eq('id', id);
     setJobs((j) => j.map((x) => (x.id === id ? { ...x, status: 'provider_done' } : x)));
@@ -69,7 +73,10 @@ export default function ProviderJobs() {
                     <button type="button" onClick={() => decline(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer' }}>Decline</button>
                   </>
                 )}
-                {['confirmed', 'active'].includes(j.status) && (
+                {j.status === 'confirmed' && (
+                  <button type="button" onClick={() => startJob(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Start job</button>
+                )}
+                {j.status === 'active' && (
                   <button type="button" onClick={() => markDone(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, cursor: 'pointer' }}>Mark done</button>
                 )}
                 {j.status === 'provider_done' && (

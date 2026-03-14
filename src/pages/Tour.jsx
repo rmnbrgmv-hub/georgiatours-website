@@ -1,4 +1,4 @@
-import { useParams, Link, useOutletContext, useLocation } from 'react-router-dom';
+import { useParams, Link, useOutletContext, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
@@ -19,10 +19,13 @@ export default function Tour(props) {
   const inApp = location.pathname.startsWith('/app');
   const explorePath = inApp ? '/app/explore' : '/explore';
   const { t } = useLocale();
+  const navigate = useNavigate();
   const [tour, setTour] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [booking, setBooking] = useState(false);
+  const [bookError, setBookError] = useState('');
 
   useEffect(() => {
     if (!id) return;
@@ -55,6 +58,38 @@ export default function Tour(props) {
 
   const mainPhoto = photoUrl(tour.photos?.[photoIndex]);
   const description = tour.desc ?? tour.description;
+
+  const handleBook = async () => {
+    if (!user?.id || booking) return;
+    const providerId = tour.providerId ?? tour.provider_id;
+    if (!providerId) {
+      setBookError('Provider not set for this tour.');
+      return;
+    }
+    setBookError('');
+    setBooking(true);
+    const parts = (user.name || '').trim().split(/\s+/);
+    const shortName = parts.length > 1 ? parts[0] + ' ' + parts[parts.length - 1][0] + '.' : (parts[0] || 'Tourist');
+    const payload = {
+      tourist_id: user.id,
+      tourist_name: shortName,
+      service_id: tour.id,
+      service_name: tour.name,
+      provider_id: providerId,
+      provider_name: tour.provider || '',
+      date: 'TBD',
+      amount: tour.price ?? 0,
+      status: 'confirmed',
+      reviewed: false,
+    };
+    const { error } = await supabase.from('bookings').insert(payload);
+    setBooking(false);
+    if (error) {
+      setBookError(error.message || 'Booking failed');
+      return;
+    }
+    navigate('/app/bookings');
+  };
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px 80px' }}>
@@ -140,20 +175,47 @@ export default function Tour(props) {
       )}
 
       {user ? (
-        <Link
-          to={`/app/explore${id ? `?tour=${id}` : ''}`}
-          style={{
-            display: 'inline-block',
-            background: 'var(--gold)',
-            color: 'var(--bg)',
-            padding: '14px 28px',
-            borderRadius: 'var(--radius-sm)',
-            fontWeight: 600,
-            fontSize: '1rem',
-          }}
-        >
-          {t('tour.bookInApp')} →
-        </Link>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {user.role === 'tourist' && (
+            <>
+              <button
+                type="button"
+                onClick={handleBook}
+                disabled={booking}
+                style={{
+                  display: 'inline-block',
+                  background: 'var(--gold)',
+                  color: 'var(--bg)',
+                  padding: '14px 28px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  cursor: booking ? 'wait' : 'pointer',
+                }}
+              >
+                {booking ? 'Booking…' : t('tour.bookInApp')}
+              </button>
+              {bookError && <p style={{ color: '#f87171', fontSize: '0.9rem' }}>{bookError}</p>}
+            </>
+          )}
+          {user.role !== 'tourist' && (
+            <Link
+              to={`/app/explore${id ? `?tour=${id}` : ''}`}
+              style={{
+                display: 'inline-block',
+                background: 'var(--gold)',
+                color: 'var(--bg)',
+                padding: '14px 28px',
+                borderRadius: 'var(--radius-sm)',
+                fontWeight: 600,
+                fontSize: '1rem',
+              }}
+            >
+              {t('tour.bookInApp')} →
+            </Link>
+          )}
+        </div>
       ) : (
         <Link
           to="/login"

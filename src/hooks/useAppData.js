@@ -7,6 +7,32 @@ import { supabase } from '../supabase';
 
 // ─── Row mappers (DB → app shape) ─────────────────────────────────────────────
 
+/** Build DB row for services insert/update (matches app toServicesRow). */
+export function toServicesRow(tour, user) {
+  const providerName = user ? user.name : tour.provider;
+  const photosArr = Array.isArray(tour.photos) ? tour.photos : [];
+  return {
+    name: tour.name,
+    provider_name: providerName,
+    provider_id: user?.id ?? tour.providerId,
+    type: tour.type,
+    duration: tour.duration || '',
+    price: Number(tour.price) || 0,
+    rating: tour.rating ?? 0,
+    reviews: tour.reviews ?? 0,
+    tags: Array.isArray(tour.tags) ? tour.tags : [],
+    emoji: tour.emoji ?? '🏛️',
+    description: tour.desc ?? tour.description ?? '',
+    area: tour.area ?? tour.region ?? 'Tbilisi',
+    region: tour.region ?? 'Tbilisi',
+    available: tour.available ?? [],
+    max_seats: Number(tour.maxSeats) ?? 8,
+    booked_seats: tour.bookedSeats ?? 0,
+    total_bookings: tour.total_bookings ?? 0,
+    photos: photosArr.length ? JSON.stringify(photosArr) : null,
+  };
+}
+
 export function mapServiceRow(row) {
   let photos = [];
   try {

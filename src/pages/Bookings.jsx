@@ -39,6 +39,11 @@ export default function Bookings() {
     if (!error) setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'tourist_done' } : b)));
   };
 
+  const handleConfirmCompletion = async (bookingId) => {
+    const { error } = await supabase.from('bookings').update({ status: 'completed' }).eq('id', bookingId);
+    if (!error) setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'completed' } : b)));
+  };
+
   if (!user) {
     return (
       <div style={{ padding: 80, textAlign: 'center' }}>
@@ -102,6 +107,15 @@ export default function Bookings() {
                     style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.85rem', cursor: 'pointer' }}
                   >
                     Mark complete
+                  </button>
+                )}
+                {b.status === 'provider_done' && (
+                  <button
+                    type="button"
+                    onClick={() => handleConfirmCompletion(b.id)}
+                    style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Confirm completion
                   </button>
                 )}
               </div>

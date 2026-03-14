@@ -94,10 +94,12 @@ export default function Requests() {
       status: 'confirmed',
       reviewed: false,
     };
-    await supabase.from('bookings').insert(bookingPayload);
+    const { error: bookErr } = await supabase.from('bookings').insert(bookingPayload);
+    if (bookErr) return;
     await supabase.from('offers').update({ status: 'accepted' }).eq('id', offer.id);
     await supabase.from('offers').update({ status: 'declined' }).eq('request_id', requestId).neq('id', offer.id);
     await supabase.from('requests').update({ status: 'booked' }).eq('id', requestId);
+    refetchRequests();
     setOffersByRequestId((prev) => ({ ...prev, [requestId]: (prev[requestId] || []).map((o) => (o.id === offer.id ? { ...o, status: 'accepted' } : { ...o, status: 'declined' })) }));
   };
 

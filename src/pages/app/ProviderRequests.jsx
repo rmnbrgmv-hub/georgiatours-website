@@ -34,7 +34,11 @@ export default function ProviderRequests() {
     const { error } = await supabase.from('offers').insert({
       request_id: offerModal.id,
       provider_id: user.id,
+      provider_name: user.name || '',
+      provider_avatar: user.avatar ?? null,
+      provider_color: user.color ?? null,
       price: Number(offerForm.price) || 0,
+      duration: offerForm.duration || null,
       description: offerForm.msg || '',
       status: 'pending',
     });
