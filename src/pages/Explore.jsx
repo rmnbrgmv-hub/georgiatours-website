@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocale } from '../context/LocaleContext';
@@ -6,6 +6,8 @@ import { useServices } from '../hooks/useAppData';
 
 export default function Explore() {
   const { t } = useLocale();
+  const location = useLocation();
+  const inApp = location.pathname.startsWith('/app');
   const { services, loading } = useServices();
   const [typeFilter, setTypeFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('');
@@ -112,7 +114,7 @@ export default function Explore() {
           {filtered.map((t) => (
             <Link
               key={t.id}
-              to={`/tour/${t.id}`}
+              to={inApp ? `/app/tour/${t.id}` : `/tour/${t.id}`}
               style={{
                 display: 'block',
                 background: 'var(--surface)',

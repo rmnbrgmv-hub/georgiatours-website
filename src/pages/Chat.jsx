@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 
@@ -10,7 +11,8 @@ function fmtTime(ts) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
-export default function Chat({ user }) {
+export default function Chat() {
+  const { user } = useOutletContext();
   const { t } = useLocale();
   const [partners, setPartners] = useState([]);
   const [selected, setSelected] = useState(null);

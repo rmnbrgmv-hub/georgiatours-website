@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { useRequests } from '../hooks/useAppData';
 
-export default function Requests({ user }) {
+export default function Requests() {
+  const { user } = useOutletContext();
   const { t } = useLocale();
   const { requests: dbRequests, loading: requestsLoading, refetch: refetchRequests } = useRequests();
   const [offersByRequestId, setOffersByRequestId] = useState({});

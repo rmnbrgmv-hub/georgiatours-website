@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapBookingRow } from '../hooks/useAppData';
 
-export default function Profile({ user }) {
+export default function Profile() {
+  const { user } = useOutletContext();
   const { t } = useLocale();
   const [bookings, setBookings] = useState([]);
 

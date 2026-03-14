@@ -1,26 +1,41 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { LocaleProvider } from './context/LocaleContext';
 import { ThemeProvider } from './context/ThemeContext';
-import Layout from './components/Layout';
-import Home from './pages/Home';
-import Explore from './pages/Explore';
-import Tour from './pages/Tour';
-import Map from './pages/Map';
-import Stories from './pages/Stories';
-import Story from './pages/Story';
-import Contact from './pages/Contact';
-import Login from './pages/Login';
-import Bookings from './pages/Bookings';
-import Provider from './pages/Provider';
-import Requests from './pages/Requests';
-import Chat from './pages/Chat';
-import Profile from './pages/Profile';
 import { supabase } from './supabase';
 import { mapUserRow } from './hooks/useAppData';
 
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+import AppLayout from './components/AppLayout';
+import AppRedirect from './components/AppRedirect';
+
+import Explore from './pages/Explore';
+import Map from './pages/Map';
+import Requests from './pages/Requests';
+import Bookings from './pages/Bookings';
+import Chat from './pages/Chat';
+import Profile from './pages/Profile';
+import Tour from './pages/Tour';
+
+import ProviderDashboard from './pages/app/ProviderDashboard';
+import ProviderTours from './pages/app/ProviderTours';
+import ProviderJobs from './pages/app/ProviderJobs';
+import RequestsSwitch from './components/RequestsSwitch';
+import AdminOverview from './pages/app/AdminOverview';
+import AdminBookings from './pages/app/AdminBookings';
+import AdminRequests from './pages/app/AdminRequests';
+import AdminProviders from './pages/app/AdminProviders';
+import AdminTours from './pages/app/AdminTours';
+import AdminApprovals from './pages/app/AdminApprovals';
+import AdminMessages from './pages/app/AdminMessages';
+
 const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
+
+function AppRedirectWithUser({ user }) {
+  return <AppRedirect user={user} />;
+}
 
 export default function App() {
   const [user, setUser] = useState(() => {
@@ -56,17 +71,13 @@ export default function App() {
 
   const handleLogin = (u) => {
     setUser(u);
-    try {
-      sessionStorage.setItem('georgiatours-user', JSON.stringify(u));
-    } catch (_) {}
+    try { sessionStorage.setItem('georgiatours-user', JSON.stringify(u)); } catch (_) {}
   };
 
   const handleLogout = () => {
     if (useSupabaseAuth) supabase.auth.signOut();
     setUser(null);
-    try {
-      sessionStorage.removeItem('georgiatours-user');
-    } catch (_) {}
+    try { sessionStorage.removeItem('georgiatours-user'); } catch (_) {}
   };
 
   return (
@@ -74,23 +85,34 @@ export default function App() {
       <ThemeProvider>
         <LocaleProvider>
           <BrowserRouter>
-          <Layout user={user} onLogout={handleLogout}>
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/explore" element={<Explore />} />
+              <Route path="/" element={user ? <Navigate to="/app" replace /> : <Landing />} />
+              <Route path="/login" element={user ? <Navigate to="/app" replace /> : <Login onLogin={handleLogin} />} />
               <Route path="/tour/:id" element={<Tour user={user} />} />
-              <Route path="/map" element={<Map />} />
-              <Route path="/stories" element={<Stories />} />
-              <Route path="/stories/:slug" element={<Story />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/provider/:id" element={<Provider />} />
-              <Route path="/login" element={<Login onLogin={handleLogin} />} />
-              <Route path="/requests" element={<Requests user={user} />} />
-              <Route path="/bookings" element={<Bookings user={user} />} />
-              <Route path="/chat" element={<Chat user={user} />} />
-              <Route path="/profile" element={<Profile user={user} />} />
+
+              <Route path="/app" element={user ? <AppLayout user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />}>
+                <Route index element={<AppRedirectWithUser user={user} />} />
+                <Route path="explore" element={<Explore />} />
+                <Route path="map" element={<Map />} />
+                <Route path="requests" element={<RequestsSwitch />} />
+                <Route path="bookings" element={<Bookings />} />
+                <Route path="chat" element={<Chat />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="tour/:id" element={<Tour />} />
+                <Route path="dashboard" element={<ProviderDashboard />} />
+                <Route path="tours" element={<ProviderTours />} />
+                <Route path="jobs" element={<ProviderJobs />} />
+                <Route path="overview" element={<AdminOverview />} />
+                <Route path="admin-bookings" element={<AdminBookings />} />
+                <Route path="admin-requests" element={<AdminRequests />} />
+                <Route path="admin-providers" element={<AdminProviders />} />
+                <Route path="admin-tours" element={<AdminTours />} />
+                <Route path="admin-approvals" element={<AdminApprovals />} />
+                <Route path="messages" element={<AdminMessages />} />
+              </Route>
+
+              <Route path="*" element={<Navigate to={user ? '/app' : '/'} replace />} />
             </Routes>
-          </Layout>
           </BrowserRouter>
         </LocaleProvider>
       </ThemeProvider>

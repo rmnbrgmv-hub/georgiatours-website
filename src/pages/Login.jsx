@@ -25,7 +25,7 @@ export default function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/explore';
+  const redirect = searchParams.get('redirect') || '/app';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

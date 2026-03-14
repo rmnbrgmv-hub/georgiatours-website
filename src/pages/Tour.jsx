@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useOutletContext, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
@@ -12,8 +12,13 @@ function photoUrl(p) {
   return p.url ?? p.base64 ?? '';
 }
 
-export default function Tour({ user }) {
+export default function Tour(props) {
+  const outlet = useOutletContext?.();
+  const user = outlet?.user ?? props?.user;
   const { id } = useParams();
+  const location = useLocation();
+  const inApp = location.pathname.startsWith('/app');
+  const explorePath = inApp ? '/app/explore' : '/explore';
   const { t } = useLocale();
   const [tour, setTour] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -47,7 +52,7 @@ export default function Tour({ user }) {
   }, [id]);
 
   if (loading) return <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>;
-  if (!tour) return <div style={{ padding: 80, textAlign: 'center' }}>{t('tour.notFound')} <Link to="/explore">{t('tour.backToExplore')}</Link></div>;
+  if (!tour) return <div style={{ padding: 80, textAlign: 'center' }}>{t('tour.notFound')} <Link to={explorePath}>{t('tour.backToExplore')}</Link></div>;
 
   const mainPhoto = photoUrl(tour.photos?.[photoIndex]);
   const description = tour.desc ?? tour.description;
@@ -59,7 +64,7 @@ export default function Tour({ user }) {
         <meta name="description" content={description || `${tour.region} · ${tour.duration} · ₾${tour.price}`} />
         <meta property="og:title" content={tour.name} />
       </Helmet>
-      <Link to="/explore" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 24, display: 'inline-block' }}>
+      <Link to={explorePath} style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 24, display: 'inline-block' }}>
         ← {t('tour.backToExplore')}
       </Link>
 

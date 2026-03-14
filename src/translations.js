@@ -1,6 +1,6 @@
 export const translations = {
   en: {
-    nav: { home: 'Home', explore: 'Explore', map: 'Map', stories: 'Stories', contact: 'Contact', bookings: 'Bookings', requests: 'Requests', chat: 'Chat', profile: 'Profile', signIn: 'Sign in', signOut: 'Sign out', language: 'Language' },
+    nav: { home: 'Home', explore: 'Explore', map: 'Map', stories: 'Stories', contact: 'Contact', bookings: 'Bookings', requests: 'Requests', chat: 'Chat', profile: 'Profile', signIn: 'Sign in', signOut: 'Sign out', language: 'Language', dashboard: 'Dashboard', myTours: 'My Tours', jobs: 'Jobs', overview: 'Overview', providers: 'Providers', tours: 'Tours', approvals: 'Approvals', messages: 'Messages', appName: 'GeorgiaTours' },
     home: {
       tagline: 'Explore Georgia',
       title: 'Discover tours & experiences across Georgia',
@@ -23,7 +23,7 @@ export const translations = {
     profile: { title: 'Profile', subtitle: 'Your account and stats.', bookings: 'Bookings', completed: 'Completed', reviewsLeft: 'Reviews left', memberSince: 'Member since' },
   },
   ka: {
-    nav: { home: 'მთავარი', explore: 'ტურები', map: 'რუკა', stories: 'ისტორიები', contact: 'კონტაქტი', bookings: 'ჯავშნები', requests: 'მოთხოვნები', chat: 'შეტყობინებები', profile: 'პროფილი', signIn: 'შესვლა', signOut: 'გასვლა', language: 'ენა' },
+    nav: { home: 'მთავარი', explore: 'ტურები', map: 'რუკა', stories: 'ისტორიები', contact: 'კონტაქტი', bookings: 'ჯავშნები', requests: 'მოთხოვნები', chat: 'შეტყობინებები', profile: 'პროფილი', signIn: 'შესვლა', signOut: 'გასვლა', language: 'ენა', dashboard: 'პანელი', myTours: 'ჩემი ტურები', jobs: 'სამუშაოები', overview: 'მიმოხილვა', providers: 'პროვაიდერები', tours: 'ტურები', approvals: 'დამოწმება', messages: 'შეტყობინებები', appName: 'GeorgiaTours' },
     home: {
       tagline: 'გაეცანი საქართველოს',
       title: 'აღმოაჩინე ტურები და შთაბეჭდილებები საქართველოში',
@@ -46,7 +46,7 @@ export const translations = {
     profile: { title: 'პროფილი', subtitle: 'თქვენი ანგარიში.', bookings: 'ჯავშნები', completed: 'დასრულებული', reviewsLeft: 'შეფასებები', memberSince: 'წევრი' },
   },
   ru: {
-    nav: { home: 'Главная', explore: 'Туры', map: 'Карта', stories: 'Истории', contact: 'Контакты', bookings: 'Брони', requests: 'Заявки', chat: 'Чат', profile: 'Профиль', signIn: 'Войти', signOut: 'Выйти', language: 'Язык' },
+    nav: { home: 'Главная', explore: 'Туры', map: 'Карта', stories: 'Истории', contact: 'Контакты', bookings: 'Брони', requests: 'Заявки', chat: 'Чат', profile: 'Профиль', signIn: 'Войти', signOut: 'Выйти', language: 'Язык', dashboard: 'Панель', myTours: 'Мои туры', jobs: 'Заказы', overview: 'Обзор', providers: 'Провайдеры', tours: 'Туры', approvals: 'Одобрения', messages: 'Сообщения', appName: 'GeorgiaTours' },
     home: {
       tagline: 'Открой Грузию',
       title: 'Туры и впечатления по Грузии',
@@ -69,7 +69,7 @@ export const translations = {
     profile: { title: 'Профиль', subtitle: 'Ваш аккаунт и статистика.', bookings: 'Брони', completed: 'Завершено', reviewsLeft: 'Отзывы', memberSince: 'С нами с' },
   },
   ar: {
-    nav: { home: 'الرئيسية', explore: 'الجولات', map: 'الخريطة', stories: 'قصص', contact: 'اتصل', bookings: 'الحجوزات', requests: 'الطلبات', chat: 'المحادثة', profile: 'الملف', signIn: 'تسجيل الدخول', signOut: 'خروج', language: 'اللغة' },
+    nav: { home: 'الرئيسية', explore: 'الجولات', map: 'الخريطة', stories: 'قصص', contact: 'اتصل', bookings: 'الحجوزات', requests: 'الطلبات', chat: 'المحادثة', profile: 'الملف', signIn: 'تسجيل الدخول', signOut: 'خروج', language: 'اللغة', dashboard: 'لوحة التحكم', myTours: 'جولاتي', jobs: 'الوظائف', overview: 'نظرة عامة', providers: 'مقدمو الخدمة', tours: 'الجولات', approvals: 'الموافقات', messages: 'الرسائل', appName: 'GeorgiaTours' },
     home: {
       tagline: 'اكتشف جورجيا',
       title: 'جولات وتجارب في جورجيا',

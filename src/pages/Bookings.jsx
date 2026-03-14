@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { Link } from 'react-router-dom';
 import { mapBookingRow } from '../hooks/useAppData';
 
 const statusRank = { completed: 4, tourist_done: 3, provider_done: 3, confirmed: 2, active: 2, cancelled: 0 };
 
-export default function Bookings({ user }) {
+export default function Bookings() {
+  const { user } = useOutletContext();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const completedBookingIds = useRef(new Set());
