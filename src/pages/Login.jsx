@@ -21,6 +21,7 @@ const ROLES = [
   { id: 'tourist', icon: '🧳', key: 'roleTourist' },
   { id: 'guide', icon: '🗺️', key: 'roleGuide' },
   { id: 'driver', icon: '🚐', key: 'roleDriver' },
+  { id: 'admin', icon: '⚙️', key: 'roleAdmin' },
 ];
 
 export default function Login({ onLogin }) {
@@ -80,7 +81,7 @@ export default function Login({ onLogin }) {
       </p>
       <div style={{ marginBottom: 24 }}>
         <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('login.iAm')}</label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
           {ROLES.map((r) => (
             <button
               key={r.id}

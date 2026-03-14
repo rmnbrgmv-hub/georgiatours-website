@@ -8,6 +8,7 @@ import { mapUserRow } from './hooks/useAppData';
 
 import Landing from './pages/Landing';
 import Login from './pages/Login';
+import Layout from './components/Layout';
 import AppLayout from './components/AppLayout';
 import AppRedirect from './components/AppRedirect';
 
@@ -91,7 +92,7 @@ export default function App() {
               <Route path="/login" element={user ? <Navigate to="/app" replace /> : <Login onLogin={handleLogin} />} />
               <Route path="/tour/:id" element={<Tour user={user} />} />
               <Route path="/provider/:id" element={<Provider />} />
-              <Route path="/explore" element={user ? <Navigate to="/app/explore" replace /> : <Navigate to="/" replace />} />
+              <Route path="/explore" element={user ? <Navigate to="/app/explore" replace /> : <Layout><Explore /></Layout>} />
 
               <Route path="/app" element={user ? <AppLayout user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />}>
                 <Route index element={<AppRedirectWithUser user={user} />} />
