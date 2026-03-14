@@ -4,10 +4,13 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 
+const COLLAGE_SIZE = 20;
+
 export default function Home() {
   const { t } = useLocale();
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [collagePhotos, setCollagePhotos] = useState([]);
 
   useEffect(() => {
     supabase
@@ -37,6 +40,17 @@ export default function Home() {
       });
   }, []);
 
+  useEffect(() => {
+    fetch('/geoimages/geo.json')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((arr) => {
+        if (!Array.isArray(arr)) return;
+        const shuffled = [...arr].sort(() => Math.random() - 0.5);
+        setCollagePhotos(shuffled.slice(0, COLLAGE_SIZE));
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div>
       <Helmet>
@@ -45,14 +59,55 @@ export default function Home() {
         <meta property="og:title" content="GeorgiaTours — Explore Georgia" />
         <meta property="og:description" content="Discover tours and experiences across Georgia." />
       </Helmet>
-      {/* Hero */}
+      {/* Hero with photo collage behind */}
       <section
         style={{
           padding: '80px 24px 100px',
           textAlign: 'center',
           position: 'relative',
+          overflow: 'hidden',
         }}
       >
+        {/* Collage layer – faded photos behind greeting */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 0,
+            pointerEvents: 'none',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gridTemplateRows: 'repeat(4, 1fr)',
+            gap: 4,
+            padding: 12,
+            opacity: 0.35,
+          }}
+        >
+          {collagePhotos.map((p, i) => (
+            <div
+              key={i}
+              style={{
+                borderRadius: 8,
+                overflow: 'hidden',
+                background: 'var(--bg-elevated)',
+                animation: `heroCollageFade 0.8s ease ${i * 0.03}s both`,
+              }}
+            >
+              <img src={p.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          ))}
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 1,
+            background: 'linear-gradient(to bottom, var(--bg) 0%, transparent 30%, transparent 70%, var(--bg) 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div style={{ position: 'relative', zIndex: 2 }}>
         <p
           style={{
             fontFamily: 'var(--font-classic)',
@@ -111,7 +166,15 @@ export default function Home() {
             {t('home.viewAll')}
           </Link>
         </div>
+        </div>
       </section>
+
+      <style>{`
+        @keyframes heroCollageFade {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
 
       {/* Featured tours */}
       <section style={{ padding: '0 24px 80px', maxWidth: 1200, margin: '0 auto' }}>
