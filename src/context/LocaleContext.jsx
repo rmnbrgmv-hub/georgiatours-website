@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { translations, localeNames } from '../translations';
 
 const LocaleContext = createContext(null);
@@ -18,9 +18,16 @@ export function LocaleProvider({ children }) {
       setLocaleState(lang);
       try {
         localStorage.setItem('georgiatours-locale', lang);
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
       } catch (_) {}
     }
   }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+  }, [locale]);
 
   const t = useCallback(
     (key) => {

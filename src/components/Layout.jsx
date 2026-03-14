@@ -1,8 +1,105 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { useTheme } from '../context/ThemeContext';
+
+function GlobeLangSelect({ locale, setLocale, localeNames, t }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    const close = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    if (open) {
+      document.addEventListener('click', close);
+      return () => document.removeEventListener('click', close);
+    }
+  }, [open]);
+
+  const langs = Object.entries(localeNames);
+  return (
+    <div
+      ref={wrapRef}
+      style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Select language"
+        aria-expanded={open}
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          border: '1px solid var(--border)',
+          background: open ? 'var(--gold-soft)' : 'var(--surface-hover)',
+          color: open ? 'var(--gold)' : 'var(--text-muted)',
+          fontSize: '1.25rem',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'var(--transition)',
+        }}
+      >
+        🌐
+      </button>
+      {open && (
+        <div
+          className="glass"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            marginTop: 8,
+            padding: 12,
+            borderRadius: 'var(--radius)',
+            border: '1px solid var(--border)',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
+            zIndex: 100,
+            minWidth: 140,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+            animation: 'langPop 0.2s ease',
+          }}
+        >
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t('nav.language')}</div>
+          {langs.map(([lang, label]) => (
+            <button
+              key={lang}
+              type="button"
+              onClick={() => { setLocale(lang); setOpen(false); }}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: 'none',
+                background: locale === lang ? 'var(--gold-soft)' : 'transparent',
+                color: locale === lang ? 'var(--gold)' : 'var(--text)',
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                textAlign: 'start',
+                transition: 'var(--transition)',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      <style>{`
+        @keyframes langPop {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 export default function Layout({ children, user, onLogout }) {
   const loc = useLocation();
@@ -124,25 +221,7 @@ export default function Layout({ children, user, onLogout }) {
             >
               {theme === 'dark' ? '☀️' : '🌙'}
             </button>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {Object.entries(localeNames).map(([lang, label]) => (
-                <button
-                  key={lang}
-                  onClick={() => setLocale(lang)}
-                  style={{
-                    padding: '4px 8px',
-                    borderRadius: 6,
-                    border: '1px solid var(--border)',
-                    background: locale === lang ? 'var(--gold-soft)' : 'transparent',
-                    color: locale === lang ? 'var(--gold)' : 'var(--text-muted)',
-                    fontSize: '0.8rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <GlobeLangSelect locale={locale} setLocale={setLocale} localeNames={localeNames} t={t} />
           </div>
         </nav>
       </header>

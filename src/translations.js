@@ -1,6 +1,6 @@
 export const translations = {
   en: {
-    nav: { home: 'Home', explore: 'Explore', map: 'Map', stories: 'Stories', contact: 'Contact', bookings: 'Bookings', signIn: 'Sign in', signOut: 'Sign out' },
+    nav: { home: 'Home', explore: 'Explore', map: 'Map', stories: 'Stories', contact: 'Contact', bookings: 'Bookings', signIn: 'Sign in', signOut: 'Sign out', language: 'Language' },
     home: {
       tagline: 'Explore Georgia',
       title: 'Discover tours & experiences across Georgia',
@@ -20,7 +20,7 @@ export const translations = {
     provider: { tours: 'Tours by this guide', noTours: 'No tours listed.' },
   },
   ka: {
-    nav: { home: 'მთავარი', explore: 'ტურები', map: 'რუკა', stories: 'ისტორიები', contact: 'კონტაქტი', bookings: 'ჯავშნები', signIn: 'შესვლა', signOut: 'გასვლა' },
+    nav: { home: 'მთავარი', explore: 'ტურები', map: 'რუკა', stories: 'ისტორიები', contact: 'კონტაქტი', bookings: 'ჯავშნები', signIn: 'შესვლა', signOut: 'გასვლა', language: 'ენა' },
     home: {
       tagline: 'გაეცანი საქართველოს',
       title: 'აღმოაჩინე ტურები და შთაბეჭდილებები საქართველოში',
@@ -40,7 +40,7 @@ export const translations = {
     provider: { tours: 'ამ ჰიდის ტურები', noTours: 'ტურები არ არის.' },
   },
   ru: {
-    nav: { home: 'Главная', explore: 'Туры', map: 'Карта', stories: 'Истории', contact: 'Контакты', bookings: 'Брони', signIn: 'Войти', signOut: 'Выйти' },
+    nav: { home: 'Главная', explore: 'Туры', map: 'Карта', stories: 'Истории', contact: 'Контакты', bookings: 'Брони', signIn: 'Войти', signOut: 'Выйти', language: 'Язык' },
     home: {
       tagline: 'Открой Грузию',
       title: 'Туры и впечатления по Грузии',
@@ -59,6 +59,26 @@ export const translations = {
     newsletter: { label: 'Рассылка', placeholder: 'Ваш email', subscribe: 'Подписаться', subscribed: 'Подписка оформлена. Спасибо!' },
     provider: { tours: 'Туры этого гида', noTours: 'Туры не указаны.' },
   },
+  ar: {
+    nav: { home: 'الرئيسية', explore: 'الجولات', map: 'الخريطة', stories: 'قصص', contact: 'اتصل', bookings: 'الحجوزات', signIn: 'تسجيل الدخول', signOut: 'خروج', language: 'اللغة' },
+    home: {
+      tagline: 'اكتشف جورجيا',
+      title: 'جولات وتجارب في جورجيا',
+      subtitle: 'جولات بفان، مرشدون محليون ونقل. منصة واحدة.',
+      exploreTours: 'استكشف الجولات',
+      viewAll: 'عرض الكل',
+      featured: 'جولات مميزة',
+    },
+    explore: { title: 'الجولات', subtitle: 'نفس البيانات من التطبيق.', all: 'الكل', allRegions: 'كل المناطق', noMatch: 'لا توجد جولات.' },
+    tour: { backToExplore: '← رجوع', notFound: 'الجولة غير موجودة.', bookInApp: 'احجز في التطبيق', signInToBook: 'سجّل الدخول للحجز', reviews: 'المراجعات', noReviews: 'لا مراجعات بعد.' },
+    login: { title: 'تسجيل الدخول', subtitle: 'نفس الحساب في تطبيق GeorgiaTours.', email: 'البريد', password: 'كلمة المرور', signIn: 'دخول', signingIn: 'جاري الدخول…' },
+    map: { title: 'خريطة الجولات', subtitle: 'أين تقع جولاتنا في جورجيا.' },
+    stories: { title: 'قصص من جورجيا', subtitle: 'نصائح وتجارب السفر.' },
+    contact: { title: 'اتصل أو اطلب جولة', name: 'الاسم', email: 'البريد', message: 'الرسالة', tourInterest: 'نوع الجولة (اختياري)', send: 'إرسال', sent: 'تم الإرسال. سنرد قريباً!' },
+    footer: { tagline: 'اكتشف جورجيا', copyright: 'GeorgiaTours · 2024' },
+    newsletter: { label: 'النشرة', placeholder: 'بريدك', subscribe: 'اشترك', subscribed: 'تم الاشتراك. شكراً!' },
+    provider: { tours: 'جولات هذا المرشد', noTours: 'لا جولات.' },
+  },
 };
 
-export const localeNames = { en: 'EN', ka: 'ქართ', ru: 'RU' };
+export const localeNames = { en: 'EN', ka: 'ქართ', ru: 'RU', ar: 'العربية' };
