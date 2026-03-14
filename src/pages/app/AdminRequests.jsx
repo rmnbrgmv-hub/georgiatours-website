@@ -4,6 +4,7 @@ import { supabase } from '../../supabase';
 import { mapRequestRow } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
 import CollapsibleSection from '../../components/CollapsibleSection';
+import ExpandableItem from '../../components/ExpandableItem';
 
 export default function AdminRequests() {
   const { user } = useOutletContext();
@@ -31,17 +32,32 @@ export default function AdminRequests() {
         {requests.length === 0 ? (
           <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>No requests.</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {requests.map((r) => (
-              <div key={r.id} className="glass" style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{r.title}</div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{r.tourist} · {r.region} · {r.type} · {r.date} · ₾{r.budget}</div>
-                  </div>
-                  <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', background: 'var(--gold-soft)', color: 'var(--gold)' }}>{r.status}</span>
-                </div>
-              </div>
+              <ExpandableItem
+                key={r.id}
+                summary={
+                  <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+                    <span style={{ fontWeight: 600 }}>{r.title}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{r.tourist} · {r.region} · {r.type}</span>
+                    <span>{r.date}</span>
+                    <span style={{ color: 'var(--gold)' }}>₾{r.budget}</span>
+                    <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', background: 'var(--gold-soft)', color: 'var(--gold)' }}>{r.status}</span>
+                  </span>
+                }
+              >
+                <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 20px' }}>
+                  <dt style={{ color: 'var(--text-muted)' }}>ID</dt><dd style={{ margin: 0 }}>{r.id}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Tourist</dt><dd style={{ margin: 0 }}>{r.tourist}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Region</dt><dd style={{ margin: 0 }}>{r.region}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Type</dt><dd style={{ margin: 0 }}>{r.type}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Date</dt><dd style={{ margin: 0 }}>{r.date}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Budget</dt><dd style={{ margin: 0 }}>₾{r.budget}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Status</dt><dd style={{ margin: 0 }}>{r.status}</dd>
+                  {r.desc && <><dt style={{ color: 'var(--text-muted)' }}>Description</dt><dd style={{ margin: 0 }}>{r.desc}</dd></>}
+                  {r.createdAt && <><dt style={{ color: 'var(--text-muted)' }}>Created</dt><dd style={{ margin: 0 }}>{new Date(r.createdAt).toLocaleString()}</dd></>}
+                </dl>
+              </ExpandableItem>
             ))}
           </div>
         )}

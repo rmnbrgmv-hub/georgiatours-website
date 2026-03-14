@@ -4,6 +4,7 @@ import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { useRequests } from '../hooks/useAppData';
+import ExpandableItem from '../components/ExpandableItem';
 
 export default function Requests() {
   const { user } = useOutletContext();
@@ -204,21 +205,27 @@ export default function Requests() {
           </button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {requests.map((r) => (
-            <div key={r.id} className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
-                <div>
-                  <h3 style={{ fontWeight: 600, marginBottom: 4 }}>{r.title}</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{r.region} · {r.type} · {r.date || '—'} · Budget ₾{r.budget || '—'}</p>
-                  {r.desc && <p style={{ fontSize: '0.85rem', marginTop: 8 }}>{r.desc}</p>}
-                </div>
-                <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, background: r.status === 'booked' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: r.status === 'booked' ? 'var(--cyan)' : 'var(--gold)' }}>
-                  {r.status}
+            <ExpandableItem
+              key={r.id}
+              summary={
+                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+                  <span style={{ fontWeight: 600 }}>{r.title}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{r.region} · {r.type} · {r.date || '—'}</span>
+                  <span style={{ color: 'var(--gold)' }}>₾{r.budget || '—'}</span>
+                  <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, background: r.status === 'booked' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: r.status === 'booked' ? 'var(--cyan)' : 'var(--gold)' }}>
+                    {r.status}
+                  </span>
+                  {(offersByRequestId[r.id] || []).length > 0 && (
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({(offersByRequestId[r.id] || []).length} offers)</span>
+                  )}
                 </span>
-              </div>
-              {(offersByRequestId[r.id] || []).length > 0 && (
-                <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+              }
+            >
+              {r.desc && <p style={{ margin: '0 0 12px', fontSize: '0.9rem' }}>{r.desc}</p>}
+              {(offersByRequestId[r.id] || []).length > 0 ? (
+                <div style={{ marginTop: 8 }}>
                   <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: 8 }}>{t('requests.offers')}</div>
                   {(offersByRequestId[r.id] || []).map((o) => (
                     <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--surface-hover)', borderRadius: 8, marginBottom: 8 }}>
@@ -240,8 +247,10 @@ export default function Requests() {
                     </div>
                   ))}
                 </div>
+              ) : (
+                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>No offers yet.</p>
               )}
-            </div>
+            </ExpandableItem>
           ))}
         </div>
       )}

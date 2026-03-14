@@ -4,6 +4,7 @@ import { supabase } from '../../supabase';
 import { mapServiceRow } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
 import CollapsibleSection from '../../components/CollapsibleSection';
+import ExpandableItem from '../../components/ExpandableItem';
 
 export default function AdminTours() {
   const { user } = useOutletContext();
@@ -42,19 +43,34 @@ export default function AdminTours() {
         {tours.length === 0 ? (
           <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>No tours.</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {tours.map((s) => (
-              <div key={s.id} className="glass" style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                <div>
-                  <div style={{ fontWeight: 600, opacity: s.suspended ? 0.6 : 1 }}>{s.name}{s.suspended ? ' (suspended)' : ''}</div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{s.provider} · {s.region} · {s.type}</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ color: 'var(--gold)' }}>₾{s.price}</span>
-                  <button type="button" onClick={() => setSuspended(s.id, !s.suspended)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: s.suspended ? 'var(--cyan-soft)' : 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer' }}>{s.suspended ? 'Resume' : 'Suspend'}</button>
-                  <Link to={`/app/tour/${s.id}`} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>View →</Link>
-                </div>
-              </div>
+              <ExpandableItem
+                key={s.id}
+                summary={
+                  <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+                    <span style={{ fontWeight: 600, opacity: s.suspended ? 0.6 : 1 }}>{s.name}{s.suspended ? ' (suspended)' : ''}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{s.provider} · {s.region} · {s.type}</span>
+                    <span style={{ color: 'var(--gold)' }}>₾{s.price}</span>
+                    <span onClick={(e) => e.stopPropagation()}>
+                      <button type="button" onClick={() => setSuspended(s.id, !s.suspended)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: s.suspended ? 'var(--cyan-soft)' : 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer' }}>{s.suspended ? 'Resume' : 'Suspend'}</button>
+                    </span>
+                    <Link to={`/app/tour/${s.id}`} onClick={(e) => e.stopPropagation()} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>View →</Link>
+                  </span>
+                }
+              >
+                <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 20px' }}>
+                  <dt style={{ color: 'var(--text-muted)' }}>ID</dt><dd style={{ margin: 0 }}>{s.id}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Name</dt><dd style={{ margin: 0 }}>{s.name}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Provider</dt><dd style={{ margin: 0 }}>{s.provider}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Region</dt><dd style={{ margin: 0 }}>{s.region}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Type</dt><dd style={{ margin: 0 }}>{s.type}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Duration</dt><dd style={{ margin: 0 }}>{s.duration || '—'}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Price</dt><dd style={{ margin: 0 }}>₾{s.price}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Suspended</dt><dd style={{ margin: 0 }}>{s.suspended ? 'Yes' : 'No'}</dd>
+                  {s.desc && <><dt style={{ color: 'var(--text-muted)' }}>Description</dt><dd style={{ margin: 0 }}>{s.desc}</dd></>}
+                </dl>
+              </ExpandableItem>
             ))}
           </div>
         )}

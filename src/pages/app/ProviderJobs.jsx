@@ -3,6 +3,7 @@ import { useOutletContext, Navigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import { mapBookingRow } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
+import ExpandableItem from '../../components/ExpandableItem';
 
 export default function ProviderJobs() {
   const { user } = useOutletContext();
@@ -55,17 +56,21 @@ export default function ProviderJobs() {
       {jobs.length === 0 ? (
         <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>No jobs yet.</div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {jobs.map((j) => (
-            <div key={j.id} className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-                <div>
-                  <div style={{ fontWeight: 600, marginBottom: 4 }}>{j.service}</div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{j.tourist} · {j.date}</div>
-                  <div style={{ fontFamily: 'var(--font-classic)', fontSize: '1.2rem', color: 'var(--gold)', marginTop: 8 }}>₾{j.amount}</div>
-                </div>
-                <span style={{ padding: '6px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, background: j.status === 'completed' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: j.status === 'completed' ? 'var(--cyan)' : 'var(--gold)' }}>{j.status}</span>
-              </div>
+            <ExpandableItem
+              key={j.id}
+              summary={
+                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+                  <span style={{ fontWeight: 600 }}>{j.service}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>{j.tourist} · {j.date}</span>
+                  <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{j.amount}</span>
+                  <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, background: j.status === 'completed' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: j.status === 'completed' ? 'var(--cyan)' : 'var(--gold)' }}>{j.status}</span>
+                </span>
+              }
+            >
+              <p style={{ margin: '0 0 8px' }}><strong>Tourist:</strong> {j.tourist}</p>
+              <p style={{ margin: '0 0 8px' }}><strong>Date:</strong> {j.date} · <strong>Amount:</strong> ₾{j.amount}</p>
               <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                 {j.status === 'pending' && (
                   <>
@@ -83,7 +88,7 @@ export default function ProviderJobs() {
                   <button type="button" onClick={() => complete(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Complete</button>
                 )}
               </div>
-            </div>
+            </ExpandableItem>
           ))}
         </div>
       )}

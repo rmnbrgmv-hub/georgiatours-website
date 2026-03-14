@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { Link } from 'react-router-dom';
 import { mapBookingRow } from '../hooks/useAppData';
+import ExpandableItem from '../components/ExpandableItem';
 
 const statusRank = { completed: 4, tourist_done: 3, provider_done: 3, confirmed: 2, active: 2, cancelled: 0 };
 
@@ -67,44 +68,38 @@ export default function Bookings() {
           <Link to="/app/explore" style={{ color: 'var(--gold)', fontWeight: 500 }}>Explore tours</Link>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {bookings.map((b) => (
-            <div
+            <ExpandableItem
               key={b.id}
-              className="glass"
-              style={{
-                padding: 20,
-                borderRadius: 'var(--radius)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 12,
-              }}
-            >
-              <div>
-                <p style={{ fontWeight: 600, marginBottom: 4 }}>{b.service}</p>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{b.date}</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: 'var(--font-classic)', fontSize: '1.2rem', color: 'var(--gold)' }}>₾{b.amount}</span>
-                <span
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: 20,
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    background: b.status === 'completed' ? 'var(--cyan-soft)' : b.status === 'tourist_done' ? 'var(--surface-hover)' : 'var(--gold-soft)',
-                    color: b.status === 'completed' ? 'var(--cyan)' : b.status === 'tourist_done' ? 'var(--text-muted)' : 'var(--gold)',
-                  }}
-                >
-                  {b.status}
+              summary={
+                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+                  <span style={{ fontWeight: 600 }}>{b.service}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>{b.date}</span>
+                  <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{b.amount}</span>
+                  <span
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: 20,
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      background: b.status === 'completed' ? 'var(--cyan-soft)' : b.status === 'tourist_done' ? 'var(--surface-hover)' : 'var(--gold-soft)',
+                      color: b.status === 'completed' ? 'var(--cyan)' : b.status === 'tourist_done' ? 'var(--text-muted)' : 'var(--gold)',
+                    }}
+                  >
+                    {b.status}
+                  </span>
                 </span>
+              }
+            >
+              <p style={{ margin: '0 0 12px', color: 'var(--text-muted)' }}><strong>Provider:</strong> {b.provider}</p>
+              <p style={{ margin: '0 0 12px' }}><strong>Date:</strong> {b.date} · <strong>Amount:</strong> ₾{b.amount}</p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                 {['confirmed', 'active'].includes(b.status) && (
                   <button
                     type="button"
                     onClick={() => handleMarkComplete(b.id)}
-                    style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.85rem', cursor: 'pointer' }}
+                    style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.85rem', cursor: 'pointer' }}
                   >
                     Mark complete
                   </button>
@@ -113,13 +108,14 @@ export default function Bookings() {
                   <button
                     type="button"
                     onClick={() => handleConfirmCompletion(b.id)}
-                    style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Confirm completion
                   </button>
                 )}
+                <Link to="/app/chat" style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.85rem', textDecoration: 'none' }}>Chat with provider</Link>
               </div>
-            </div>
+            </ExpandableItem>
           ))}
         </div>
       )}

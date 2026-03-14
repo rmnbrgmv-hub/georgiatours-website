@@ -3,6 +3,7 @@ import { useOutletContext, Navigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import { mapBookingRow } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
+import ExpandableItem from '../../components/ExpandableItem';
 
 export default function ProviderDashboard() {
   const { user } = useOutletContext();
@@ -59,24 +60,29 @@ export default function ProviderDashboard() {
       {jobs.filter((j) => j.status === 'pending' || j.status === 'confirmed').length === 0 ? (
         <p style={{ color: 'var(--text-muted)' }}>No pending bookings.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {jobs.filter((j) => j.status === 'pending' || j.status === 'confirmed').map((j) => (
-            <div key={j.id} className="glass" style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-              <div>
-                <div style={{ fontWeight: 600 }}>{j.service}</div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{j.tourist} · {j.date}</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{j.amount}</span>
-                {j.status === 'pending' && (
-                  <>
-                    <button type="button" onClick={() => accept(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Accept</button>
-                    <button type="button" onClick={() => decline(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer' }}>Decline</button>
-                  </>
-                )}
-                <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', background: 'var(--gold-soft)', color: 'var(--gold)' }}>{j.status}</span>
-              </div>
-            </div>
+            <ExpandableItem
+              key={j.id}
+              summary={
+                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+                  <span style={{ fontWeight: 600 }}>{j.service}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>{j.tourist} · {j.date}</span>
+                  <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{j.amount}</span>
+                  <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', background: 'var(--gold-soft)', color: 'var(--gold)' }}>{j.status}</span>
+                  {j.status === 'pending' && (
+                    <span style={{ display: 'flex', gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                      <button type="button" onClick={() => accept(j.id)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>Accept</button>
+                      <button type="button" onClick={() => decline(j.id)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', fontSize: '0.85rem', cursor: 'pointer' }}>Decline</button>
+                    </span>
+                  )}
+                </span>
+              }
+            >
+              <p style={{ margin: '0 0 8px' }}><strong>Tourist:</strong> {j.tourist}</p>
+              <p style={{ margin: '0 0 8px' }}><strong>Service:</strong> {j.service}</p>
+              <p style={{ margin: 0 }}><strong>Date:</strong> {j.date} · <strong>Amount:</strong> ₾{j.amount}</p>
+            </ExpandableItem>
           ))}
         </div>
       )}
