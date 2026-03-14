@@ -2,8 +2,20 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
+import { mapUserRow } from '../hooks/useAppData';
 
 const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
+
+/** Same columns and user shape as app (admin App.jsx login) for role, totalBookings, etc. */
+async function fetchUserByEmail(email) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats')
+    .eq('email', email)
+    .maybeSingle();
+  if (error || !data) return null;
+  return mapUserRow(data);
+}
 
 export default function Login({ onLogin }) {
   const { t } = useLocale();
@@ -14,16 +26,6 @@ export default function Login({ onLogin }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect') || '/explore';
-
-  const fetchUserByEmail = async (email) => {
-    const { data, error: err } = await supabase
-      .from('users')
-      .select('id,name,email,role,provider_type,avatar,color')
-      .eq('email', email)
-      .maybeSingle();
-    if (err || !data) return null;
-    return { id: data.id, name: data.name, email: data.email, role: data.role, avatar: data.avatar, color: data.color, type: data.provider_type };
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

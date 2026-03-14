@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
 import { appUrl } from '../config';
 import { useLocale } from '../context/LocaleContext';
+import { mapServiceRow } from '../hooks/useAppData';
 
 function photoUrl(p) {
   if (!p) return '';
@@ -25,18 +26,10 @@ export default function Tour({ user }) {
       .from('services')
       .select('*')
       .eq('id', id)
-      .eq('suspended', false)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) {
-          let photos = [];
-          try {
-            if (data.photos) photos = typeof data.photos === 'string' ? JSON.parse(data.photos) : data.photos;
-          } catch (_) {}
-          setTour({
-            ...data,
-            photos: Array.isArray(photos) ? photos : [],
-          });
+        if (data && !data.suspended) {
+          setTour(mapServiceRow(data));
           if (data.provider_id) {
             supabase
               .from('reviews')
@@ -46,6 +39,8 @@ export default function Tour({ user }) {
               .limit(10)
               .then(({ data: rev }) => setReviews(rev || []));
           }
+        } else {
+          setTour(null);
         }
         setLoading(false);
       });
@@ -55,12 +50,13 @@ export default function Tour({ user }) {
   if (!tour) return <div style={{ padding: 80, textAlign: 'center' }}>{t('tour.notFound')} <Link to="/explore">{t('tour.backToExplore')}</Link></div>;
 
   const mainPhoto = photoUrl(tour.photos?.[photoIndex]);
+  const description = tour.desc ?? tour.description;
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px 80px' }}>
       <Helmet>
         <title>{tour.name} — GeorgiaTours</title>
-        <meta name="description" content={tour.description || tour.desc || `${tour.region} · ${tour.duration} · ₾${tour.price}`} />
+        <meta name="description" content={description || `${tour.region} · ${tour.duration} · ₾${tour.price}`} />
         <meta property="og:title" content={tour.name} />
       </Helmet>
       <Link to="/explore" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 24, display: 'inline-block' }}>
@@ -129,11 +125,11 @@ export default function Tour({ user }) {
       <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.8rem', color: 'var(--gold)', marginBottom: 24 }}>
         ₾{tour.price}
       </p>
-      <p style={{ color: 'var(--text)', lineHeight: 1.7, marginBottom: 24 }}>{tour.description || tour.desc}</p>
+      <p style={{ color: 'var(--text)', lineHeight: 1.7, marginBottom: 24 }}>{description}</p>
 
-      {tour.provider_id && (
+      {(tour.providerId ?? tour.provider_id) && (
         <p style={{ marginBottom: 16 }}>
-          <Link to={`/provider/${tour.provider_id}`} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>
+          <Link to={`/provider/${tour.providerId ?? tour.provider_id}`} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>
             View guide profile →
           </Link>
         </p>

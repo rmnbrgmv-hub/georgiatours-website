@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
+import { mapBookingRow } from '../hooks/useAppData';
 
 export default function Profile({ user }) {
   const { t } = useLocale();
@@ -11,9 +12,9 @@ export default function Profile({ user }) {
     if (!user?.id) return;
     supabase
       .from('bookings')
-      .select('id, status, reviewed')
+      .select('*')
       .eq('tourist_id', user.id)
-      .then(({ data }) => setBookings(data || []));
+      .then(({ data }) => setBookings((data || []).map(mapBookingRow)));
   }, [user?.id]);
 
   if (!user) {

@@ -2,46 +2,38 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
-
-function mapReq(row) {
-  return {
-    id: row.id,
-    touristId: row.tourist_id,
-    tourist: row.tourist_name,
-    title: row.title,
-    desc: row.description,
-    region: row.region,
-    type: row.type,
-    date: row.date,
-    budget: row.budget,
-    status: row.status,
-    createdAt: row.created_at ?? '',
-  };
-}
+import { useRequests } from '../hooks/useAppData';
 
 export default function Requests({ user }) {
   const { t } = useLocale();
-  const [requests, setRequests] = useState([]);
+  const { requests: dbRequests, loading: requestsLoading, refetch: refetchRequests } = useRequests();
   const [offersByRequestId, setOffersByRequestId] = useState({});
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '' });
 
+  const requests = (dbRequests || []).filter((r) => String(r.touristId) === String(user?.id));
+
   useEffect(() => {
-    if (!user?.id) return;
-    (async () => {
-      const { data: reqData } = await supabase.from('requests').select('*').eq('tourist_id', user.id).order('created_at', { ascending: false });
-      const list = (reqData || []).map(mapReq);
-      setRequests(list);
-      if (list.length > 0) {
-        const ids = list.map((r) => r.id);
-        const { data: offData } = await supabase.from('offers').select('*').in('request_id', ids);
+    if (!user?.id || requests.length === 0) {
+      setOffersByRequestId({});
+      setLoading(false);
+      return;
+    }
+    const ids = requests.map((r) => r.id);
+    supabase
+      .from('offers')
+      .select('*')
+      .in('request_id', ids)
+      .then(({ data: offData }) => {
         const byReq = {};
         (offData || []).forEach((o) => {
           if (!byReq[o.request_id]) byReq[o.request_id] = [];
           byReq[o.request_id].push({
             id: o.id,
+            provider_id: o.provider_id,
             providerId: o.provider_id,
+            provider_name: o.provider_name,
             provider: o.provider_name,
             price: o.price,
             description: o.description,
@@ -49,10 +41,19 @@ export default function Requests({ user }) {
           });
         });
         setOffersByRequestId(byReq);
-      }
-      setLoading(false);
-    })();
-  }, [user?.id]);
+      });
+    setLoading(requestsLoading);
+  }, [user?.id, requests.length, requestsLoading]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const ch = supabase
+      .channel('requests-tourist-web')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'requests' }, () => refetchRequests())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'requests' }, () => refetchRequests())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user?.id, refetchRequests]);
 
   const handlePostRequest = async (e) => {
     e.preventDefault();
@@ -68,9 +69,9 @@ export default function Requests({ user }) {
       budget: Number(form.budget) || 0,
       status: 'open',
     };
-    const { data, error } = await supabase.from('requests').insert(payload).select('id,tourist_id,tourist_name,title,description,region,type,date,budget,status,created_at').single();
+    const { error } = await supabase.from('requests').insert(payload).select('*').single();
     if (error) return;
-    setRequests((prev) => [mapReq(data), ...prev]);
+    refetchRequests();
     setForm({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '' });
     setShowForm(false);
   };
@@ -78,13 +79,14 @@ export default function Requests({ user }) {
   const acceptOffer = async (requestId, offer) => {
     const r = requests.find((x) => x.id === requestId);
     if (!r || r.status !== 'open') return;
-    const shortName = (user?.name || '').split(' ').slice(0, 2).join(' ') || 'Tourist';
+    const parts = (user?.name || '').trim().split(/\s+/);
+    const shortName = parts.length > 1 ? parts[0] + ' ' + parts[parts.length - 1][0] + '.' : (parts[0] || 'Tourist');
     const bookingPayload = {
       tourist_id: user.id,
       tourist_name: shortName,
       service_name: r.title || 'Custom request',
-      provider_id: offer.providerId,
-      provider_name: offer.provider,
+      provider_id: offer.providerId ?? offer.provider_id,
+      provider_name: offer.provider ?? offer.provider_name,
       date: r.date || 'TBD',
       amount: offer.price,
       status: 'confirmed',
@@ -94,7 +96,6 @@ export default function Requests({ user }) {
     await supabase.from('offers').update({ status: 'accepted' }).eq('id', offer.id);
     await supabase.from('offers').update({ status: 'declined' }).eq('request_id', requestId).neq('id', offer.id);
     await supabase.from('requests').update({ status: 'booked' }).eq('id', requestId);
-    setRequests((prev) => prev.map((x) => (x.id === requestId ? { ...x, status: 'booked' } : x)));
     setOffersByRequestId((prev) => ({ ...prev, [requestId]: (prev[requestId] || []).map((o) => (o.id === offer.id ? { ...o, status: 'accepted' } : { ...o, status: 'declined' })) }));
   };
 

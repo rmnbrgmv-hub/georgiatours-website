@@ -1,30 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
 import { Link } from 'react-router-dom';
+import { mapBookingRow } from '../hooks/useAppData';
+
+const statusRank = { completed: 4, tourist_done: 3, provider_done: 3, confirmed: 2, active: 2, cancelled: 0 };
 
 export default function Bookings({ user }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const completedBookingIds = useRef(new Set());
 
   useEffect(() => {
     if (!user?.id) return;
-    supabase
-      .from('bookings')
-      .select('*')
-      .eq('tourist_id', user.id)
-      .then(({ data }) => {
-        setBookings(
-          (data || []).map((r) => ({
-            id: r.id,
-            service: r.service_name,
-            date: r.date,
-            amount: r.amount,
-            status: r.status,
-          }))
-        );
-        setLoading(false);
-      });
+    const map = (row) => mapBookingRow(row);
+    const tick = async () => {
+      const { data } = await supabase.from('bookings').select('*').eq('tourist_id', user.id);
+      const fetched = (data || []).map(map);
+      fetched.forEach((b) => { if (b.status === 'completed') completedBookingIds.current.add(b.id); });
+      setBookings((prev) =>
+        fetched.map((newB) => {
+          if (completedBookingIds.current.has(newB.id)) return prev.find((x) => x.id === newB.id) || newB;
+          const existing = prev.find((x) => x.id === newB.id);
+          if (existing && statusRank[existing.status] >= statusRank[newB.status]) return existing;
+          return newB;
+        })
+      );
+      setLoading(false);
+    };
+    tick();
+    const id = setInterval(tick, 5000);
+    return () => clearInterval(id);
   }, [user?.id]);
+
+  const handleMarkComplete = async (bookingId) => {
+    const { error } = await supabase.from('bookings').update({ status: 'tourist_done' }).eq('id', bookingId);
+    if (!error) setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'tourist_done' } : b)));
+  };
 
   if (!user) {
     return (
@@ -68,7 +79,7 @@ export default function Bookings({ user }) {
                 <p style={{ fontWeight: 600, marginBottom: 4 }}>{b.service}</p>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{b.date}</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: 'var(--font-classic)', fontSize: '1.2rem', color: 'var(--gold)' }}>₾{b.amount}</span>
                 <span
                   style={{
@@ -76,12 +87,21 @@ export default function Bookings({ user }) {
                     borderRadius: 20,
                     fontSize: '0.8rem',
                     fontWeight: 600,
-                    background: b.status === 'completed' ? 'var(--cyan-soft)' : 'var(--gold-soft)',
-                    color: b.status === 'completed' ? 'var(--cyan)' : 'var(--gold)',
+                    background: b.status === 'completed' ? 'var(--cyan-soft)' : b.status === 'tourist_done' ? 'var(--surface-hover)' : 'var(--gold-soft)',
+                    color: b.status === 'completed' ? 'var(--cyan)' : b.status === 'tourist_done' ? 'var(--text-muted)' : 'var(--gold)',
                   }}
                 >
                   {b.status}
                 </span>
+                {['confirmed', 'active'].includes(b.status) && (
+                  <button
+                    type="button"
+                    onClick={() => handleMarkComplete(b.id)}
+                    style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.85rem', cursor: 'pointer' }}
+                  >
+                    Mark complete
+                  </button>
+                )}
               </div>
             </div>
           ))}

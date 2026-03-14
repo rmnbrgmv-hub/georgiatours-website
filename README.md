@@ -37,6 +37,8 @@ Use the **same Supabase project** as the GeorgiaTours app so that:
 
 Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env` to your app’s Supabase project (same values as in the app). If you leave them unset, the code uses the same default project as the app.
 
+**Shared data layer**: `src/hooks/useAppData.js` mirrors the app’s hooks and row shapes (`useServices`, `useUsers`, `useRequests`, `mapServiceRow`, `mapRequestRow`, `mapBookingRow`, `mapUserRow`) so the website uses the same connections, hierarchy, and functionality as the app.
+
 ## Setup
 
 ```bash

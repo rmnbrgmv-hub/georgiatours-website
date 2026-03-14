@@ -18,6 +18,7 @@ import Requests from './pages/Requests';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import { supabase } from './supabase';
+import { mapUserRow } from './hooks/useAppData';
 
 const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
 
@@ -39,10 +40,8 @@ export default function App() {
         try { sessionStorage.removeItem('georgiatours-user'); } catch (_) {}
         return;
       }
-      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color').eq('email', authUser.email).maybeSingle();
-      const u = data
-        ? { id: data.id, name: data.name, email: data.email, role: data.role, avatar: data.avatar, color: data.color, type: data.provider_type }
-        : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist' };
+      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats').eq('email', authUser.email).maybeSingle();
+      const u = data ? mapUserRow(data) : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist' };
       setUser(u);
       try { sessionStorage.setItem('georgiatours-user', JSON.stringify(u)); } catch (_) {}
     };

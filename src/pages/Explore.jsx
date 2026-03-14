@@ -1,54 +1,35 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
+import { useServices } from '../hooks/useAppData';
 
 export default function Explore() {
   const { t } = useLocale();
-  const [tours, setTours] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { services, loading } = useServices();
   const [typeFilter, setTypeFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('');
+  const [priceFilter, setPriceFilter] = useState(500);
 
+  const tours = services.filter((s) => !s.suspended);
+  const priceMax = tours.length ? Math.max(...tours.map((s) => Number(s.price) || 0), 1) : 500;
   useEffect(() => {
-    supabase
-      .from('services')
-      .select('*')
-      .eq('suspended', false)
-      .then(({ data }) => {
-        const mapped = (data || []).map((row) => {
-          let photos = [];
-          try {
-            if (row.photos) photos = typeof row.photos === 'string' ? JSON.parse(row.photos) : row.photos;
-          } catch (_) {}
-          return {
-            id: row.id,
-            name: row.name,
-            region: row.region,
-            area: row.area,
-            price: row.price,
-            duration: row.duration,
-            type: row.type,
-            emoji: row.emoji,
-            desc: row.description,
-            rating: row.rating,
-            reviews: row.reviews,
-            photo: photos?.[0]?.base64 || photos?.[0],
-          };
-        });
-        setTours(mapped);
-        setLoading(false);
-      });
-  }, []);
+    setPriceFilter((p) => (p > priceMax ? priceMax : p));
+  }, [priceMax]);
 
-  const filtered = tours.filter((t) => {
-    if (typeFilter !== 'all' && t.type !== typeFilter) return false;
-    if (regionFilter && t.region !== regionFilter && t.area !== regionFilter) return false;
+  const filtered = tours.filter((tour) => {
+    if (typeFilter !== 'all' && tour.type !== typeFilter) return false;
+    if (regionFilter && tour.region !== regionFilter && tour.area !== regionFilter) return false;
+    if ((Number(tour.price) || 0) > priceFilter) return false;
     return true;
   });
 
-  const regions = [...new Set(tours.flatMap((t) => [t.region, t.area]).filter(Boolean))].sort();
+  const regions = [...new Set(tours.flatMap((tour) => [tour.region, tour.area]).filter(Boolean))].sort();
+
+  const getPhoto = (tour) => {
+    const p = tour.photos?.[0];
+    return (p && (p.base64 || p.url || p)) || null;
+  };
 
   return (
     <div style={{ padding: '40px 24px 80px', maxWidth: 1200, margin: '0 auto' }}>
@@ -110,6 +91,18 @@ export default function Explore() {
             <option key={r} value={r}>{r}</option>
           ))}
         </select>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+          <span>Max ₾</span>
+          <input
+            type="range"
+            min={0}
+            max={priceMax}
+            value={priceFilter}
+            onChange={(e) => setPriceFilter(Number(e.target.value))}
+            style={{ width: 100 }}
+          />
+          <span>₾{priceFilter}</span>
+        </label>
       </div>
 
       {loading ? (
@@ -130,8 +123,8 @@ export default function Explore() {
               }}
             >
               <div style={{ aspectRatio: '16/10', background: 'var(--bg-elevated)' }}>
-                {t.photo ? (
-                  <img src={t.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {getPhoto(t) ? (
+                  <img src={getPhoto(t)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <span style={{ fontSize: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                     {t.emoji || '🗺️'}
