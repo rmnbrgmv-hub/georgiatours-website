@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
@@ -8,6 +8,7 @@ import { mapBookingRow } from '../hooks/useAppData';
 export default function Profile() {
   const { user } = useOutletContext();
   const { t } = useLocale();
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
@@ -77,6 +78,25 @@ export default function Profile() {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <button
+          type="button"
+          onClick={() => navigate('/app/chat', { state: { openSupport: true } })}
+          style={{
+            display: 'block',
+            width: '100%',
+            padding: 16,
+            borderRadius: 'var(--radius)',
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
+            color: 'var(--text)',
+            fontWeight: 500,
+            cursor: 'pointer',
+            textAlign: 'left',
+            font: 'inherit',
+          }}
+        >
+          💬 Message Support
+        </button>
         <Link
           to="/app/bookings"
           style={{

@@ -12,12 +12,23 @@ export default function AdminBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const refetch = () => {
+    supabase.from('bookings').select('*').order('created_at', { ascending: false }).then(({ data }) => {
+      setBookings((data || []).map(mapBookingRow));
+    });
+  };
+
   useEffect(() => {
     supabase.from('bookings').select('*').order('created_at', { ascending: false }).then(({ data }) => {
       setBookings((data || []).map(mapBookingRow));
       setLoading(false);
     });
   }, []);
+
+  const forceCompleteBooking = async (b) => {
+    const { error } = await supabase.from('bookings').update({ status: 'completed' }).eq('id', b.id);
+    if (!error) refetch();
+  };
 
   if (!user) return null;
   if (user.role !== 'admin') return <Navigate to="/app" replace />;
@@ -56,6 +67,11 @@ export default function AdminBookings() {
                   <dt style={{ color: 'var(--text-muted)' }}>Status</dt><dd style={{ margin: 0 }}>{b.status}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Reviewed</dt><dd style={{ margin: 0 }}>{b.reviewed ? 'Yes' : 'No'}</dd>
                   {b.createdAt && <><dt style={{ color: 'var(--text-muted)' }}>Created</dt><dd style={{ margin: 0 }}>{new Date(b.createdAt).toLocaleString()}</dd></>}
+                  {b.status !== 'completed' && (
+                    <><dt style={{ color: 'var(--text-muted)' }}></dt><dd style={{ margin: 0 }}>
+                      <button type="button" onClick={() => forceCompleteBooking(b)} style={{ marginTop: 8, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>Force complete</button>
+                    </dd></>
+                  )}
                 </dl>
               </ExpandableItem>
             ))}

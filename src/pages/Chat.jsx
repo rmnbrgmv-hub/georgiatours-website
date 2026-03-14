@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
@@ -14,6 +14,8 @@ function fmtTime(ts) {
 export default function Chat() {
   const { user } = useOutletContext();
   const { t } = useLocale();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [partners, setPartners] = useState([]);
   const [selected, setSelected] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -28,14 +30,12 @@ export default function Chat() {
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
+      const { data: adminRow } = await supabase.from('users').select('id, name, avatar, color').eq('role', 'admin').maybeSingle();
+      const supportPartner = adminRow ? { id: adminRow.id, name: adminRow.name || 'Support', avatar: adminRow.avatar, color: adminRow.color || 'var(--cyan)', isSupport: true } : null;
+
       if (user.role === 'provider') {
         const { data: bookingData } = await supabase.from('bookings').select('tourist_id, tourist_name').eq('provider_id', user.id);
         const ids = [...new Set((bookingData || []).map((b) => b.tourist_id).filter(Boolean))];
-        if (ids.length === 0) {
-          setPartners([]);
-          setLoading(false);
-          return;
-        }
         const { data: users } = await supabase.from('users').select('id, name, avatar, color').in('id', ids);
         const byId = {};
         (users || []).forEach((u) => { byId[u.id] = u; });
@@ -47,15 +47,14 @@ export default function Chat() {
             avatar: byId[b.tourist_id]?.avatar,
             color: byId[b.tourist_id]?.color || 'var(--gold)',
           }));
+        setPartners(supportPartner ? [supportPartner, ...list] : list);
+      } else if (user.role === 'admin') {
+        const { data: allUsers } = await supabase.from('users').select('id, name, avatar, color').neq('role', 'admin');
+        const list = (allUsers || []).map((u) => ({ id: u.id, name: u.name || 'User', avatar: u.avatar, color: u.color || 'var(--gold)' }));
         setPartners(list);
       } else {
         const { data: bookingData } = await supabase.from('bookings').select('provider_id, provider_name').eq('tourist_id', user.id);
         const ids = [...new Set((bookingData || []).map((b) => b.provider_id).filter(Boolean))];
-        if (ids.length === 0) {
-          setPartners([]);
-          setLoading(false);
-          return;
-        }
         const { data: users } = await supabase.from('users').select('id, name, avatar, color').in('id', ids);
         const byId = {};
         (users || []).forEach((u) => { byId[u.id] = u; });
@@ -67,11 +66,30 @@ export default function Chat() {
             avatar: byId[b.provider_id]?.avatar,
             color: byId[b.provider_id]?.color || 'var(--gold)',
           }));
-        setPartners(list);
+        setPartners(supportPartner ? [supportPartner, ...list] : list);
       }
       setLoading(false);
     })();
   }, [user?.id, user?.role]);
+
+  useEffect(() => {
+    if (loading || partners.length === 0) return;
+    const openSupport = location.state?.openSupport;
+    const partnerId = location.state?.partnerId;
+    if (openSupport && user?.role !== 'admin') {
+      const supportUser = partners.find((p) => p.isSupport);
+      if (supportUser) {
+        setSelected(supportUser);
+        navigate('/app/chat', { replace: true, state: {} });
+      }
+    } else if (partnerId && user?.role === 'admin') {
+      const p = partners.find((x) => String(x.id) === String(partnerId));
+      if (p) {
+        setSelected(p);
+        navigate('/app/chat', { replace: true, state: {} });
+      }
+    }
+  }, [loading, partners, location.state, user?.role, navigate]);
 
   useEffect(() => {
     if (!user?.id || !selected?.id) return;

@@ -12,12 +12,23 @@ export default function AdminRequests() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const refetch = () => {
+    supabase.from('requests').select('*').order('created_at', { ascending: false }).then(({ data }) => {
+      setRequests((data || []).map(mapRequestRow));
+    });
+  };
+
   useEffect(() => {
     supabase.from('requests').select('*').order('created_at', { ascending: false }).then(({ data }) => {
       setRequests((data || []).map(mapRequestRow));
       setLoading(false);
     });
   }, []);
+
+  const forceCompleteRequest = async (r) => {
+    const { error } = await supabase.from('requests').update({ status: 'completed' }).eq('id', r.id);
+    if (!error) refetch();
+  };
 
   if (!user) return null;
   if (user.role !== 'admin') return <Navigate to="/app" replace />;
@@ -56,6 +67,11 @@ export default function AdminRequests() {
                   <dt style={{ color: 'var(--text-muted)' }}>Status</dt><dd style={{ margin: 0 }}>{r.status}</dd>
                   {r.desc && <><dt style={{ color: 'var(--text-muted)' }}>Description</dt><dd style={{ margin: 0 }}>{r.desc}</dd></>}
                   {r.createdAt && <><dt style={{ color: 'var(--text-muted)' }}>Created</dt><dd style={{ margin: 0 }}>{new Date(r.createdAt).toLocaleString()}</dd></>}
+                  {r.status !== 'completed' && (
+                    <><dt style={{ color: 'var(--text-muted)' }}></dt><dd style={{ margin: 0 }}>
+                      <button type="button" onClick={() => forceCompleteRequest(r)} style={{ marginTop: 8, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>Force complete</button>
+                    </dd></>
+                  )}
                 </dl>
               </ExpandableItem>
             ))}

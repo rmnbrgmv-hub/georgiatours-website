@@ -79,6 +79,11 @@ export default function Requests() {
     setShowForm(false);
   };
 
+  const confirmRequestCompleted = async (requestId) => {
+    const { error } = await supabase.from('requests').update({ status: 'completed' }).eq('id', requestId);
+    if (!error) refetchRequests();
+  };
+
   const acceptOffer = async (requestId, offer) => {
     const r = requests.find((x) => x.id === requestId);
     if (!r || r.status !== 'open') return;
@@ -214,7 +219,7 @@ export default function Requests() {
                   <span style={{ fontWeight: 600 }}>{r.title}</span>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{r.region} · {r.type} · {r.date || '—'}</span>
                   <span style={{ color: 'var(--gold)' }}>₾{r.budget || '—'}</span>
-                  <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, background: r.status === 'booked' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: r.status === 'booked' ? 'var(--cyan)' : 'var(--gold)' }}>
+                  <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, background: r.status === 'completed' ? 'var(--cyan-soft)' : r.status === 'booked' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: r.status === 'completed' ? 'var(--cyan)' : r.status === 'booked' ? 'var(--cyan)' : 'var(--gold)' }}>
                     {r.status}
                   </span>
                   {(offersByRequestId[r.id] || []).length > 0 && (
@@ -244,11 +249,23 @@ export default function Requests() {
                         </button>
                       )}
                       {o.status === 'accepted' && <span style={{ fontSize: '0.8rem', color: 'var(--cyan)' }}>Accepted</span>}
+                      {o.status === 'provider_confirmed' && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Provider marked done</span>}
                     </div>
                   ))}
                 </div>
               ) : (
                 <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>No offers yet.</p>
+              )}
+              {r.status === 'booked' && (offersByRequestId[r.id] || []).some((o) => o.status === 'provider_confirmed') && (
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    type="button"
+                    onClick={() => confirmRequestCompleted(r.id)}
+                    style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}
+                  >
+                    Confirm completed
+                  </button>
+                </div>
               )}
             </ExpandableItem>
           ))}
