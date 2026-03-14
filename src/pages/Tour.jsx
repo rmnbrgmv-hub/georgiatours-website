@@ -173,48 +173,31 @@ export default function Tour(props) {
         </p>
       )}
 
+      {/* Book in app: only for tourists (in app) or when not logged in (landing/discover) */}
       {user ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {user.role === 'tourist' && (
-            <>
-              <button
-                type="button"
-                onClick={handleBook}
-                disabled={booking}
-                style={{
-                  display: 'inline-block',
-                  background: 'var(--gold)',
-                  color: 'var(--bg)',
-                  padding: '14px 28px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: 'none',
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  cursor: booking ? 'wait' : 'pointer',
-                }}
-              >
-                {booking ? 'Booking…' : t('tour.bookInApp')}
-              </button>
-              {bookError && <p style={{ color: '#f87171', fontSize: '0.9rem' }}>{bookError}</p>}
-            </>
-          )}
-          {user.role !== 'tourist' && (
-            <Link
-              to={`/app/explore${id ? `?tour=${id}` : ''}`}
+        user.role === 'tourist' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button
+              type="button"
+              onClick={handleBook}
+              disabled={booking}
               style={{
                 display: 'inline-block',
                 background: 'var(--gold)',
                 color: 'var(--bg)',
                 padding: '14px 28px',
                 borderRadius: 'var(--radius-sm)',
+                border: 'none',
                 fontWeight: 600,
                 fontSize: '1rem',
+                cursor: booking ? 'wait' : 'pointer',
               }}
             >
-              {t('tour.bookInApp')} →
-            </Link>
-          )}
-        </div>
+              {booking ? 'Booking…' : t('tour.bookInApp')}
+            </button>
+            {bookError && <p style={{ color: '#f87171', fontSize: '0.9rem' }}>{bookError}</p>}
+          </div>
+        )
       ) : (
         <Link
           to="/login"
@@ -228,7 +211,7 @@ export default function Tour(props) {
             fontSize: '1rem',
           }}
         >
-          {t('tour.signInToBook')}
+          {t('tour.bookInApp')}
         </Link>
       )}
 
