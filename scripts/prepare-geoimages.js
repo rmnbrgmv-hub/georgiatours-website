@@ -27,7 +27,7 @@ if (!fs.existsSync(sourceDir)) {
 }
 
 const xml = fs.readFileSync(xmlPath, 'utf8');
-const photos = [];
+const xmlByFile = new Map(); // normalized filename -> { title, lat, lng }
 const photoBlocks = xml.match(/<photo>[\s\S]*?<\/photo>/g) || [];
 
 for (const block of photoBlocks) {
@@ -38,26 +38,37 @@ for (const block of photoBlocks) {
   if (!name || Number.isNaN(lat) || Number.isNaN(lng)) continue;
   const ext = path.extname(name).toLowerCase();
   if (ext !== '.jpg' && ext !== '.jpeg') continue;
-  photos.push({ name, title, lat, lng });
+  const norm = name.replace(/\s+/g, ' ').trim();
+  xmlByFile.set(norm, { title, lat, lng });
+  xmlByFile.set(name, { title, lat, lng });
 }
+
+// Georgia center fallback when XML has no coords for a file
+const DEFAULT_LAT = 41.7;
+const DEFAULT_LNG = 44.8;
 
 if (!fs.existsSync(publicGeo)) fs.mkdirSync(publicGeo, { recursive: true });
 
 const result = [];
 let idx = 0;
+const files = fs.readdirSync(sourceDir).filter((f) => /\.(jpg|jpeg)$/i.test(f));
 
-for (const p of photos) {
-  const srcPath = path.join(sourceDir, p.name);
-  if (!fs.existsSync(srcPath)) continue;
+for (const file of files) {
+  const srcPath = path.join(sourceDir, file);
+  if (!fs.statSync(srcPath).isFile()) continue;
+  const meta = xmlByFile.get(file) || xmlByFile.get(file.replace(/\s+/g, ' ').trim());
+  const title = meta?.title || file.replace(/\.(jpg|jpeg)$/i, '').replace(/^Image of\s+/i, '');
+  const lat = meta?.lat ?? DEFAULT_LAT;
+  const lng = meta?.lng ?? DEFAULT_LNG;
   idx += 1;
   const safeName = `${idx}.jpg`;
   const destPath = path.join(publicGeo, safeName);
   fs.copyFileSync(srcPath, destPath);
   result.push({
     src: `/geoimages/${safeName}`,
-    title: p.title,
-    lat: p.lat,
-    lng: p.lng,
+    title,
+    lat,
+    lng,
   });
 }
 

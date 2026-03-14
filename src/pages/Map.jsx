@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useLocale } from '../context/LocaleContext';
@@ -15,6 +15,16 @@ if (typeof L !== 'undefined' && L.Icon) {
 
 const GEORGIA_CENTER = [42.3, 43.4];
 const GEORGIA_BOUNDS = [[41.0, 40.0], [43.6, 46.8]];
+
+const NEIGHBOR_FLAGS = {
+  RU: { fill: '#0032A0', stroke: '#fff' },   // Russia – blue
+  TR: { fill: '#E30A17', stroke: '#fff' },   // Turkey – red
+  AM: { fill: '#D90012', stroke: '#F2A800' }, // Armenia – red/orange
+  AZ: { fill: '#00B5E2', stroke: '#EF3340' }, // Azerbaijan – blue/red
+};
+
+const COUNTRIES_URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson';
+const COUNTRY_CODES = ['GE', 'RU', 'TR', 'AM', 'AZ'];
 
 function SetBounds({ bounds }) {
   const map = useMap();
@@ -42,9 +52,27 @@ function createPhotoIcon(src) {
   });
 }
 
+function countryStyle(feature) {
+  const iso = feature?.properties?.ISO_A2;
+  if (iso === 'GE') {
+    return { fillColor: 'transparent', fillOpacity: 0, color: 'rgba(255,255,255,0.4)', weight: 1.5 };
+  }
+  const flag = NEIGHBOR_FLAGS[iso];
+  if (flag) {
+    return {
+      fillColor: flag.fill,
+      fillOpacity: 0.92,
+      color: flag.stroke || '#fff',
+      weight: 1,
+    };
+  }
+  return { fillOpacity: 0, color: 'transparent' };
+}
+
 export default function Map() {
   const { t } = useLocale();
   const [photos, setPhotos] = useState([]);
+  const [countriesGeo, setCountriesGeo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [popout, setPopout] = useState(null);
   const popoutRef = useRef(null);
@@ -54,6 +82,23 @@ export default function Map() {
       .then((r) => r.ok ? r.json() : [])
       .then((data) => {
         setPhotos(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch(COUNTRIES_URL)
+      .then((r) => r.ok ? r.json() : null)
+      .then((geojson) => {
+        if (!geojson?.features) {
+          setLoading(false);
+          return;
+        }
+        const filtered = {
+          type: 'FeatureCollection',
+          features: geojson.features.filter((f) => COUNTRY_CODES.includes(f?.properties?.ISO_A2)),
+        };
+        setCountriesGeo(filtered);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -63,7 +108,7 @@ export default function Map() {
     <div style={{ padding: '24px 0 80px' }}>
       <div style={{ padding: '0 24px 20px' }}>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('map.title')}</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>{t('map.subtitle')} Tap or hover a pin to view the photo.</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>{t('map.subtitle')} Tap a pin to view the photo. Neighbors shown in flag colors.</p>
       </div>
       <div style={{ height: 520, borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--border)', margin: '0 24px', position: 'relative' }}>
         {typeof window !== 'undefined' && (
@@ -72,12 +117,18 @@ export default function Map() {
             zoom={7}
             style={{ height: '100%', width: '100%' }}
             scrollWheelZoom={true}
+            minZoom={5}
+            maxBounds={GEORGIA_BOUNDS}
+            maxBoundsViscosity={0.8}
           >
             <SetBounds bounds={GEORGIA_BOUNDS} />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+            {countriesGeo && (
+              <GeoJSON key="countries" data={countriesGeo} style={countryStyle} />
+            )}
             {photos.map((p, i) => (
               <Marker
                 key={i}
@@ -91,7 +142,6 @@ export default function Map() {
           </MapContainer>
         )}
 
-        {/* Temporary popout frame (Apple Watch style) – shown on tap/hover for touch devices or when popup isn't used */}
         {popout && (
           <div
             ref={popoutRef}
@@ -155,8 +205,6 @@ export default function Map() {
 
       <style>{`
         .geo-photo-pin { background: none !important; border: none !important; }
-        .leaflet-popup-content-wrapper { border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.35); }
-        .leaflet-popup-tip { box-shadow: 0 2px 8px rgba(0,0,0,.2); }
         @keyframes geoPopout {
           from { opacity: 0; transform: translate(-50%,-50%) scale(0.9); }
           to { opacity: 1; transform: translate(-50%,-50%) scale(1); }
