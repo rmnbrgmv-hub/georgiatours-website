@@ -43,7 +43,7 @@ export default function Bookings() {
     return (
       <div style={{ padding: 80, textAlign: 'center' }}>
         <p style={{ marginBottom: 16 }}>Sign in to see your bookings.</p>
-        <Link to="/login?redirect=/bookings" style={{ color: 'var(--gold)' }}>Sign in</Link>
+        <Link to="/login?redirect=/app/bookings" style={{ color: 'var(--gold)' }}>Sign in</Link>
       </div>
     );
   }
@@ -59,7 +59,7 @@ export default function Bookings() {
       ) : bookings.length === 0 ? (
         <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center' }}>
           <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>No bookings yet.</p>
-          <Link to="/explore" style={{ color: 'var(--gold)', fontWeight: 500 }}>Explore tours</Link>
+          <Link to="/app/explore" style={{ color: 'var(--gold)', fontWeight: 500 }}>Explore tours</Link>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

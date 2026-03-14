@@ -1,6 +1,6 @@
 export const translations = {
   en: {
-    nav: { home: 'Home', explore: 'Explore', map: 'Map', stories: 'Stories', contact: 'Contact', bookings: 'Bookings', requests: 'Requests', chat: 'Chat', profile: 'Profile', signIn: 'Sign in', signOut: 'Sign out', language: 'Language', dashboard: 'Dashboard', myTours: 'My Tours', jobs: 'Jobs', overview: 'Overview', providers: 'Providers', tours: 'Tours', approvals: 'Approvals', messages: 'Messages', appName: 'GeorgiaTours' },
+    nav: { home: 'Home', explore: 'Explore', map: 'Map', stories: 'Stories', contact: 'Contact', bookings: 'Bookings', requests: 'Requests', chat: 'Chat', profile: 'Profile', signIn: 'Sign in', signOut: 'Sign out', language: 'Language', dashboard: 'Dashboard', myTours: 'My Tours', jobs: 'Jobs', overview: 'Overview', providers: 'Providers', tours: 'Tours', approvals: 'Approvals', messages: 'Messages', appName: 'GeorgiaTours', adminGroupData: 'Bookings & Requests', adminGroupPeople: 'Providers & Tours', adminGroupMore: 'Approvals & Messages' },
     home: {
       tagline: 'Explore Georgia',
       title: 'Discover tours & experiences across Georgia',
@@ -11,7 +11,7 @@ export const translations = {
     },
     explore: { title: 'Explore tours', subtitle: 'Same live data as the app — book or connect with providers.', all: 'All', allRegions: 'All regions', noMatch: 'No tours match.' },
     tour: { backToExplore: 'Back to Explore', notFound: 'Tour not found.', bookInApp: 'Book in app', signInToBook: 'Sign in to book', reviews: 'Reviews', noReviews: 'No reviews yet.' },
-    login: { title: 'Sign in', subtitle: 'Use the same account as in the GeorgiaTours app.', email: 'Email', password: 'Password', signIn: 'Sign in', signingIn: 'Signing in…' },
+    login: { title: 'Sign in', subtitle: 'Use the same account as in the GeorgiaTours app.', iAm: 'I am', roleTourist: 'Tourist', roleGuide: 'Guide', roleDriver: 'Driver', email: 'Email', password: 'Password', signIn: 'Sign in', signingIn: 'Signing in…' },
     map: { title: 'Tours map', subtitle: 'See where our tours operate across Georgia.' },
     stories: { title: 'Stories from Georgia', subtitle: 'Travel tips and experiences.' },
     contact: { title: 'Contact & Request a tour', name: 'Name', email: 'Email', message: 'Message', tourInterest: 'Tour interest (optional)', send: 'Send', sent: 'Message sent. We’ll get back soon!' },
@@ -23,7 +23,7 @@ export const translations = {
     profile: { title: 'Profile', subtitle: 'Your account and stats.', bookings: 'Bookings', completed: 'Completed', reviewsLeft: 'Reviews left', memberSince: 'Member since' },
   },
   ka: {
-    nav: { home: 'მთავარი', explore: 'ტურები', map: 'რუკა', stories: 'ისტორიები', contact: 'კონტაქტი', bookings: 'ჯავშნები', requests: 'მოთხოვნები', chat: 'შეტყობინებები', profile: 'პროფილი', signIn: 'შესვლა', signOut: 'გასვლა', language: 'ენა', dashboard: 'პანელი', myTours: 'ჩემი ტურები', jobs: 'სამუშაოები', overview: 'მიმოხილვა', providers: 'პროვაიდერები', tours: 'ტურები', approvals: 'დამოწმება', messages: 'შეტყობინებები', appName: 'GeorgiaTours' },
+    nav: { home: 'მთავარი', explore: 'ტურები', map: 'რუკა', stories: 'ისტორიები', contact: 'კონტაქტი', bookings: 'ჯავშნები', requests: 'მოთხოვნები', chat: 'შეტყობინებები', profile: 'პროფილი', signIn: 'შესვლა', signOut: 'გასვლა', language: 'ენა', dashboard: 'პანელი', myTours: 'ჩემი ტურები', jobs: 'სამუშაოები', overview: 'მიმოხილვა', providers: 'პროვაიდერები', tours: 'ტურები', approvals: 'დამოწმება', messages: 'შეტყობინებები', appName: 'GeorgiaTours', adminGroupData: 'ჯავშნები და მოთხოვნები', adminGroupPeople: 'პროვაიდერები და ტურები', adminGroupMore: 'დამოწმება და შეტყობინებები' },
     home: {
       tagline: 'გაეცანი საქართველოს',
       title: 'აღმოაჩინე ტურები და შთაბეჭდილებები საქართველოში',
@@ -34,7 +34,7 @@ export const translations = {
     },
     explore: { title: 'ტურები', subtitle: 'იგივე მონაცემები, რაც აპში.', all: 'ყველა', allRegions: 'ყველა რეგიონი', noMatch: 'ტურები არ მოიძებნა.' },
     tour: { backToExplore: '← უკან', notFound: 'ტური არ მოიძებნა.', bookInApp: 'ჯავშნა აპში', signInToBook: 'შედით ჯავშნისთვის', reviews: 'შეფასებები', noReviews: 'ჯერ შეფასებები არ არის.' },
-    login: { title: 'შესვლა', subtitle: 'იგივე ანგარიში, რაც GeorgiaTours აპში.', email: 'იმეილი', password: 'პაროლი', signIn: 'შესვლა', signingIn: 'შედის…' },
+    login: { title: 'შესვლა', subtitle: 'იგივე ანგარიში, რაც GeorgiaTours აპში.', iAm: 'მე ვარ', roleTourist: 'ტურისტი', roleGuide: 'ჰიდი', roleDriver: 'მძღოლი', email: 'იმეილი', password: 'პაროლი', signIn: 'შესვლა', signingIn: 'შედის…' },
     map: { title: 'ტურების რუკა', subtitle: 'სად მუშაობენ ჩვენი ტურები.' },
     stories: { title: 'ისტორიები საქართველოდან', subtitle: 'მოგზაურობის რჩევები.' },
     contact: { title: 'კონტაქტი და ტურის მოთხოვნა', name: 'სახელი', email: 'იმეილი', message: 'შეტყობინება', tourInterest: 'ტურის ინტერესი (არასავალდებულო)', send: 'გაგზავნა', sent: 'გაგზავნილია. მალე დაგიკავშირდებით!' },
@@ -46,7 +46,7 @@ export const translations = {
     profile: { title: 'პროფილი', subtitle: 'თქვენი ანგარიში.', bookings: 'ჯავშნები', completed: 'დასრულებული', reviewsLeft: 'შეფასებები', memberSince: 'წევრი' },
   },
   ru: {
-    nav: { home: 'Главная', explore: 'Туры', map: 'Карта', stories: 'Истории', contact: 'Контакты', bookings: 'Брони', requests: 'Заявки', chat: 'Чат', profile: 'Профиль', signIn: 'Войти', signOut: 'Выйти', language: 'Язык', dashboard: 'Панель', myTours: 'Мои туры', jobs: 'Заказы', overview: 'Обзор', providers: 'Провайдеры', tours: 'Туры', approvals: 'Одобрения', messages: 'Сообщения', appName: 'GeorgiaTours' },
+    nav: { home: 'Главная', explore: 'Туры', map: 'Карта', stories: 'Истории', contact: 'Контакты', bookings: 'Брони', requests: 'Заявки', chat: 'Чат', profile: 'Профиль', signIn: 'Войти', signOut: 'Выйти', language: 'Язык', dashboard: 'Панель', myTours: 'Мои туры', jobs: 'Заказы', overview: 'Обзор', providers: 'Провайдеры', tours: 'Туры', approvals: 'Одобрения', messages: 'Сообщения', appName: 'GeorgiaTours', adminGroupData: 'Брони и заявки', adminGroupPeople: 'Провайдеры и туры', adminGroupMore: 'Одобрения и сообщения' },
     home: {
       tagline: 'Открой Грузию',
       title: 'Туры и впечатления по Грузии',
@@ -57,7 +57,7 @@ export const translations = {
     },
     explore: { title: 'Туры', subtitle: 'Те же данные, что и в приложении.', all: 'Все', allRegions: 'Все регионы', noMatch: 'Туры не найдены.' },
     tour: { backToExplore: '← Назад', notFound: 'Тур не найден.', bookInApp: 'Забронировать в приложении', signInToBook: 'Войдите для брони', reviews: 'Отзывы', noReviews: 'Пока нет отзывов.' },
-    login: { title: 'Вход', subtitle: 'Тот же аккаунт, что в приложении GeorgiaTours.', email: 'Email', password: 'Пароль', signIn: 'Войти', signingIn: 'Вход…' },
+    login: { title: 'Вход', subtitle: 'Тот же аккаунт, что в приложении GeorgiaTours.', iAm: 'Я', roleTourist: 'Турист', roleGuide: 'Гид', roleDriver: 'Водитель', email: 'Email', password: 'Пароль', signIn: 'Войти', signingIn: 'Вход…' },
     map: { title: 'Карта туров', subtitle: 'Где проходят наши туры.' },
     stories: { title: 'Истории из Грузии', subtitle: 'Советы и впечатления.' },
     contact: { title: 'Контакты и заявка на тур', name: 'Имя', email: 'Email', message: 'Сообщение', tourInterest: 'Интерес к туру (необяз.)', send: 'Отправить', sent: 'Отправлено. Скоро ответим!' },
@@ -69,7 +69,7 @@ export const translations = {
     profile: { title: 'Профиль', subtitle: 'Ваш аккаунт и статистика.', bookings: 'Брони', completed: 'Завершено', reviewsLeft: 'Отзывы', memberSince: 'С нами с' },
   },
   ar: {
-    nav: { home: 'الرئيسية', explore: 'الجولات', map: 'الخريطة', stories: 'قصص', contact: 'اتصل', bookings: 'الحجوزات', requests: 'الطلبات', chat: 'المحادثة', profile: 'الملف', signIn: 'تسجيل الدخول', signOut: 'خروج', language: 'اللغة', dashboard: 'لوحة التحكم', myTours: 'جولاتي', jobs: 'الوظائف', overview: 'نظرة عامة', providers: 'مقدمو الخدمة', tours: 'الجولات', approvals: 'الموافقات', messages: 'الرسائل', appName: 'GeorgiaTours' },
+    nav: { home: 'الرئيسية', explore: 'الجولات', map: 'الخريطة', stories: 'قصص', contact: 'اتصل', bookings: 'الحجوزات', requests: 'الطلبات', chat: 'المحادثة', profile: 'الملف', signIn: 'تسجيل الدخول', signOut: 'خروج', language: 'اللغة', dashboard: 'لوحة التحكم', myTours: 'جولاتي', jobs: 'الوظائف', overview: 'نظرة عامة', providers: 'مقدمو الخدمة', tours: 'الجولات', approvals: 'الموافقات', messages: 'الرسائل', appName: 'GeorgiaTours', adminGroupData: 'الحجوزات والطلبات', adminGroupPeople: 'مقدمو الخدمة والجولات', adminGroupMore: 'الموافقات والرسائل' },
     home: {
       tagline: 'اكتشف جورجيا',
       title: 'جولات وتجارب في جورجيا',
@@ -80,7 +80,7 @@ export const translations = {
     },
     explore: { title: 'الجولات', subtitle: 'نفس البيانات من التطبيق.', all: 'الكل', allRegions: 'كل المناطق', noMatch: 'لا توجد جولات.' },
     tour: { backToExplore: '← رجوع', notFound: 'الجولة غير موجودة.', bookInApp: 'احجز في التطبيق', signInToBook: 'سجّل الدخول للحجز', reviews: 'المراجعات', noReviews: 'لا مراجعات بعد.' },
-    login: { title: 'تسجيل الدخول', subtitle: 'نفس الحساب في تطبيق GeorgiaTours.', email: 'البريد', password: 'كلمة المرور', signIn: 'دخول', signingIn: 'جاري الدخول…' },
+    login: { title: 'تسجيل الدخول', subtitle: 'نفس الحساب في تطبيق GeorgiaTours.', iAm: 'أنا', roleTourist: 'سائح', roleGuide: 'مرشد', roleDriver: 'سائق', email: 'البريد', password: 'كلمة المرور', signIn: 'دخول', signingIn: 'جاري الدخول…' },
     map: { title: 'خريطة الجولات', subtitle: 'أين تقع جولاتنا في جورجيا.' },
     stories: { title: 'قصص من جورجيا', subtitle: 'نصائح وتجارب السفر.' },
     contact: { title: 'اتصل أو اطلب جولة', name: 'الاسم', email: 'البريد', message: 'الرسالة', tourInterest: 'نوع الجولة (اختياري)', send: 'إرسال', sent: 'تم الإرسال. سنرد قريباً!' },

@@ -23,7 +23,7 @@ export default function Profile() {
     return (
       <div style={{ padding: 80, textAlign: 'center' }}>
         <p style={{ marginBottom: 16 }}>{t('tour.signInToBook')}</p>
-        <Link to="/login?redirect=/profile" style={{ color: 'var(--gold)' }}>{t('nav.signIn')}</Link>
+        <Link to="/login?redirect=/app/profile" style={{ color: 'var(--gold)' }}>{t('nav.signIn')}</Link>
       </div>
     );
   }
@@ -78,7 +78,7 @@ export default function Profile() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <Link
-          to="/bookings"
+          to="/app/bookings"
           style={{
             display: 'block',
             padding: 16,
@@ -92,7 +92,7 @@ export default function Profile() {
           📅 {t('nav.bookings')}
         </Link>
         <Link
-          to="/requests"
+          to="/app/requests"
           style={{
             display: 'block',
             padding: 16,

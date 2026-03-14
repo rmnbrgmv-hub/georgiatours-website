@@ -46,17 +46,16 @@ export default function AppLayout({ user, onLogout }) {
     { to: '/app/chat', label: t('nav.chat'), icon: '💬' },
     { to: '/app/profile', label: t('nav.profile'), icon: '👤' },
   ];
-  const adminNav = [
-    { to: '/app/overview', label: t('nav.overview'), icon: '◈' },
-    { to: '/app/admin-bookings', label: t('nav.bookings'), icon: '📅' },
-    { to: '/app/admin-requests', label: t('nav.requests'), icon: '📋' },
-    { to: '/app/admin-providers', label: t('nav.providers'), icon: '👥' },
-    { to: '/app/admin-tours', label: t('nav.tours'), icon: '🗺️' },
-    { to: '/app/admin-approvals', label: t('nav.approvals'), icon: '✅' },
-    { to: '/app/messages', label: t('nav.messages'), icon: '💬' },
+  const adminNavGroups = [
+    { id: 'overview', label: t('nav.overview'), icon: '◈', items: [{ to: '/app/overview', label: t('nav.overview'), icon: '◈' }] },
+    { id: 'data', label: t('nav.adminGroupData'), icon: '📋', items: [{ to: '/app/admin-bookings', label: t('nav.bookings'), icon: '📅' }, { to: '/app/admin-requests', label: t('nav.requests'), icon: '📋' }] },
+    { id: 'people', label: t('nav.adminGroupPeople'), icon: '🗺️', items: [{ to: '/app/admin-providers', label: t('nav.providers'), icon: '👥' }, { to: '/app/admin-tours', label: t('nav.tours'), icon: '🗺️' }] },
+    { id: 'more', label: t('nav.adminGroupMore'), icon: '💬', items: [{ to: '/app/admin-approvals', label: t('nav.approvals'), icon: '✅' }, { to: '/app/messages', label: t('nav.messages'), icon: '💬' }] },
   ];
+  const [adminOpen, setAdminOpen] = useState({ overview: true, data: true, people: true, more: true });
+  const toggleAdminGroup = (id) => setAdminOpen((o) => ({ ...o, [id]: !o[id] }));
 
-  const nav = isAdmin ? adminNav : isProvider ? providerNav : touristNav;
+  const nav = isAdmin ? null : isProvider ? providerNav : touristNav;
   const roleLabel = isAdmin ? 'Admin' : isProvider ? (user?.type === 'guide' ? 'Guide' : 'Driver') : 'Explorer';
 
   return (
@@ -91,16 +90,68 @@ export default function AppLayout({ user, onLogout }) {
           {sidebarOpen && (
             <p style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{roleLabel}</p>
           )}
-          {nav.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              style={({ isActive }) => ({ ...linkStyle(isActive), marginBottom: 4 })}
-            >
-              <span>{item.icon}</span>
-              {sidebarOpen && <span>{item.label}</span>}
-            </NavLink>
-          ))}
+          {isAdmin && sidebarOpen ? (
+            adminNavGroups.map((group) => (
+              <div key={group.id} style={{ marginBottom: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => toggleAdminGroup(group.id)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 12px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    borderRadius: 'var(--radius-sm)',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span>{group.icon}</span>
+                    {group.label}
+                  </span>
+                  <span style={{ transform: adminOpen[group.id] ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▾</span>
+                </button>
+                {adminOpen[group.id] && (
+                  <div style={{ paddingLeft: 8, marginTop: 2 }}>
+                    {group.items.map((item) => (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        style={({ isActive }) => ({ ...linkStyle(isActive), marginBottom: 2 })}
+                      >
+                        <span>{item.icon}</span>
+                        <span>{item.label}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : isAdmin && !sidebarOpen ? (
+            adminNavGroups.flatMap((g) => g.items).map((item) => (
+              <NavLink key={item.to} to={item.to} style={({ isActive }) => ({ ...linkStyle(isActive), marginBottom: 4 })} title={item.label}>
+                <span>{item.icon}</span>
+              </NavLink>
+            ))
+          ) : (
+            nav?.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                style={({ isActive }) => ({ ...linkStyle(isActive), marginBottom: 4 })}
+              >
+                <span>{item.icon}</span>
+                {sidebarOpen && <span>{item.label}</span>}
+              </NavLink>
+            ))
+          )}
         </div>
       </aside>
 

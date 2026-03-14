@@ -122,7 +122,7 @@ export default function Chat() {
     return (
       <div style={{ padding: 80, textAlign: 'center' }}>
         <p style={{ marginBottom: 16 }}>{t('tour.signInToBook')}</p>
-        <Link to="/login?redirect=/chat" style={{ color: 'var(--gold)' }}>{t('nav.signIn')}</Link>
+        <Link to="/login?redirect=/app/chat" style={{ color: 'var(--gold)' }}>{t('nav.signIn')}</Link>
       </div>
     );
   }
@@ -206,7 +206,7 @@ export default function Chat() {
       ) : partners.length === 0 ? (
         <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center' }}>
           <p style={{ color: 'var(--text-muted)' }}>{t('chat.noPartners')}</p>
-          <Link to="/bookings" style={{ color: 'var(--gold)', marginTop: 12, display: 'inline-block' }}>{t('nav.bookings')}</Link>
+          <Link to="/app/bookings" style={{ color: 'var(--gold)', marginTop: 12, display: 'inline-block' }}>{t('nav.bookings')}</Link>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

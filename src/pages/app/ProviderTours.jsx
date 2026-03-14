@@ -41,7 +41,7 @@ export default function ProviderTours() {
               <h3 style={{ fontWeight: 600, marginTop: 12, marginBottom: 6 }}>{s.name}</h3>
               <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: 8 }}>{s.region} · {s.duration}</p>
               <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.25rem', color: 'var(--gold)' }}>₾{s.price}</p>
-              <Link to={`/tour/${s.id}`} style={{ display: 'inline-block', marginTop: 12, color: 'var(--gold)', fontSize: '0.9rem' }}>View →</Link>
+              <Link to={`/app/tour/${s.id}`} style={{ display: 'inline-block', marginTop: 12, color: 'var(--gold)', fontSize: '0.9rem' }}>View →</Link>
             </div>
           ))}
         </div>

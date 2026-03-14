@@ -17,10 +17,17 @@ async function fetchUserByEmail(email) {
   return mapUserRow(data);
 }
 
+const ROLES = [
+  { id: 'tourist', icon: '🧳', key: 'roleTourist' },
+  { id: 'guide', icon: '🗺️', key: 'roleGuide' },
+  { id: 'driver', icon: '🚐', key: 'roleDriver' },
+];
+
 export default function Login({ onLogin }) {
   const { t } = useLocale();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('tourist');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -68,9 +75,38 @@ export default function Login({ onLogin }) {
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.8rem', marginBottom: 8 }}>
         {t('login.title')}
       </h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>
         {t('login.subtitle')}
       </p>
+      <div style={{ marginBottom: 24 }}>
+        <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('login.iAm')}</label>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          {ROLES.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => setRole(r.id)}
+              style={{
+                padding: '12px 8px',
+                borderRadius: 'var(--radius-sm)',
+                border: `1px solid ${role === r.id ? 'var(--gold)' : 'var(--border)'}`,
+                background: role === r.id ? 'var(--gold-soft)' : 'var(--surface)',
+                color: role === r.id ? 'var(--gold)' : 'var(--text-muted)',
+                fontSize: '0.9rem',
+                fontWeight: role === r.id ? 600 : 500,
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span style={{ fontSize: '1.4rem' }}>{r.icon}</span>
+              <span>{t('login.' + r.key)}</span>
+            </button>
+          ))}
+        </div>
+      </div>
       <form onSubmit={handleSubmit}>
         <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 6 }}>{t('login.email')}</label>
         <input

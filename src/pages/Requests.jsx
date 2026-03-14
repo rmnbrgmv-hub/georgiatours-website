@@ -105,7 +105,7 @@ export default function Requests() {
     return (
       <div style={{ padding: 80, textAlign: 'center' }}>
         <p style={{ marginBottom: 16 }}>{t('tour.signInToBook')}</p>
-        <Link to="/login?redirect=/requests" style={{ color: 'var(--gold)' }}>{t('nav.signIn')}</Link>
+        <Link to="/login?redirect=/app/requests" style={{ color: 'var(--gold)' }}>{t('nav.signIn')}</Link>
       </div>
     );
   }

@@ -18,6 +18,7 @@ import Bookings from './pages/Bookings';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Tour from './pages/Tour';
+import Provider from './pages/Provider';
 
 import ProviderDashboard from './pages/app/ProviderDashboard';
 import ProviderTours from './pages/app/ProviderTours';
@@ -89,6 +90,8 @@ export default function App() {
               <Route path="/" element={user ? <Navigate to="/app" replace /> : <Landing />} />
               <Route path="/login" element={user ? <Navigate to="/app" replace /> : <Login onLogin={handleLogin} />} />
               <Route path="/tour/:id" element={<Tour user={user} />} />
+              <Route path="/provider/:id" element={<Provider />} />
+              <Route path="/explore" element={user ? <Navigate to="/app/explore" replace /> : <Navigate to="/" replace />} />
 
               <Route path="/app" element={user ? <AppLayout user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />}>
                 <Route index element={<AppRedirectWithUser user={user} />} />
