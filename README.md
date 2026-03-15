@@ -17,7 +17,7 @@ After login you are redirected to the correct default tab for your role.
 
 ## Features
 
-- **Auth**: Email + password when `VITE_USE_SUPABASE_AUTH=true`; otherwise email-only lookup in `users` table.
+- **Auth**: Supabase Auth only — email + password; session from `getSession()`; user profile from `users` by `auth.uid()`.
 - **Theme**: Light/dark toggle in header; preference in `localStorage`.
 - **Locale**: EN / ქართ / Ru / العربية in header; `document.dir` set to RTL for Arabic.
 - **Shared data layer**: `src/hooks/useAppData.js` — same row mappers and hooks as the app (`mapServiceRow`, `mapUserRow`, `mapRequestRow`, `mapBookingRow`, `useServices`, `useRequests`, etc.).
@@ -32,7 +32,7 @@ Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env` to the **same** S
 ```bash
 npm install
 cp .env.example .env
-# Edit .env: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (same as app), optional VITE_APP_URL, VITE_USE_SUPABASE_AUTH
+# Edit .env: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (same as app), optional VITE_APP_URL
 npm run dev
 ```
 
@@ -45,4 +45,3 @@ Build command: `npm run build` (Vite). Output: `dist`. Add env vars in the dashb
 - `VITE_SUPABASE_URL` — Supabase project URL (same as app)
 - `VITE_SUPABASE_ANON_KEY` — Supabase anon key (same as app)
 - `VITE_APP_URL` — Main app URL for “Book in app”
-- `VITE_USE_SUPABASE_AUTH` — `"true"` to use Supabase Auth for login

@@ -4,14 +4,12 @@ import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapUserRow } from '../hooks/useAppData';
 
-const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
-
-/** Same columns and user shape as app (admin App.jsx login) for role, totalBookings, etc. */
-async function fetchUserByEmail(email) {
+/** Fetch user from users table by Supabase Auth id (auth.uid()). */
+async function fetchUserById(id) {
   const { data, error } = await supabase
     .from('users')
     .select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery')
-    .eq('email', email)
+    .eq('id', id)
     .maybeSingle();
   if (error || !data) return null;
   return mapUserRow(data);
@@ -24,8 +22,8 @@ const ROLES = [
   { id: 'admin', icon: '⚙️', key: 'roleAdmin' },
 ];
 
-/** Insert user row (same shape as app insertUser). */
-async function insertUser({ name, email, role, providerType }) {
+/** Insert user row with id = Supabase Auth user id (required for signup). */
+async function insertUser({ id, name, email, role, providerType }) {
   const avatar = (name || email || '')
     .trim()
     .split(/\s+/)
@@ -35,6 +33,7 @@ async function insertUser({ name, email, role, providerType }) {
     .toUpperCase() || '?';
   const isProvider = role === 'guide' || role === 'driver';
   const payload = {
+    id,
     name: (name || email?.split('@')[0] || '').trim(),
     email: (email || '').trim(),
     role: isProvider ? 'provider' : role,
@@ -68,91 +67,59 @@ export default function Login({ onLogin }) {
     setError('');
     setLoading(true);
     try {
-      if (useSupabaseAuth && password) {
-        if (mode === 'signup') {
-          const { data: authData, error: authErr } = await supabase.auth.signUp({ email: email.trim(), password });
-          if (authErr) {
-            setError(authErr.message || 'Sign up failed');
-            setLoading(false);
-            return;
-          }
-          const insertErr = await insertUser({
-            name: name.trim() || email.split('@')[0],
-            email: authData.user?.email || email,
-            role: role === 'admin' ? 'tourist' : role,
-            providerType: role === 'guide' ? 'guide' : role === 'driver' ? 'transfer' : null,
-          });
-          if (insertErr) {
-            const u = await fetchUserByEmail(authData.user?.email || email);
-            if (u) {
-              onLogin(u);
-              navigate(redirect);
-            } else {
-              setError(insertErr.message || 'Account created but user row failed. Try signing in.');
-            }
-          } else {
-            const u = await fetchUserByEmail(authData.user?.email || email);
-            if (u) {
-              onLogin(u);
-              navigate(redirect);
-            } else {
-              onLogin({
-                id: authData.user?.id,
-                name: (name || email).trim().split('@')[0],
-                email: authData.user?.email || email,
-                role: role === 'guide' || role === 'driver' ? 'provider' : 'tourist',
-                type: role === 'guide' ? 'guide' : role === 'driver' ? 'transfer' : undefined,
-              });
-              navigate(redirect);
-            }
-          }
-        } else {
-          const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ email, password });
-          if (authErr) {
-            setError(authErr.message || 'Invalid email or password');
-            setLoading(false);
-            return;
-          }
-          const u = await fetchUserByEmail(authData.user?.email || email);
-          if (u) {
-            onLogin(u);
-            navigate(redirect);
-          } else {
-            onLogin({ id: authData.user?.id, name: authData.user?.email?.split('@')[0], email: authData.user?.email, role: 'tourist' });
-            navigate(redirect);
-          }
+      if (mode === 'signup') {
+        if (!email.trim() || !password) {
+          setError('Email and password are required');
+          setLoading(false);
+          return;
         }
+        const { data: authData, error: authErr } = await supabase.auth.signUp({ email: email.trim(), password });
+        if (authErr) {
+          setError(authErr.message || 'Sign up failed');
+          setLoading(false);
+          return;
+        }
+        const insertErr = await insertUser({
+          id: authData.user.id,
+          name: name.trim() || email.split('@')[0],
+          email: authData.user?.email || email.trim(),
+          role: role === 'admin' ? 'tourist' : role,
+          providerType: role === 'guide' ? 'guide' : role === 'driver' ? 'transfer' : null,
+        });
+        if (insertErr) {
+          setError(insertErr.message || 'Account created but profile could not be saved. Try signing in.');
+          setLoading(false);
+          return;
+        }
+        setError('');
+        setLoading(false);
+        navigate('/login');
+        return;
+      }
+
+      if (!email.trim() || !password) {
+        setError('Email and password are required');
+        setLoading(false);
+        return;
+      }
+      const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (authErr) {
+        setError(authErr.message || 'Invalid email or password');
+        setLoading(false);
+        return;
+      }
+      const u = await fetchUserById(authData.user.id);
+      if (u) {
+        onLogin(u);
+        navigate(redirect);
       } else {
-        if (mode === 'signup') {
-          const insertErr = await insertUser({
-            name: name.trim() || email.split('@')[0],
-            email: email.trim(),
-            role: role === 'admin' ? 'tourist' : role,
-            providerType: role === 'guide' ? 'guide' : role === 'driver' ? 'transfer' : null,
-          });
-          if (insertErr) {
-            setError(insertErr.message || 'Sign up failed. Email may already be in use.');
-            setLoading(false);
-            return;
-          }
-          const u = await fetchUserByEmail(email);
-          if (u) {
-            onLogin(u);
-            navigate(redirect);
-          } else {
-            setError('Account created but could not sign in. Try signing in.');
-            setLoading(false);
-          }
-        } else {
-          const u = await fetchUserByEmail(email);
-          if (!u) {
-            setError(useSupabaseAuth ? 'Invalid email or password' : 'No account found for this email');
-            setLoading(false);
-            return;
-          }
-          onLogin(u);
-          navigate(redirect);
-        }
+        onLogin({
+          id: authData.user.id,
+          name: authData.user?.email?.split('@')[0],
+          email: authData.user?.email,
+          role: 'tourist',
+        });
+        navigate(redirect);
       }
     } catch (_) {
       setError('Something went wrong');
@@ -171,28 +138,6 @@ export default function Login({ onLogin }) {
       <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>
         {t('login.subtitle')}
       </p>
-      {useSupabaseAuth && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Quick Demo</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {[
-              { label: 'Tourist', email: 'tourist@demo.com', pass: 'demo123', icon: '🧳' },
-              { label: 'Guide', email: 'guide@demo.com', pass: 'demo123', icon: '🗺️' },
-              { label: 'Driver', email: 'driver@demo.com', pass: 'demo123', icon: '🚐' },
-            ].map((d) => (
-              <button
-                key={d.label}
-                type="button"
-                onClick={() => { setEmail(d.email); setPassword(d.pass); setRole(d.label.toLowerCase()); setMode('login'); setError(''); }}
-                style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
-              >
-                <span>{d.icon}</span>
-                <span>{d.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         <button type="button" onClick={() => { setMode('login'); setError(''); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: `1px solid ${mode === 'login' ? 'var(--gold)' : 'var(--border)'}`, background: mode === 'login' ? 'var(--gold-soft)' : 'var(--surface)', color: mode === 'login' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: mode === 'login' ? 600 : 500, cursor: 'pointer' }}>Sign in</button>
         <button type="button" onClick={() => { setMode('signup'); setError(''); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: `1px solid ${mode === 'signup' ? 'var(--gold)' : 'var(--border)'}`, background: mode === 'signup' ? 'var(--gold-soft)' : 'var(--surface)', color: mode === 'signup' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: mode === 'signup' ? 600 : 500, cursor: 'pointer' }}>Create account</button>
@@ -255,7 +200,8 @@ export default function Login({ onLogin }) {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder={!useSupabaseAuth ? '(optional)' : ''}
+          required
+          placeholder="••••••••"
           style={{
             width: '100%',
             padding: '12px 16px',

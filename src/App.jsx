@@ -35,8 +35,6 @@ import AdminTours from './pages/app/AdminTours';
 import AdminApprovals from './pages/app/AdminApprovals';
 import AdminMessages from './pages/app/AdminMessages';
 
-const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
-
 function AppRedirectWithUser({ user }) {
   return <AppRedirect user={user} />;
 }
@@ -52,14 +50,13 @@ export default function App() {
   });
 
   useEffect(() => {
-    if (!useSupabaseAuth) return;
     const syncUser = async (authUser) => {
-      if (!authUser?.email) {
+      if (!authUser?.id) {
         setUser(null);
         try { sessionStorage.removeItem('georgiatours-user'); } catch (_) {}
         return;
       }
-      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery').eq('email', authUser.email).maybeSingle();
+      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery').eq('id', authUser.id).maybeSingle();
       const u = data ? mapUserRow(data) : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist' };
       setUser(u);
       try { sessionStorage.setItem('georgiatours-user', JSON.stringify(u)); } catch (_) {}
@@ -79,7 +76,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    if (useSupabaseAuth) supabase.auth.signOut();
+    supabase.auth.signOut();
     setUser(null);
     try { sessionStorage.removeItem('georgiatours-user'); } catch (_) {}
   };
