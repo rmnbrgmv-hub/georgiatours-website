@@ -57,7 +57,7 @@ export default function App() {
         try { sessionStorage.removeItem('georgiatours-user'); } catch (_) {}
         return;
       }
-      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture').eq('email', authUser.email).maybeSingle();
+      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery').eq('email', authUser.email).maybeSingle();
       const u = data ? mapUserRow(data) : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist' };
       setUser(u);
       try { sessionStorage.setItem('georgiatours-user', JSON.stringify(u)); } catch (_) {}

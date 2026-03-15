@@ -7,10 +7,36 @@ import ExpandableItem from '../components/ExpandableItem';
 
 const statusRank = { completed: 4, tourist_done: 3, provider_done: 3, confirmed: 2, active: 2, cancelled: 0 };
 
+function ReviewModal({ booking, onSubmit, onClose }) {
+  const [stars, setStars] = useState(5);
+  const [text, setText] = useState('');
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, width: '100%', maxWidth: 380 }}>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', marginBottom: 4 }}>Leave a Review</h3>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: 16 }}>{booking?.service} with {booking?.provider}</p>
+        <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 8 }}>Rating</label>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button key={n} type="button" onClick={() => setStars(n)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', padding: 4 }}>{n <= stars ? '★' : '☆'}</button>
+          ))}
+        </div>
+        <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 6 }}>Your review (optional)</label>
+        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={3} placeholder="Share your experience…" style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.9rem', marginBottom: 20, resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button type="button" onClick={onClose} style={{ flex: 1, padding: 10, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', cursor: 'pointer' }}>Cancel</button>
+          <button type="button" onClick={() => onSubmit(stars, text)} style={{ flex: 1, padding: 10, borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, cursor: 'pointer' }}>Submit ★</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Bookings() {
   const { user } = useOutletContext();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reviewTarget, setReviewTarget] = useState(null);
   const completedBookingIds = useRef(new Set());
 
   useEffect(() => {
@@ -43,6 +69,22 @@ export default function Bookings() {
   const handleConfirmCompletion = async (bookingId) => {
     const { error } = await supabase.from('bookings').update({ status: 'completed' }).eq('id', bookingId);
     if (!error) setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'completed' } : b)));
+  };
+
+  const handleReview = async (booking, stars, text) => {
+    const providerId = booking.providerId ?? booking.provider_id;
+    await supabase.from('bookings').update({ reviewed: true }).eq('id', booking.id);
+    if (providerId) {
+      await supabase.from('reviews').insert({
+        provider_id: providerId,
+        rating: stars,
+        text: (text || '').trim() || null,
+        tourist_name: user?.name || 'Guest',
+        date: new Date().toISOString().slice(0, 10),
+      });
+    }
+    setBookings((prev) => prev.map((b) => (b.id === booking.id ? { ...b, reviewed: true } : b)));
+    setReviewTarget(null);
   };
 
   if (!user) {
@@ -113,12 +155,17 @@ export default function Bookings() {
                     Confirm completion
                   </button>
                 )}
+                {b.status === 'completed' && !b.reviewed && (
+                  <button type="button" onClick={() => setReviewTarget(b)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--gold)', background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.85rem', cursor: 'pointer' }}>★ Leave a Review</button>
+                )}
+                {b.status === 'completed' && b.reviewed && <span style={{ fontSize: '0.85rem', color: 'var(--cyan)' }}>✓ Reviewed</span>}
                 <Link to="/app/chat" style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.85rem', textDecoration: 'none' }}>Chat with provider</Link>
               </div>
             </ExpandableItem>
           ))}
         </div>
       )}
+      {reviewTarget && <ReviewModal booking={reviewTarget} onSubmit={(stars, text) => handleReview(reviewTarget, stars, text)} onClose={() => setReviewTarget(null)} />}
     </div>
   );
 }

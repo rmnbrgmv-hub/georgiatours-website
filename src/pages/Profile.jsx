@@ -5,6 +5,8 @@ import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapBookingRow } from '../hooks/useAppData';
 
+const MAX_GALLERY = 12;
+
 export default function Profile() {
   const { user, setUser } = useOutletContext();
   const { t } = useLocale();
@@ -12,7 +14,10 @@ export default function Profile() {
   const [bookings, setBookings] = useState([]);
   const [profilePic, setProfilePic] = useState(user?.profile_picture || user?.profilePic || null);
   const [uploading, setUploading] = useState(false);
+  const [gallery, setGallery] = useState(() => (Array.isArray(user?.gallery) ? user.gallery : []));
+  const [gallerySaving, setGallerySaving] = useState(false);
   const fileInputRef = useRef(null);
+  const galleryRef = useRef(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -26,6 +31,10 @@ export default function Profile() {
   useEffect(() => {
     setProfilePic(user?.profile_picture || user?.profilePic || null);
   }, [user?.profile_picture, user?.profilePic]);
+
+  useEffect(() => {
+    setGallery(Array.isArray(user?.gallery) ? user.gallery : []);
+  }, [user?.gallery]);
 
   const handlePhotoChange = (e) => {
     const file = e.target?.files?.[0];
@@ -45,6 +54,29 @@ export default function Profile() {
       setUser?.((prev) => (prev ? { ...prev, profile_picture: base64 } : prev));
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleGalleryAdd = (e) => {
+    const files = Array.from(e.target.files || []);
+    const remaining = MAX_GALLERY - gallery.length;
+    if (remaining <= 0) return;
+    const toAdd = files.slice(0, remaining);
+    toAdd.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => setGallery((g) => [...g, ev.target?.result].slice(0, MAX_GALLERY));
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const removeGalleryPhoto = (idx) => setGallery((g) => g.filter((_, i) => i !== idx));
+
+  const saveGallery = async () => {
+    if (!user?.id || user.role !== 'provider') return;
+    setGallerySaving(true);
+    const { error } = await supabase.from('users').update({ gallery: JSON.stringify(gallery) }).eq('id', user.id);
+    setGallerySaving(false);
+    if (!error) setUser?.((prev) => (prev ? { ...prev, gallery } : prev));
   };
 
   if (!user) {
@@ -165,6 +197,26 @@ export default function Profile() {
           📢 {t('nav.requests')}
         </Link>
       </div>
+
+      {user.role === 'provider' && (
+        <div className="glass" style={{ padding: 28, borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginTop: 24 }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 8 }}>Gallery ({gallery.length}/{MAX_GALLERY})</h3>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 12 }}>Photos shown on your public profile.</p>
+          <input ref={galleryRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleGalleryAdd} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 10, marginBottom: 12 }}>
+            {gallery.map((src, i) => (
+              <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: 8, overflow: 'hidden', background: 'var(--surface-hover)' }}>
+                <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <button type="button" onClick={() => removeGalleryPhoto(i)} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: '#e11d48', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.75rem', lineHeight: 1 }}>×</button>
+              </div>
+            ))}
+            {gallery.length < MAX_GALLERY && (
+              <button type="button" onClick={() => galleryRef.current?.click()} style={{ aspectRatio: '1', borderRadius: 8, border: '2px dashed var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.5rem' }}>+</button>
+            )}
+          </div>
+          <button type="button" onClick={saveGallery} disabled={gallerySaving} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, cursor: gallerySaving ? 'wait' : 'pointer' }}>{gallerySaving ? 'Saving…' : 'Save gallery'}</button>
+        </div>
+      )}
     </div>
   );
 }

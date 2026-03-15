@@ -10,7 +10,7 @@ const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
 async function fetchUserByEmail(email) {
   const { data, error } = await supabase
     .from('users')
-    .select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture')
+    .select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery')
     .eq('email', email)
     .maybeSingle();
   if (error || !data) return null;
