@@ -29,6 +29,7 @@ import AdminOverview from './pages/app/AdminOverview';
 import AdminBookings from './pages/app/AdminBookings';
 import AdminRequests from './pages/app/AdminRequests';
 import AdminProviders from './pages/app/AdminProviders';
+import AdminProviderDetail from './pages/app/AdminProviderDetail';
 import AdminTours from './pages/app/AdminTours';
 import AdminApprovals from './pages/app/AdminApprovals';
 import AdminMessages from './pages/app/AdminMessages';
@@ -110,6 +111,7 @@ export default function App() {
                 <Route path="admin-bookings" element={<AdminBookings />} />
                 <Route path="admin-requests" element={<AdminRequests />} />
                 <Route path="admin-providers" element={<AdminProviders />} />
+                <Route path="admin-provider/:id" element={<AdminProviderDetail />} />
                 <Route path="admin-tours" element={<AdminTours />} />
                 <Route path="admin-approvals" element={<AdminApprovals />} />
                 <Route path="messages" element={<AdminMessages />} />

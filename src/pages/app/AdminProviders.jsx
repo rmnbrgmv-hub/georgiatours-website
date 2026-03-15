@@ -145,13 +145,17 @@ export default function AdminProviders() {
                     <span style={{ fontWeight: 600 }}>{p.name}</span>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{p.provider_type || p.type || '—'}</span>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>⭐ {p.rating ?? '—'} · {p.total_bookings ?? 0} bookings</span>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', cursor: 'pointer', marginLeft: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                    <Link to={`/app/admin-provider/${p.id}`} onClick={(e) => e.stopPropagation()} style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, border: '1px solid var(--gold)', background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.85rem', fontWeight: 500, textDecoration: 'none' }}>Profile & jobs</Link>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', cursor: 'pointer' }} onClick={(e) => e.stopPropagation()}>
                       <input type="checkbox" checked={!!p.verified} onChange={(e) => setVerified(p.id, e.target.checked)} />
                       Verified
                     </label>
                   </span>
                 }
               >
+                <div style={{ marginBottom: 16 }}>
+                  <Link to={`/app/admin-provider/${p.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 8, border: '1px solid var(--gold)', background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.9rem', fontWeight: 600, textDecoration: 'none' }}>View full profile, tours & jobs →</Link>
+                </div>
                 <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginBottom: 16 }}>
                   {p.profile_picture ? (
                     <img src={p.profile_picture} alt="" style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border)' }} />
