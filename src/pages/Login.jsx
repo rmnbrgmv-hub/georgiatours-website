@@ -110,10 +110,10 @@ export default function Login({ onLogin }) {
             setMode('login');
             return;
           }
-          await new Promise((r) => setTimeout(r, 300));
+          await new Promise((r) => setTimeout(r, 500));
           let u = await fetchUserById(signInData.user.id);
           if (!u) {
-            await new Promise((r) => setTimeout(r, 400));
+            await new Promise((r) => setTimeout(r, 1000));
             u = await fetchUserById(signInData.user.id);
           }
           const authEmail = signInData.user?.email || '';
