@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
-import { mapBookingRow } from '../hooks/useAppData';
+import { mapBookingRow, isProviderUser } from '../hooks/useAppData';
 
 const MAX_GALLERY = 12;
 
@@ -38,13 +38,13 @@ export default function Profile() {
   }, [user?.gallery]);
 
   useEffect(() => {
-    if (user?.role !== 'provider' || !user?.id) return;
+    if (!isProviderUser(user) || !user?.id) return;
     supabase.from('reviews').select('rating, text, tourist_name, date, created_at').eq('provider_id', user.id).order('created_at', { ascending: false }).limit(20).then(({ data }) => setProfileReviews(data || []));
-  }, [user?.id, user?.role]);
+  }, [user?.id, user?.role, user?.provider_type, user?.type]);
 
   const handlePhotoChange = (e) => {
     const file = e.target?.files?.[0];
-    if (!file || !user?.id || user.role !== 'provider') return;
+    if (!file || !user?.id || !isProviderUser(user)) return;
     setUploading(true);
     const reader = new FileReader();
     reader.onload = async (ev) => {
@@ -78,7 +78,7 @@ export default function Profile() {
   const removeGalleryPhoto = (idx) => setGallery((g) => g.filter((_, i) => i !== idx));
 
   const saveGallery = async () => {
-    if (!user?.id || user.role !== 'provider') return;
+    if (!user?.id || !isProviderUser(user)) return;
     setGallerySaving(true);
     const { error } = await supabase.from('users').update({ gallery: JSON.stringify(gallery) }).eq('id', user.id);
     setGallerySaving(false);
@@ -125,7 +125,7 @@ export default function Profile() {
                 {(user.avatar || user.name || '').slice(0, 2).toUpperCase()}
               </div>
             )}
-            {user.role === 'provider' && (
+            {isProviderUser(user) && (
               <>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
                 <button type="button" disabled={uploading} onClick={() => fileInputRef.current?.click()} style={{ position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: '50%', border: '2px solid var(--surface)', background: 'var(--gold)', color: 'var(--bg)', cursor: uploading ? 'wait' : 'pointer', fontSize: 14 }}>{uploading ? '…' : '📷'}</button>
@@ -204,7 +204,7 @@ export default function Profile() {
         </Link>
       </div>
 
-      {user.role === 'provider' && (
+      {isProviderUser(user) && (
         <div className="glass" style={{ padding: 28, borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginTop: 24 }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 8 }}>Gallery ({gallery.length}/{MAX_GALLERY})</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 12 }}>Photos shown on your public profile.</p>
@@ -224,7 +224,7 @@ export default function Profile() {
         </div>
       )}
 
-      {user.role === 'provider' && (
+      {isProviderUser(user) && (
         <div className="glass" style={{ padding: 28, borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginTop: 24 }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 8 }}>Ratings ({profileReviews.length})</h3>
           {profileReviews.length === 0 ? (

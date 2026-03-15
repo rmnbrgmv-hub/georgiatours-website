@@ -72,6 +72,7 @@ export default function App() {
       } else {
         u = sameIdAndProvider ? current : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist', type: undefined };
       }
+      u.type = u.provider_type ?? u.type;
       if (authUser.email === 'admin@tourbid.ge') u.role = 'admin';
       setUser(u);
       try { sessionStorage.setItem('tourbid-user', JSON.stringify(u)); } catch (_) {}

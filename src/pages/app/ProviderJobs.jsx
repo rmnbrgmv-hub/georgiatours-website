@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext, Navigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
-import { mapBookingRow } from '../../hooks/useAppData';
+import { mapBookingRow, isProviderUser } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
 import ExpandableItem from '../../components/ExpandableItem';
 
@@ -52,7 +52,7 @@ export default function ProviderJobs() {
   };
 
   if (!user) return null;
-  if (user.role !== 'provider') return <Navigate to="/app" replace />;
+  if (!isProviderUser(user)) return <Navigate to="/app" replace />;
   if (loading && jobs.length === 0) return <div style={{ color: 'var(--text-muted)' }}>Loading…</div>;
 
   return (

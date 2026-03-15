@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext, Navigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
-import { mapBookingRow } from '../../hooks/useAppData';
+import { mapBookingRow, isProviderUser } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
 import ExpandableItem from '../../components/ExpandableItem';
 
@@ -33,13 +33,13 @@ export default function ProviderDashboard() {
   };
 
   if (!user) return null;
-  if (user.role !== 'provider') return <Navigate to="/app" replace />;
+  if (!isProviderUser(user)) return <Navigate to="/app" replace />;
   if (loading && jobs.length === 0) return <div style={{ color: 'var(--text-muted)' }}>Loading…</div>;
 
   return (
     <div style={{ maxWidth: 800 }}>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('nav.dashboard')}</h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>{user.type === 'guide' ? 'Guide' : 'Driver'} · {t('nav.appName')}</p>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>{(user?.type || user?.provider_type) === 'guide' ? 'Guide' : 'Driver'} · {t('nav.appName')}</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16, marginBottom: 32 }}>
         <div className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>

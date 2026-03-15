@@ -99,13 +99,20 @@ export function mapBookingRow(row) {
   };
 }
 
+/** True if user is a guide or driver (provider). */
+export function isProviderUser(user) {
+  return user?.role === 'provider' || user?.provider_type === 'guide' || user?.provider_type === 'transfer' || user?.type === 'guide' || user?.type === 'transfer';
+}
+
 export function mapUserRow(row) {
+  const type = row.provider_type ?? undefined;
   return {
     id: row.id,
     name: row.name ?? '',
     email: row.email ?? '',
     role: row.role ?? 'tourist',
-    type: row.provider_type ?? undefined,
+    type,
+    provider_type: row.provider_type ?? undefined,
     avatar: row.avatar ?? (row.name ? row.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase() : ''),
     color: row.color ?? undefined,
     bio: row.bio ?? '',

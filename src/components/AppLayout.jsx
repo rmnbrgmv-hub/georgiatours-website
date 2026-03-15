@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useLocale } from '../context/LocaleContext';
 import { useTheme } from '../context/ThemeContext';
+import { isProviderUser } from '../hooks/useAppData';
 
 function useMediaQuery(query) {
   const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
@@ -48,8 +49,8 @@ export default function AppLayout({ user, setUser, onLogout }) {
   }, [isMobile, location.pathname]);
 
   const role = user?.role || 'tourist';
-  const isTourist = role === 'tourist';
-  const isProvider = role === 'provider';
+  const isProvider = isProviderUser(user);
+  const isTourist = !isProvider && role === 'tourist';
   const isAdmin = role === 'admin';
 
   const touristNav = [
@@ -78,7 +79,7 @@ export default function AppLayout({ user, setUser, onLogout }) {
   const toggleAdminGroup = (id) => setAdminOpen((o) => ({ ...o, [id]: !o[id] }));
 
   const nav = isAdmin ? null : isProvider ? providerNav : touristNav;
-  const roleLabel = isAdmin ? 'Admin' : isProvider ? (user?.type === 'guide' ? 'Guide' : 'Driver') : 'Explorer';
+  const roleLabel = isAdmin ? 'Admin' : isProvider ? ((user?.type || user?.provider_type) === 'guide' ? 'Guide' : 'Driver') : 'Explorer';
 
   return (
     <div className="app-layout" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>

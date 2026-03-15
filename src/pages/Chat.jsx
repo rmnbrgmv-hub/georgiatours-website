@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
+import { isProviderUser } from '../hooks/useAppData';
 
 function fmtTime(ts) {
   if (!ts) return '';
@@ -33,7 +34,7 @@ export default function Chat() {
       const { data: adminRow } = await supabase.from('users').select('id, name, avatar, color').eq('role', 'admin').maybeSingle();
       const supportPartner = adminRow ? { id: adminRow.id, name: adminRow.name || 'Support', avatar: adminRow.avatar, color: adminRow.color || 'var(--cyan)', isSupport: true } : null;
 
-      if (user.role === 'provider') {
+      if (isProviderUser(user)) {
         const { data: bookingData } = await supabase.from('bookings').select('tourist_id, tourist_name').eq('provider_id', user.id);
         const ids = [...new Set((bookingData || []).map((b) => b.tourist_id).filter(Boolean))];
         const { data: users } = await supabase.from('users').select('id, name, avatar, color').in('id', ids);
@@ -70,7 +71,7 @@ export default function Chat() {
       }
       setLoading(false);
     })();
-  }, [user?.id, user?.role]);
+  }, [user?.id, user?.role, user?.provider_type, user?.type]);
 
   useEffect(() => {
     if (loading || partners.length === 0) return;

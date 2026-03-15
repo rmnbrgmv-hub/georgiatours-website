@@ -4,7 +4,7 @@ import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapUserRow } from '../hooks/useAppData';
 
-/** Fetch user from users table by Supabase Auth id (auth.uid()). Never throws. */
+/** Fetch user from users table by Supabase Auth id (auth.uid()). Never throws. Normalizes type/provider_type. */
 async function fetchUserById(id) {
   try {
     const { data, error } = await supabase
@@ -13,7 +13,9 @@ async function fetchUserById(id) {
       .eq('id', id)
       .maybeSingle();
     if (error || !data) return null;
-    return mapUserRow(data);
+    const u = mapUserRow(data);
+    u.type = u.provider_type ?? u.type;
+    return u;
   } catch (_) {
     return null;
   }
@@ -127,11 +129,15 @@ export default function Login({ onLogin }) {
                 email: authEmail,
                 role: authEmail === 'admin@tourbid.ge' ? 'admin' : isProviderRole ? 'provider' : formRole,
                 type: formRole === 'guide' ? 'guide' : formRole === 'driver' ? 'transfer' : undefined,
+                provider_type: formRole === 'guide' ? 'guide' : formRole === 'driver' ? 'transfer' : undefined,
                 avatar: (name.trim() || authEmail).split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?',
                 color: formRole === 'guide' ? '#5b8dee' : formRole === 'driver' ? '#c9a84c' : undefined,
               };
           if (isProviderRole) {
-            resolved = { ...resolved, role: 'provider', type: formRole === 'guide' ? 'guide' : 'transfer', color: formRole === 'guide' ? '#5b8dee' : '#c9a84c' };
+            resolved = { ...resolved, role: 'provider', type: formRole === 'guide' ? 'guide' : 'transfer', provider_type: formRole === 'guide' ? 'guide' : 'transfer', color: formRole === 'guide' ? '#5b8dee' : '#c9a84c' };
+          }
+          if (u && (u.provider_type === 'guide' || u.provider_type === 'transfer' || u.type === 'guide' || u.type === 'transfer')) {
+            resolved = { ...resolved, role: 'provider', type: u.type ?? u.provider_type, provider_type: u.provider_type ?? u.type };
           }
           onLogin(resolved);
           setError('');
@@ -189,9 +195,12 @@ export default function Login({ onLogin }) {
       }
       const u = await fetchUserById(authData.user.id);
       const authEmail = authData.user?.email || '';
-      const resolved = u
+      let resolved = u
         ? (authEmail === 'admin@tourbid.ge' ? { ...u, role: 'admin' } : u)
         : { id: authData.user.id, name: authEmail.split('@')[0], email: authEmail, role: authEmail === 'admin@tourbid.ge' ? 'admin' : 'tourist' };
+      if (resolved && (resolved.provider_type === 'guide' || resolved.provider_type === 'transfer' || resolved.type === 'guide' || resolved.type === 'transfer')) {
+        resolved = { ...resolved, role: 'provider', type: resolved.type ?? resolved.provider_type, provider_type: resolved.provider_type ?? resolved.type };
+      }
       onLogin(resolved);
       navigate(redirect);
     } catch (err) {

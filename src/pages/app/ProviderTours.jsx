@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext, Link, Navigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
-import { mapServiceRow } from '../../hooks/useAppData';
+import { mapServiceRow, isProviderUser } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
 import CreateTourModal from '../../components/CreateTourModal';
 import TourCard from '../../components/TourCard';
@@ -32,7 +32,7 @@ export default function ProviderTours() {
   }, [refetch]);
 
   if (!user) return null;
-  if (user.role !== 'provider') return <Navigate to="/app" replace />;
+  if (!isProviderUser(user)) return <Navigate to="/app" replace />;
   if (loading) return <div style={{ color: 'var(--text-muted)' }}>Loading…</div>;
 
   return (
