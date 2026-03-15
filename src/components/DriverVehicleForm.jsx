@@ -25,7 +25,7 @@ const VEHICLE_DATA = {
 const ALL_MAKES = Object.keys(VEHICLE_DATA).sort();
 
 const labelStyle = { fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.08em' };
-const selectStyle = { width: '100%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text)', fontSize: '0.9rem', outline: 'none', cursor: 'pointer', appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'8\'%3E%3Cpath d=\'M1 1l5 5 5-5\' stroke=\'%237a7e8a\' stroke-width=\'1.5\' fill=\'none\' stroke-linecap=\'round\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: 32 };
+const selectStyle = { width: '100%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: '#000', fontSize: '0.9rem', outline: 'none', cursor: 'pointer', appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'8\'%3E%3Cpath d=\'M1 1l5 5 5-5\' stroke=\'%237a7e8a\' stroke-width=\'1.5\' fill=\'none\' stroke-linecap=\'round\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: 32 };
 const inputStyle = { width: '100%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text)', fontSize: '0.9rem', outline: 'none' };
 
 export default function DriverVehicleForm({ onComplete, onBack }) {
@@ -52,16 +52,16 @@ export default function DriverVehicleForm({ onComplete, onBack }) {
       <div style={{ marginBottom: 14 }}>
         <label style={labelStyle}>Vehicle Make *</label>
         <select value={make} onChange={(e) => { setMake(e.target.value); setModel(''); }} style={selectStyle}>
-          <option value="">Select manufacturer…</option>
-          {ALL_MAKES.map((m) => <option key={m} value={m}>{m}</option>)}
+          <option value="" style={{ color: '#000' }}>Select manufacturer…</option>
+          {ALL_MAKES.map((m) => <option key={m} value={m} style={{ color: '#000' }}>{m}</option>)}
         </select>
       </div>
 
       <div style={{ marginBottom: 14 }}>
         <label style={labelStyle}>Model *</label>
         <select value={model} onChange={(e) => setModel(e.target.value)} disabled={!make} style={{ ...selectStyle, opacity: make ? 1 : 0.6 }}>
-          <option value="">{make ? 'Select model…' : 'Choose make first'}</option>
-          {models.map((m) => <option key={m} value={m}>{m}</option>)}
+          <option value="" style={{ color: '#000' }}>{make ? 'Select model…' : 'Choose make first'}</option>
+          {models.map((m) => <option key={m} value={m} style={{ color: '#000' }}>{m}</option>)}
         </select>
       </div>
 
@@ -81,7 +81,7 @@ export default function DriverVehicleForm({ onComplete, onBack }) {
         <div>
           <label style={labelStyle}>Year *</label>
           <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={selectStyle}>
-            {years.map((y) => <option key={y} value={y}>{y}</option>)}
+            {years.map((y) => <option key={y} value={y} style={{ color: '#000' }}>{y}</option>)}
           </select>
         </div>
         <div>
