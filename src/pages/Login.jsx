@@ -123,14 +123,36 @@ export default function Login({ onLogin }) {
           }
         }
       } else {
-        const u = await fetchUserByEmail(email);
-        if (!u) {
-          setError(useSupabaseAuth ? 'Invalid email or password' : 'No account found for this email');
-          setLoading(false);
-          return;
+        if (mode === 'signup') {
+          const insertErr = await insertUser({
+            name: name.trim() || email.split('@')[0],
+            email: email.trim(),
+            role: role === 'admin' ? 'tourist' : role,
+            providerType: role === 'guide' ? 'guide' : role === 'driver' ? 'transfer' : null,
+          });
+          if (insertErr) {
+            setError(insertErr.message || 'Sign up failed. Email may already be in use.');
+            setLoading(false);
+            return;
+          }
+          const u = await fetchUserByEmail(email);
+          if (u) {
+            onLogin(u);
+            navigate(redirect);
+          } else {
+            setError('Account created but could not sign in. Try signing in.');
+            setLoading(false);
+          }
+        } else {
+          const u = await fetchUserByEmail(email);
+          if (!u) {
+            setError(useSupabaseAuth ? 'Invalid email or password' : 'No account found for this email');
+            setLoading(false);
+            return;
+          }
+          onLogin(u);
+          navigate(redirect);
         }
-        onLogin(u);
-        navigate(redirect);
       }
     } catch (_) {
       setError('Something went wrong');
@@ -172,12 +194,10 @@ export default function Login({ onLogin }) {
           </div>
         </div>
       )}
-      {useSupabaseAuth && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-          <button type="button" onClick={() => { setMode('login'); setError(''); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: `1px solid ${mode === 'login' ? 'var(--gold)' : 'var(--border)'}`, background: mode === 'login' ? 'var(--gold-soft)' : 'var(--surface)', color: mode === 'login' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: mode === 'login' ? 600 : 500, cursor: 'pointer' }}>Sign in</button>
-          <button type="button" onClick={() => { setMode('signup'); setError(''); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: `1px solid ${mode === 'signup' ? 'var(--gold)' : 'var(--border)'}`, background: mode === 'signup' ? 'var(--gold-soft)' : 'var(--surface)', color: mode === 'signup' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: mode === 'signup' ? 600 : 500, cursor: 'pointer' }}>Create account</button>
-        </div>
-      )}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        <button type="button" onClick={() => { setMode('login'); setError(''); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: `1px solid ${mode === 'login' ? 'var(--gold)' : 'var(--border)'}`, background: mode === 'login' ? 'var(--gold-soft)' : 'var(--surface)', color: mode === 'login' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: mode === 'login' ? 600 : 500, cursor: 'pointer' }}>Sign in</button>
+        <button type="button" onClick={() => { setMode('signup'); setError(''); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: `1px solid ${mode === 'signup' ? 'var(--gold)' : 'var(--border)'}`, background: mode === 'signup' ? 'var(--gold-soft)' : 'var(--surface)', color: mode === 'signup' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: mode === 'signup' ? 600 : 500, cursor: 'pointer' }}>Create account</button>
+      </div>
       <div style={{ marginBottom: 24 }}>
         <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('login.iAm')}</label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
@@ -208,7 +228,7 @@ export default function Login({ onLogin }) {
         </div>
       </div>
       <form onSubmit={handleSubmit}>
-        {mode === 'signup' && useSupabaseAuth && (
+        {mode === 'signup' && (
           <>
             <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 6 }}>Full name</label>
             <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" style={{ width: '100%', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '1rem', marginBottom: 20 }} />
@@ -263,7 +283,7 @@ export default function Login({ onLogin }) {
             fontSize: '1rem',
           }}
         >
-          {loading ? (mode === 'signup' ? 'Creating…' : t('login.signingIn')) : mode === 'signup' && useSupabaseAuth ? 'Create account' : t('login.signIn')}
+          {loading ? (mode === 'signup' ? 'Creating…' : t('login.signingIn')) : mode === 'signup' ? 'Create account' : t('login.signIn')}
         </button>
       </form>
     </div>
