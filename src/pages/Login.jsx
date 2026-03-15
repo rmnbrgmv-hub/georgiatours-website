@@ -246,7 +246,7 @@ export default function Login({ onLogin }) {
             <button
               key={r.id}
               type="button"
-              onClick={() => setRole(r.id)}
+              onClick={() => { setRole(r.id); roleRef.current = r.id; }}
               style={{
                 padding: '12px 8px',
                 borderRadius: 'var(--radius-sm)',

@@ -33,17 +33,21 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { email, password, name, role } = body;
+  const { email, password, name, role: roleFromBody } = body;
   if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
     json(res, 400, { error: 'Email and password required' });
     return;
   }
 
   // Map UI role (tourist | guide | driver) to DB: role='provider' for guide/driver, provider_type='guide'|'transfer'|null
-  const rawRole = typeof role === 'string' ? role.trim().toLowerCase() : 'tourist';
+  const rawRole = (roleFromBody != null && typeof roleFromBody === 'string') ? roleFromBody.trim().toLowerCase() : 'tourist';
   const safeRole = ['tourist', 'guide', 'driver'].includes(rawRole) ? rawRole : 'tourist';
   const isProvider = safeRole === 'guide' || safeRole === 'driver';
   const providerType = safeRole === 'guide' ? 'guide' : safeRole === 'driver' ? 'transfer' : null;
+  const dbRole = isProvider ? 'provider' : safeRole;
+  if (process.env.NODE_ENV !== 'production' || roleFromBody == null) {
+    console.log('[signup] roleFromBody=', roleFromBody, '→ safeRole=', safeRole, '→ dbRole=', dbRole);
+  }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -81,7 +85,7 @@ export default async function handler(req, res) {
     id: uid,
     name: displayName.trim(),
     email: email.trim().toLowerCase(),
-    role: isProvider ? 'provider' : 'tourist',
+    role: dbRole,
     avatar,
     bio: '',
     rating: 0,
