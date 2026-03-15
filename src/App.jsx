@@ -4,7 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { LocaleProvider } from './context/LocaleContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { supabase } from './supabase';
-import { mapUserRow } from './hooks/useAppData';
+import { mapUserRow, isProviderUser } from './hooks/useAppData';
 
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -60,11 +60,11 @@ export default function App() {
       }
       const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery').eq('id', authUser.id).maybeSingle();
       const current = userRef.current;
-      const sameIdAndProvider = current?.id === authUser.id && (current?.role === 'provider' || current?.type === 'guide' || current?.type === 'transfer');
+      const sameIdAndProvider = current?.id === authUser.id && isProviderUser(current);
       let u;
       if (data) {
         const mapped = mapUserRow(data);
-        if (current?.id === authUser.id && (current?.role === 'provider' || current?.type) && mapped.role !== 'provider' && !mapped.type) {
+        if (current?.id === authUser.id && isProviderUser(current) && !isProviderUser(mapped)) {
           u = current;
         } else {
           u = mapped;
@@ -74,8 +74,9 @@ export default function App() {
       }
       u.type = u.provider_type ?? u.type;
       if (authUser.email === 'admin@tourbid.ge') u.role = 'admin';
-      setUser(u);
-      try { sessionStorage.setItem('tourbid-user', JSON.stringify(u)); } catch (_) {}
+      const final = (current?.id === authUser.id && isProviderUser(current) && !isProviderUser(u)) ? current : u;
+      setUser(final);
+      try { sessionStorage.setItem('tourbid-user', JSON.stringify(final)); } catch (_) {}
     };
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) syncUser(session.user);
