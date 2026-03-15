@@ -106,9 +106,19 @@ export default function Login({ onLogin }) {
           }
           const u = await fetchUserById(signInData.user.id);
           const authEmail = signInData.user?.email || '';
+          const formRole = role === 'admin' ? 'tourist' : role;
+          const isProviderRole = formRole === 'guide' || formRole === 'driver';
           const resolved = u
             ? (authEmail === 'admin@tourbid.ge' ? { ...u, role: 'admin' } : u)
-            : { id: signInData.user.id, name: authEmail.split('@')[0], email: authEmail, role: authEmail === 'admin@tourbid.ge' ? 'admin' : role === 'admin' ? 'tourist' : role };
+            : {
+                id: signInData.user.id,
+                name: name.trim() || authEmail.split('@')[0],
+                email: authEmail,
+                role: authEmail === 'admin@tourbid.ge' ? 'admin' : isProviderRole ? 'provider' : formRole,
+                type: formRole === 'guide' ? 'guide' : formRole === 'driver' ? 'transfer' : undefined,
+                avatar: (name.trim() || authEmail).split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?',
+                color: formRole === 'guide' ? '#5b8dee' : formRole === 'driver' ? '#c9a84c' : undefined,
+              };
           onLogin(resolved);
           setError('');
           setLoading(false);
