@@ -7,9 +7,11 @@ export default function ExpandableItem({ summary, children, defaultOpen = false 
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 8 }}>
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((o) => !o); } }}
         style={{
           width: '100%',
           display: 'flex',
@@ -27,7 +29,7 @@ export default function ExpandableItem({ summary, children, defaultOpen = false 
       >
         <span style={{ flex: 1 }}>{summary}</span>
         <span style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s', display: 'inline-block' }}>▾</span>
-      </button>
+      </div>
       {open && (
         <div style={{ padding: 16, background: 'var(--bg-elevated)', borderTop: '1px solid var(--border)', fontSize: '0.9rem' }}>
           {children}

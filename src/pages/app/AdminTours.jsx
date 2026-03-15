@@ -11,6 +11,12 @@ export default function AdminTours() {
   const { t } = useLocale();
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState('');
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 2500);
+  };
 
   const refetch = () => {
     supabase.from('services').select('*').then(({ data }) => {
@@ -25,9 +31,15 @@ export default function AdminTours() {
     });
   }, []);
 
-  const setSuspended = async (tourId, suspended) => {
+  const setSuspended = async (e, tourId, suspended) => {
+    e?.stopPropagation?.();
     const { error } = await supabase.from('services').update({ suspended: !!suspended }).eq('id', tourId);
-    if (!error) refetch();
+    if (error) {
+      showToast('Failed: ' + (error.message || 'Unknown'));
+      return;
+    }
+    refetch();
+    showToast(suspended ? 'Tour suspended. Hidden from explore.' : 'Tour resumed. Visible in explore again.');
   };
 
   if (!user) return null;
@@ -36,6 +48,7 @@ export default function AdminTours() {
 
   return (
     <div>
+      {toast && <p style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', padding: '10px 20px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,.15)', zIndex: 1000, fontSize: '0.9rem' }}>{toast}</p>}
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('nav.tours')}</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>All tours and services.</p>
 
@@ -53,7 +66,7 @@ export default function AdminTours() {
                     <span style={{ color: 'var(--text-muted)' }}>{s.provider} · {s.region} · {s.type}</span>
                     <span style={{ color: 'var(--gold)' }}>₾{s.price}</span>
                     <span onClick={(e) => e.stopPropagation()}>
-                      <button type="button" onClick={() => setSuspended(s.id, !s.suspended)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: s.suspended ? 'var(--cyan-soft)' : 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer' }}>{s.suspended ? 'Resume' : 'Suspend'}</button>
+                      <button type="button" onClick={(ev) => setSuspended(ev, s.id, !s.suspended)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: s.suspended ? 'var(--cyan-soft)' : 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer' }}>{s.suspended ? 'Resume' : 'Suspend'}</button>
                     </span>
                     <Link to={`/app/tour/${s.id}`} onClick={(e) => e.stopPropagation()} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>View →</Link>
                   </span>

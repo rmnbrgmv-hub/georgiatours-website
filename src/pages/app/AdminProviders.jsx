@@ -152,6 +152,10 @@ export default function AdminProviders() {
                       })}
                     </div>
                   )}
+                  <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); showToast('Warning sent to ' + p.name); }} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(201,168,76,.4)', background: 'rgba(201,168,76,.15)', color: 'var(--gold)', fontSize: '0.85rem', cursor: 'pointer' }}>Send Warning</button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); showToast(p.name + ' suspended'); }} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(224,92,92,.4)', background: 'rgba(224,92,92,.15)', color: 'var(--red)', fontSize: '0.85rem', cursor: 'pointer' }}>Suspend</button>
+                  </div>
                 </div>
               </ExpandableItem>
             ))}
