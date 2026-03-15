@@ -105,7 +105,7 @@ export default function AdminProviderDetail() {
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             {jobs.map((b) => (
               <li key={b.id} style={{ marginBottom: 8, fontSize: '0.95rem' }}>
-                {b.tourist} · {b.service} · {b.date} · <span style={{ color: 'var(--gold)' }}>₾{b.amount}</span> · <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: '0.8rem', background: 'var(--surface-hover)' }}>{b.status}</span>
+                <Link to={`/app/admin-booking/${b.id}`} style={{ color: 'var(--gold)', textDecoration: 'none' }}>{b.tourist} · {b.service} · {b.date} · ₾{b.amount} · {b.status}</Link>
               </li>
             ))}
           </ul>

@@ -27,6 +27,7 @@ import ProviderJobs from './pages/app/ProviderJobs';
 import RequestsSwitch from './components/RequestsSwitch';
 import AdminOverview from './pages/app/AdminOverview';
 import AdminBookings from './pages/app/AdminBookings';
+import AdminBookingDetail from './pages/app/AdminBookingDetail';
 import AdminRequests from './pages/app/AdminRequests';
 import AdminProviders from './pages/app/AdminProviders';
 import AdminProviderDetail from './pages/app/AdminProviderDetail';
@@ -109,6 +110,7 @@ export default function App() {
                 <Route path="jobs" element={<ProviderJobs />} />
                 <Route path="overview" element={<AdminOverview />} />
                 <Route path="admin-bookings" element={<AdminBookings />} />
+                <Route path="admin-booking/:id" element={<AdminBookingDetail />} />
                 <Route path="admin-requests" element={<AdminRequests />} />
                 <Route path="admin-providers" element={<AdminProviders />} />
                 <Route path="admin-provider/:id" element={<AdminProviderDetail />} />

@@ -206,7 +206,7 @@ export default function AdminProviders() {
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase' }}>Jobs / Bookings ({bookingsByProviderId[p.id].length})</div>
                     <ul style={{ margin: 0, paddingLeft: 20 }}>
                       {(bookingsByProviderId[p.id] || []).slice(0, 15).map((b) => (
-                        <li key={b.id} style={{ marginBottom: 4, fontSize: '0.9rem' }}>{b.tourist} · {b.service} · {b.date} · <span style={{ color: 'var(--gold)' }}>₾{b.amount}</span> · {b.status}</li>
+                        <li key={b.id} style={{ marginBottom: 4, fontSize: '0.9rem' }}><Link to={`/app/admin-booking/${b.id}`} style={{ color: 'var(--gold)', textDecoration: 'none' }}>{b.tourist} · {b.service} · {b.date} · ₾{b.amount} · {b.status}</Link></li>
                       ))}
                       {(bookingsByProviderId[p.id] || []).length > 15 && <li style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>+{(bookingsByProviderId[p.id].length - 15)} more</li>}
                     </ul>
