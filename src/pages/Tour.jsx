@@ -23,7 +23,7 @@ export default function Tour(props) {
   const backToProviderPath = fromAdminProvider ? `/app/admin-provider/${location.state.providerId}` : null;
   const explorePath = inApp ? '/app/explore' : '/explore';
   const backPath = backToProviderPath || explorePath;
-  const backLabel = backToProviderPath ? 'Back to provider' : t('tour.backToExplore');
+  const backLabel = backToProviderPath ? 'Back to provider' : (t && t('tour.backToExplore')) || 'Back to Explore';
   const [tour, setTour] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,13 +33,20 @@ export default function Tour(props) {
 
   useEffect(() => {
     if (!id) return;
+    setLoading(true);
     supabase
       .from('services')
       .select('*')
       .eq('id', id)
       .maybeSingle()
-      .then(({ data }) => {
-        if (data && !data.suspended) {
+      .then(({ data, error }) => {
+        if (error) {
+          setTour(null);
+          setLoading(false);
+          return;
+        }
+        const showSuspended = user?.role === 'admin';
+        if (data && (showSuspended || !data.suspended)) {
           setTour(mapServiceRow(data));
           if (data.provider_id) {
             supabase
@@ -54,11 +61,15 @@ export default function Tour(props) {
           setTour(null);
         }
         setLoading(false);
+      })
+      .catch(() => {
+        setTour(null);
+        setLoading(false);
       });
-  }, [id]);
+  }, [id, user?.role]);
 
   if (loading) return <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>;
-  if (!tour) return <div style={{ padding: 80, textAlign: 'center' }}>{t('tour.notFound')} <Link to={backPath}>{backLabel}</Link></div>;
+  if (!tour) return <div style={{ padding: 80, textAlign: 'center' }}>{(t && t('tour.notFound')) || 'Tour not found.'} <Link to={backPath}>{backLabel}</Link></div>;
 
   const mainPhoto = photoUrl(tour.photos?.[photoIndex]);
   const description = tour.desc ?? tour.description;
@@ -242,7 +253,7 @@ export default function Tour(props) {
           </ul>
         </section>
       )}
-      {!loading && reviews.length === 0 && tour.provider_id && (
+      {!loading && reviews.length === 0 && (tour.providerId ?? tour.provider_id) && (
         <section style={{ marginTop: 48, paddingTop: 24, borderTop: '1px solid var(--border)' }}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.25rem', marginBottom: 8 }}>{t('tour.reviews')}</h2>
           <p style={{ color: 'var(--text-muted)' }}>{t('tour.noReviews')}</p>
