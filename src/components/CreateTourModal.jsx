@@ -111,7 +111,9 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      role="dialog"
+      aria-modal="true"
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={onClose}
     >
       <div
@@ -123,9 +125,9 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
           maxHeight: '90vh',
           overflowY: 'auto',
           border: '1px solid var(--border)',
-          background: 'var(--surface)',
+          background: 'var(--surface, var(--bg, #fff))',
           opacity: 1,
-          boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.35)',
         }}
         onClick={(e) => e.stopPropagation()}
       >

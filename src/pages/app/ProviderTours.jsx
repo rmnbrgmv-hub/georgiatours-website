@@ -57,9 +57,9 @@ export default function ProviderTours() {
               tour={s}
               linkTo={`/app/tour/${s.id}`}
               actions={
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button type="button" onClick={() => { setEditTour(s); setShowCreate(true); }} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 500 }}>Edit</button>
-                  <Link to={`/app/tour/${s.id}`} style={{ display: 'inline-flex', alignItems: 'center', padding: '8px 14px', color: 'var(--gold)', fontSize: '0.9rem', fontWeight: 500 }}>View →</Link>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} onClick={(e) => e.preventDefault()}>
+                  <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditTour(s); setShowCreate(true); }} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 500 }}>Edit</button>
+                  <Link to={`/app/tour/${s.id}`} onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', padding: '8px 14px', color: 'var(--gold)', fontSize: '0.9rem', fontWeight: 500 }}>View →</Link>
                 </div>
               }
             />
