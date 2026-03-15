@@ -4,15 +4,19 @@ import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapUserRow } from '../hooks/useAppData';
 
-/** Fetch user from users table by Supabase Auth id (auth.uid()). */
+/** Fetch user from users table by Supabase Auth id (auth.uid()). Never throws. */
 async function fetchUserById(id) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery')
-    .eq('id', id)
-    .maybeSingle();
-  if (error || !data) return null;
-  return mapUserRow(data);
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery')
+      .eq('id', id)
+      .maybeSingle();
+    if (error || !data) return null;
+    return mapUserRow(data);
+  } catch (_) {
+    return null;
+  }
 }
 
 const ROLES = [
@@ -111,14 +115,15 @@ export default function Login({ onLogin }) {
         return;
       }
       const u = await fetchUserById(authData.user.id);
-      const email = authData.user?.email || '';
+      const authEmail = authData.user?.email || '';
       const resolved = u
-        ? (email === 'admin@tourbid.ge' ? { ...u, role: 'admin' } : u)
-        : { id: authData.user.id, name: email.split('@')[0], email, role: email === 'admin@tourbid.ge' ? 'admin' : 'tourist' };
+        ? (authEmail === 'admin@tourbid.ge' ? { ...u, role: 'admin' } : u)
+        : { id: authData.user.id, name: authEmail.split('@')[0], email: authEmail, role: authEmail === 'admin@tourbid.ge' ? 'admin' : 'tourist' };
       onLogin(resolved);
       navigate(redirect);
-    } catch (_) {
-      setError('Something went wrong');
+    } catch (err) {
+      const msg = err?.message || err?.error_description || (typeof err === 'string' ? err : 'Something went wrong');
+      setError(msg);
     }
     setLoading(false);
   };
