@@ -50,32 +50,40 @@ export default function App() {
   });
   const userRef = useRef(null);
   userRef.current = user;
+  const skipNextSyncForProviderRef = useRef(false);
 
   useEffect(() => {
     const syncUser = async (authUser) => {
       if (!authUser?.id) {
         setUser(null);
+        skipNextSyncForProviderRef.current = false;
         try { sessionStorage.removeItem('tourbid-user'); } catch (_) {}
         return;
       }
-      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery').eq('id', authUser.id).maybeSingle();
       const current = userRef.current;
-      const sameIdAndProvider = current?.id === authUser.id && isProviderUser(current);
+      if (skipNextSyncForProviderRef.current && current?.id === authUser.id && isProviderUser(current)) {
+        skipNextSyncForProviderRef.current = false;
+        try { sessionStorage.setItem('tourbid-user', JSON.stringify(current)); } catch (_) {}
+        return;
+      }
+      const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery').eq('id', authUser.id).maybeSingle();
+      const currentAfterFetch = userRef.current;
+      const sameIdAndProvider = currentAfterFetch?.id === authUser.id && isProviderUser(currentAfterFetch);
       let u;
       if (data) {
         const mapped = mapUserRow(data);
-        if (current?.id === authUser.id && isProviderUser(current) && !isProviderUser(mapped)) {
-          u = current;
+        if (currentAfterFetch?.id === authUser.id && isProviderUser(currentAfterFetch) && !isProviderUser(mapped)) {
+          u = currentAfterFetch;
         } else {
           u = mapped;
         }
       } else {
-        u = sameIdAndProvider ? current : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist', type: undefined };
+        u = sameIdAndProvider ? currentAfterFetch : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist', type: undefined };
       }
       u.type = u.provider_type ?? u.type;
       if (authUser.email === 'admin@tourbid.ge') u.role = 'admin';
       if (u.provider_type === 'guide' || u.provider_type === 'transfer' || u.type === 'guide' || u.type === 'transfer') u.role = 'provider';
-      const final = (current?.id === authUser.id && isProviderUser(current) && !isProviderUser(u)) ? current : u;
+      const final = (currentAfterFetch?.id === authUser.id && isProviderUser(currentAfterFetch) && !isProviderUser(u)) ? currentAfterFetch : u;
       setUser(final);
       try { sessionStorage.setItem('tourbid-user', JSON.stringify(final)); } catch (_) {}
     };
@@ -90,6 +98,7 @@ export default function App() {
 
   const handleLogin = (u) => {
     userRef.current = u;
+    if (isProviderUser(u)) skipNextSyncForProviderRef.current = true;
     setUser(u);
     try { sessionStorage.setItem('tourbid-user', JSON.stringify(u)); } catch (_) {}
   };

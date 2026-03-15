@@ -142,7 +142,9 @@ export default function Login({ onLogin }) {
           onLogin(resolved);
           setError('');
           setLoading(false);
-          setTimeout(() => navigate(redirect), 0);
+          const isProvider = resolved?.role === 'provider' || resolved?.type === 'guide' || resolved?.type === 'transfer' || resolved?.provider_type === 'guide' || resolved?.provider_type === 'transfer';
+          const goTo = (redirect === '/app' || redirect === '/app/') && isProvider ? '/app/dashboard' : redirect;
+          setTimeout(() => navigate(goTo), 0);
           return;
         }
         if (apiResult.error && !apiResult.error.includes('404') && !apiResult.error.includes('Signup not configured')) {
@@ -202,7 +204,9 @@ export default function Login({ onLogin }) {
         resolved = { ...resolved, role: 'provider', type: resolved.type ?? resolved.provider_type, provider_type: resolved.provider_type ?? resolved.type };
       }
       onLogin(resolved);
-      navigate(redirect);
+      const isProvider = resolved?.role === 'provider' || resolved?.type === 'guide' || resolved?.type === 'transfer' || resolved?.provider_type === 'guide' || resolved?.provider_type === 'transfer';
+      const goTo = (redirect === '/app' || redirect === '/app/') && isProvider ? '/app/dashboard' : redirect;
+      setTimeout(() => navigate(goTo), 0);
     } catch (err) {
       const msg = err?.message || err?.error_description || (typeof err === 'string' ? err : 'Something went wrong');
       setError(msg);
