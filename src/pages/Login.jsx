@@ -64,6 +64,8 @@ export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('tourist');
+  const roleRef = useRef('tourist');
+  roleRef.current = role;
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -82,6 +84,8 @@ export default function Login({ onLogin }) {
           return;
         }
         // Try serverless signup first (no confirmation email → no rate limit)
+        const selectedRole = roleRef.current;
+        if (process.env.NODE_ENV !== 'production') console.log('Signing up with role:', selectedRole);
         const apiSignup = async () => {
           const res = await fetch('/api/signup', {
             method: 'POST',
@@ -90,7 +94,7 @@ export default function Login({ onLogin }) {
               email: email.trim(),
               password,
               name: name.trim() || undefined,
-              role: role === 'admin' ? 'tourist' : role, // 'tourist' | 'guide' | 'driver' → API sets role + provider_type in Supabase
+              role: selectedRole === 'admin' ? 'tourist' : selectedRole, // use ref to avoid stale closure
             }),
           });
           const data = await res.json().catch(() => ({}));
@@ -113,7 +117,7 @@ export default function Login({ onLogin }) {
             u = await fetchUserById(signInData.user.id);
           }
           const authEmail = signInData.user?.email || '';
-          const formRole = role === 'admin' ? 'tourist' : role;
+          const formRole = selectedRole === 'admin' ? 'tourist' : selectedRole;
           const isProviderRole = formRole === 'guide' || formRole === 'driver';
           let resolved = u
             ? (authEmail === 'admin@tourbid.ge' ? { ...u, role: 'admin' } : u)
@@ -153,12 +157,13 @@ export default function Login({ onLogin }) {
           setLoading(false);
           return;
         }
+        const selectedRoleFallback = roleRef.current;
         const insertErr = await insertUser({
           id: authData.user.id,
           name: name.trim() || email.split('@')[0],
           email: authData.user?.email || email.trim(),
-          role: role === 'admin' ? 'tourist' : role,
-          providerType: role === 'guide' ? 'guide' : role === 'driver' ? 'transfer' : null,
+          role: selectedRoleFallback === 'admin' ? 'tourist' : selectedRoleFallback,
+          providerType: selectedRoleFallback === 'guide' ? 'guide' : selectedRoleFallback === 'driver' ? 'transfer' : null,
         });
         if (insertErr) {
           setError(insertErr.message || 'Account created but profile could not be saved. Try signing in.');
