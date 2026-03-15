@@ -110,10 +110,27 @@ export default function Login({ onLogin }) {
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) return { error: data.error || `Signup failed (${res.status})` };
-          return { ok: true };
+          return { ok: true, userId: data.userId };
         };
         const apiResult = await apiSignup();
         if (apiResult.ok) {
+          const formRole = selectedRole === 'admin' ? 'tourist' : selectedRole;
+          if (formRole === 'driver') {
+            setPendingUser({
+              id: apiResult.userId,
+              name: name.trim() || email.split('@')[0],
+              email: email.trim(),
+              role: 'provider',
+              type: 'transfer',
+              provider_type: 'transfer',
+              avatar: (name.trim() || email).split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?',
+              color: '#c9a84c',
+              _fromApiSignup: true,
+            });
+            setVehicleStep(true);
+            setLoading(false);
+            return;
+          }
           const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
           if (signInErr) {
             setError('Account created. Please sign in.');
@@ -128,7 +145,6 @@ export default function Login({ onLogin }) {
             u = await fetchUserById(signInData.user.id);
           }
           const authEmail = signInData.user?.email || '';
-          const formRole = selectedRole === 'admin' ? 'tourist' : selectedRole;
           const isProviderRole = formRole === 'guide' || formRole === 'driver';
           let resolved = u
             ? (authEmail === 'admin@tourbid.ge' ? { ...u, role: 'admin' } : u)
@@ -137,28 +153,16 @@ export default function Login({ onLogin }) {
                 name: name.trim() || authEmail.split('@')[0],
                 email: authEmail,
                 role: authEmail === 'admin@tourbid.ge' ? 'admin' : isProviderRole ? 'provider' : formRole,
-                type: formRole === 'guide' ? 'guide' : formRole === 'driver' ? 'transfer' : undefined,
-                provider_type: formRole === 'guide' ? 'guide' : formRole === 'driver' ? 'transfer' : undefined,
+                type: formRole === 'guide' ? 'guide' : undefined,
+                provider_type: formRole === 'guide' ? 'guide' : undefined,
                 avatar: (name.trim() || authEmail).split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?',
-                color: formRole === 'guide' ? '#5b8dee' : formRole === 'driver' ? '#c9a84c' : undefined,
+                color: formRole === 'guide' ? '#5b8dee' : undefined,
               };
-          if (isProviderRole) {
-            resolved = { ...resolved, role: 'provider', type: formRole === 'guide' ? 'guide' : 'transfer', provider_type: formRole === 'guide' ? 'guide' : 'transfer', color: formRole === 'guide' ? '#5b8dee' : '#c9a84c' };
-          }
-          if (u && (u.provider_type === 'guide' || u.provider_type === 'transfer' || u.type === 'guide' || u.type === 'transfer')) {
-            resolved = { ...resolved, role: 'provider', type: u.type ?? u.provider_type, provider_type: u.provider_type ?? u.type };
-          }
-          if (formRole === 'driver') {
-            resolved = { ...resolved, role: 'provider', type: 'transfer', provider_type: 'transfer', color: resolved.color ?? '#c9a84c' };
-          }
           if (formRole === 'guide') {
             resolved = { ...resolved, role: 'provider', type: 'guide', provider_type: 'guide', color: resolved.color ?? '#5b8dee' };
           }
-          if (formRole === 'driver') {
-            setPendingUser({ ...resolved, _fromApiSignup: true });
-            setVehicleStep(true);
-            setLoading(false);
-            return;
+          if (u && (u.provider_type === 'guide' || u.provider_type === 'transfer' || u.type === 'guide' || u.type === 'transfer')) {
+            resolved = { ...resolved, role: 'provider', type: u.type ?? u.provider_type, provider_type: u.provider_type ?? u.type };
           }
           onLogin(resolved);
           setError('');
@@ -296,17 +300,27 @@ export default function Login({ onLogin }) {
                 vehiclePlate: vehicleData.vehiclePlate,
                 maxSeats: vehicleData.maxSeats,
               });
-              setLoading(false);
               if (err) {
+                setLoading(false);
                 setError(err.message || 'Could not save vehicle.');
                 return;
               }
-              setVehicleStep(false);
-              setPendingUser(null);
               if (_fromApiSignup) {
+                const { error: signInErr } = await supabase.auth.signInWithPassword({ email: pendingUser.email, password });
+                if (signInErr) {
+                  setLoading(false);
+                  setError('Saved. Please sign in.');
+                  return;
+                }
+                setVehicleStep(false);
+                setPendingUser(null);
                 onLogin(fullUser);
+                setLoading(false);
                 setTimeout(() => navigate('/app/dashboard'), 0);
               } else {
+                setVehicleStep(false);
+                setPendingUser(null);
+                setLoading(false);
                 setTimeout(() => navigate('/login'), 0);
               }
             }}
