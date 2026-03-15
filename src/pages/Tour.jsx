@@ -20,10 +20,12 @@ export default function Tour(props) {
   const navigate = useNavigate();
   const inApp = location.pathname.startsWith('/app');
   const fromAdminProvider = location.state?.fromAdminProvider && location.state?.providerId;
+  const fromAdminTours = location.state?.fromAdminTours;
   const backToProviderPath = fromAdminProvider ? `/app/admin-provider/${location.state.providerId}` : null;
+  const backToAdminToursPath = fromAdminTours ? '/app/admin-tours' : null;
   const explorePath = inApp ? '/app/explore' : '/explore';
-  const backPath = backToProviderPath || explorePath;
-  const backLabel = backToProviderPath ? 'Back to provider' : (t && t('tour.backToExplore')) || 'Back to Explore';
+  const backPath = backToProviderPath || backToAdminToursPath || explorePath;
+  const backLabel = backToProviderPath ? 'Back to provider' : backToAdminToursPath ? 'Back to tours' : (t && t('tour.backToExplore')) || 'Back to Explore';
   const [tour, setTour] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);

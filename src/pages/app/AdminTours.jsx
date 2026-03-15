@@ -76,7 +76,7 @@ export default function AdminTours() {
                       <button type="button" onClick={(ev) => setSuspended(ev, s.id, !s.suspended)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: s.suspended ? 'var(--cyan-soft)' : 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer' }}>{s.suspended ? 'Resume' : 'Suspend'}</button>
                       <button type="button" onClick={(ev) => handleDelete(ev, s)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(224,92,92,.4)', background: 'rgba(224,92,92,.15)', color: 'var(--red)', fontSize: '0.85rem', cursor: 'pointer' }}>Delete</button>
                     </span>
-                    <Link to={`/app/tour/${s.id}`} onClick={(e) => e.stopPropagation()} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>View →</Link>
+                    <Link to={`/app/tour/${s.id}`} state={{ fromAdminTours: true }} onClick={(e) => e.stopPropagation()} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>View →</Link>
                   </span>
                 }
               >
