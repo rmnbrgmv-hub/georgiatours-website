@@ -106,7 +106,12 @@ export default function Login({ onLogin }) {
             setMode('login');
             return;
           }
-          const u = await fetchUserById(signInData.user.id);
+          await new Promise((r) => setTimeout(r, 300));
+          let u = await fetchUserById(signInData.user.id);
+          if (!u) {
+            await new Promise((r) => setTimeout(r, 400));
+            u = await fetchUserById(signInData.user.id);
+          }
           const authEmail = signInData.user?.email || '';
           const formRole = role === 'admin' ? 'tourist' : role;
           const isProviderRole = formRole === 'guide' || formRole === 'driver';
