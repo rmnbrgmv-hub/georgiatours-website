@@ -94,13 +94,13 @@ All functional elements and mechanisms. UI/layout/styling excluded.
    - App: Gallery UI and refetch from users.  
    - Website: Profile (provider only): gallery state, add/remove photos, “Save gallery” → `users.update({ gallery: JSON.stringify(arr) })`. mapUserRow + auth sync include `gallery`.
 
-3. **Stuck bookings / 48h indicator (optional)**  
+3. **Stuck bookings / 48h indicator** ✅  
    - App: Shows “Awaiting confirmation 48h+” on provider jobs.  
-   - Website: Can add same logic in ProviderJobs and AdminBookings if desired.
+   - Website: ProviderJobs shows “⚠️ Awaiting confirmation 48h+” per job when status is provider_done/tourist_done and updated_at > 48h ago. AdminBookings shows an alert banner and “⚠️ 48h+” badge on each stuck booking.
 
-4. **Profile sub-sections for provider (optional)**  
+4. **Profile sub-sections for provider** ✅  
    - App: Overview, Gallery, Ratings tabs.  
-   - Website: Single profile with Gallery block for provider; Ratings can be added later if needed.
+   - Website: Single profile with Gallery block (upload, save) and Ratings block (fetch reviews by provider_id, show average and list).
 
 ---
 

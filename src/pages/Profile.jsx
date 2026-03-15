@@ -16,6 +16,7 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false);
   const [gallery, setGallery] = useState(() => (Array.isArray(user?.gallery) ? user.gallery : []));
   const [gallerySaving, setGallerySaving] = useState(false);
+  const [profileReviews, setProfileReviews] = useState([]);
   const fileInputRef = useRef(null);
   const galleryRef = useRef(null);
 
@@ -35,6 +36,11 @@ export default function Profile() {
   useEffect(() => {
     setGallery(Array.isArray(user?.gallery) ? user.gallery : []);
   }, [user?.gallery]);
+
+  useEffect(() => {
+    if (user?.role !== 'provider' || !user?.id) return;
+    supabase.from('reviews').select('rating, text, tourist_name, date, created_at').eq('provider_id', user.id).order('created_at', { ascending: false }).limit(20).then(({ data }) => setProfileReviews(data || []));
+  }, [user?.id, user?.role]);
 
   const handlePhotoChange = (e) => {
     const file = e.target?.files?.[0];
@@ -215,6 +221,33 @@ export default function Profile() {
             )}
           </div>
           <button type="button" onClick={saveGallery} disabled={gallerySaving} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, cursor: gallerySaving ? 'wait' : 'pointer' }}>{gallerySaving ? 'Saving…' : 'Save gallery'}</button>
+        </div>
+      )}
+
+      {user.role === 'provider' && (
+        <div className="glass" style={{ padding: 28, borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginTop: 24 }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 8 }}>Ratings ({profileReviews.length})</h3>
+          {profileReviews.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No reviews yet. They will appear here when tourists leave reviews after completed bookings.</p>
+          ) : (
+            <>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: 16 }}>
+                Average: {(profileReviews.reduce((s, r) => s + (r.rating || 0), 0) / profileReviews.length).toFixed(1)} ★
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {profileReviews.map((r, i) => (
+                  <div key={i} style={{ padding: 12, background: 'var(--surface-hover)', borderRadius: 8, borderLeft: '3px solid var(--gold)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.tourist_name || 'Guest'}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{r.date || (r.created_at ? new Date(r.created_at).toLocaleDateString() : '')}</span>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--gold)', marginBottom: 6 }}>{'★'.repeat(r.rating || 0)}{'☆'.repeat(5 - (r.rating || 0))}</div>
+                    {r.text && <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.5 }}>{r.text}</p>}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

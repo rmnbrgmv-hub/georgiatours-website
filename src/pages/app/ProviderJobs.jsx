@@ -44,6 +44,13 @@ export default function ProviderJobs() {
     setJobs((j) => j.map((x) => (x.id === id ? { ...x, status: 'completed' } : x)));
   };
 
+  const isStuck48h = (j) => {
+    if (!['provider_done', 'tourist_done'].includes(j.status)) return false;
+    const ts = j.updated_at || j.createdAt;
+    if (!ts) return false;
+    return Date.now() - new Date(ts).getTime() > 48 * 60 * 60 * 1000;
+  };
+
   if (!user) return null;
   if (user.role !== 'provider') return <Navigate to="/app" replace />;
   if (loading && jobs.length === 0) return <div style={{ color: 'var(--text-muted)' }}>Loading…</div>;
@@ -66,6 +73,7 @@ export default function ProviderJobs() {
                   <span style={{ color: 'var(--text-muted)' }}>{j.tourist} · {j.date}</span>
                   <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{j.amount}</span>
                   <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, background: j.status === 'completed' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: j.status === 'completed' ? 'var(--cyan)' : 'var(--gold)' }}>{j.status}</span>
+                  {isStuck48h(j) && <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: 8, background: 'rgba(201,168,76,0.2)', color: 'var(--gold)', fontWeight: 600 }}>⚠️ Awaiting confirmation 48h+</span>}
                 </span>
               }
             >

@@ -25,6 +25,14 @@ export default function AdminBookings() {
     });
   }, []);
 
+  const isStuck48h = (b) => {
+    if (!['provider_done', 'tourist_done'].includes(b.status)) return false;
+    const ts = b.updated_at || b.createdAt;
+    if (!ts) return false;
+    return Date.now() - new Date(ts).getTime() > 48 * 60 * 60 * 1000;
+  };
+  const stuckBookings = bookings.filter(isStuck48h);
+
   const forceCompleteBooking = async (b) => {
     const { error } = await supabase.from('bookings').update({ status: 'completed' }).eq('id', b.id);
     if (!error) refetch();
@@ -38,6 +46,13 @@ export default function AdminBookings() {
     <div>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('nav.bookings')}</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>All bookings.</p>
+
+      {stuckBookings.length > 0 && (
+        <div style={{ marginBottom: 20, padding: 14, borderRadius: 'var(--radius)', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.08)' }}>
+          <strong style={{ color: 'var(--gold)' }}>⚠️ Awaiting confirmation 48h+</strong>
+          <span style={{ marginLeft: 8, color: 'var(--text-muted)', fontSize: '0.9rem' }}>{stuckBookings.length} booking(s) in provider_done/tourist_done over 48 hours.</span>
+        </div>
+      )}
 
       <CollapsibleSection title={`Bookings (${bookings.length})`} icon="📅" defaultOpen={false}>
         {bookings.length === 0 ? (
@@ -54,6 +69,7 @@ export default function AdminBookings() {
                     <span>{b.date}</span>
                     <span style={{ color: 'var(--gold)' }}>₾{b.amount}</span>
                     <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', background: 'var(--gold-soft)', color: 'var(--gold)' }}>{b.status}</span>
+                    {isStuck48h(b) && <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: 8, background: 'rgba(201,168,76,0.2)', color: 'var(--gold)', fontWeight: 600 }}>⚠️ 48h+</span>}
                   </span>
                 }
               >
