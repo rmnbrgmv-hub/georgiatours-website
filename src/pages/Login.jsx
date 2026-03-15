@@ -111,18 +111,12 @@ export default function Login({ onLogin }) {
         return;
       }
       const u = await fetchUserById(authData.user.id);
-      if (u) {
-        onLogin(u);
-        navigate(redirect);
-      } else {
-        onLogin({
-          id: authData.user.id,
-          name: authData.user?.email?.split('@')[0],
-          email: authData.user?.email,
-          role: 'tourist',
-        });
-        navigate(redirect);
-      }
+      const email = authData.user?.email || '';
+      const resolved = u
+        ? (email === 'admin@tourbid.ge' ? { ...u, role: 'admin' } : u)
+        : { id: authData.user.id, name: email.split('@')[0], email, role: email === 'admin@tourbid.ge' ? 'admin' : 'tourist' };
+      onLogin(resolved);
+      navigate(redirect);
     } catch (_) {
       setError('Something went wrong');
     }
