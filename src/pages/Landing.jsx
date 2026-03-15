@@ -33,12 +33,16 @@ export default function Landing() {
     supabase
       .from('services')
       .select('*')
-      .eq('suspended', false)
-      .order('rating', { ascending: false })
       .limit(6)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          setTours([]);
+          return;
+        }
+        const rows = (data || []).filter((row) => row.suspended !== true);
+        const byRating = (a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0);
         setTours(
-          (data || []).map((row) => {
+          rows.sort(byRating).slice(0, 6).map((row) => {
             let photos = [];
             try { if (row.photos) photos = typeof row.photos === 'string' ? JSON.parse(row.photos) : row.photos; } catch (_) {}
             return { id: row.id, name: row.name, region: row.region, price: row.price, duration: row.duration, type: row.type, emoji: row.emoji, rating: row.rating, photo: photos?.[0]?.base64 || photos?.[0] };

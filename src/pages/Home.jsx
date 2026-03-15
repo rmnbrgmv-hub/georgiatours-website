@@ -16,10 +16,15 @@ export default function Home() {
     supabase
       .from('services')
       .select('*')
-      .eq('suspended', false)
       .limit(6)
-      .then(({ data }) => {
-        const mapped = (data || []).map((row) => {
+      .then(({ data, error }) => {
+        if (error) {
+          setTours([]);
+          setLoading(false);
+          return;
+        }
+        const rows = (data || []).filter((row) => row.suspended !== true);
+        const mapped = rows.map((row) => {
           let photos = [];
           try {
             if (row.photos) photos = typeof row.photos === 'string' ? JSON.parse(row.photos) : row.photos;

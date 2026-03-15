@@ -30,12 +30,12 @@ export default function Provider() {
         return;
       }
       setProvider(user);
-      const { data: services } = await supabase
+      const { data: servicesData } = await supabase
         .from('services')
         .select('id, name, region, duration, price, photos, type')
-        .eq('provider_id', id)
-        .eq('suspended', false);
-      const withPhotos = (services || []).map((row) => {
+        .eq('provider_id', id);
+      const services = (servicesData || []).filter((row) => row.suspended !== true);
+      const withPhotos = services.map((row) => {
         let photos = [];
         try {
           if (row.photos) photos = typeof row.photos === 'string' ? JSON.parse(row.photos) : row.photos;
