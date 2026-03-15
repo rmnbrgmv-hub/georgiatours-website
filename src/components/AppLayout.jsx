@@ -1,7 +1,19 @@
-import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useLocale } from '../context/LocaleContext';
 import { useTheme } from '../context/ThemeContext';
+
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
+  useEffect(() => {
+    const m = window.matchMedia(query);
+    const handler = () => setMatches(m.matches);
+    m.addEventListener('change', handler);
+    setMatches(m.matches);
+    return () => m.removeEventListener('change', handler);
+  }, [query]);
+  return matches;
+}
 
 const linkStyle = (isActive) => ({
   display: 'flex',
@@ -24,6 +36,16 @@ export default function AppLayout({ user, setUser, onLogout }) {
   const [langOpen, setLangOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
+  }, [isMobile, location.pathname]);
 
   const role = user?.role || 'tourist';
   const isTourist = role === 'tourist';
@@ -59,9 +81,25 @@ export default function AppLayout({ user, setUser, onLogout }) {
   const roleLabel = isAdmin ? 'Admin' : isProvider ? (user?.type === 'guide' ? 'Guide' : 'Driver') : 'Explorer';
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="app-layout" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+      {/* Mobile overlay */}
+      {isMobile && (
+        <div
+          className="app-layout-sidebar-overlay"
+          aria-hidden
+          style={{
+            display: sidebarOpen ? 'block' : 'none',
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 90,
+          }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       {/* Sidebar */}
       <aside
+        className={`app-layout-sidebar ${isMobile && sidebarOpen ? 'mobile-open' : ''}`}
         style={{
           width: sidebarOpen ? 260 : 72,
           flexShrink: 0,
@@ -81,7 +119,9 @@ export default function AppLayout({ user, setUser, onLogout }) {
           <button
             type="button"
             onClick={() => setSidebarOpen((o) => !o)}
-            style={{ padding: 8, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer' }}
+            className="app-layout-sidebar-toggle"
+            style={{ padding: 8, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer', minWidth: 44, minHeight: 44 }}
+            aria-label={sidebarOpen ? 'Collapse menu' : 'Expand menu'}
           >
             {sidebarOpen ? '◀' : '▶'}
           </button>
@@ -162,6 +202,7 @@ export default function AppLayout({ user, setUser, onLogout }) {
       {/* Main */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <header
+          className="app-layout-header"
           style={{
             height: 56,
             padding: '0 24px',
@@ -173,6 +214,20 @@ export default function AppLayout({ user, setUser, onLogout }) {
             gap: 16,
           }}
         >
+          {isMobile && (
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              style={{ marginRight: 'auto', padding: 10, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              aria-label="Open menu"
+            >
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <span style={{ display: 'block', width: 20, height: 2, background: 'currentColor', borderRadius: 1 }} />
+                <span style={{ display: 'block', width: 20, height: 2, background: 'currentColor', borderRadius: 1 }} />
+                <span style={{ display: 'block', width: 20, height: 2, background: 'currentColor', borderRadius: 1 }} />
+              </span>
+            </button>
+          )}
           <button
             type="button"
             onClick={toggleTheme}

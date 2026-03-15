@@ -110,7 +110,7 @@ export default function Tour(props) {
   };
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px 80px' }}>
+    <div className="tour-page" style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px 80px' }}>
       <Helmet>
         <title>{tour.name} — TourBid</title>
         <meta name="description" content={description || `${tour.region} · ${tour.duration} · ₾${tour.price}`} />
@@ -198,6 +198,7 @@ export default function Tour(props) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <button
               type="button"
+              className="tour-page-book-btn"
               onClick={handleBook}
               disabled={booking}
               style={{
@@ -220,6 +221,7 @@ export default function Tour(props) {
       ) : (
         <Link
           to="/login"
+          className="tour-page-book-btn"
           style={{
             display: 'inline-block',
             background: 'var(--gold)',

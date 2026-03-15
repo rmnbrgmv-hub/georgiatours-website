@@ -170,7 +170,7 @@ export default function Chat() {
 
   if (selected) {
     return (
-      <div style={{ padding: '24px', maxWidth: 600, margin: '0 auto', minHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
+      <div className="chat-conversation" style={{ padding: '24px', maxWidth: 600, margin: '0 auto', minHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
           <button
             type="button"
@@ -201,7 +201,7 @@ export default function Chat() {
         </div>
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
           {messages.map((m, i) => (
-            <div key={i} style={{ alignSelf: m.isMe ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
+            <div key={i} className="chat-message" style={{ alignSelf: m.isMe ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
               <div
                 style={{
                   padding: '10px 14px',
@@ -218,7 +218,7 @@ export default function Chat() {
           ))}
           <div ref={endRef} />
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="chat-input-row" style={{ display: 'flex', gap: 8 }}>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}

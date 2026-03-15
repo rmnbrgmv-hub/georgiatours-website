@@ -136,7 +136,7 @@ export default function Login({ onLogin }) {
   }, [langOpen]);
 
   return (
-    <div style={{ maxWidth: 400, margin: '0 auto', padding: '60px 24px' }}>
+    <div className="login-page" style={{ maxWidth: 400, margin: '0 auto', padding: '60px 24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: '0.9rem', textDecoration: 'none' }}>
           ← {t('login.backToHome')}
@@ -168,7 +168,7 @@ export default function Login({ onLogin }) {
       </div>
       <div style={{ marginBottom: 24 }}>
         <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('login.iAm')}</label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+        <div className="login-role-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {(mode === 'signup' ? ROLES.filter((r) => r.id !== 'admin') : ROLES.filter((r) => r.id !== 'admin')).map((r) => (
             <button
               key={r.id}

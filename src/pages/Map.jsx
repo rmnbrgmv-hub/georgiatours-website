@@ -28,12 +28,12 @@ export default function Map() {
   const { t } = useLocale();
 
   return (
-    <div style={{ padding: '24px 0 80px' }}>
-      <div style={{ padding: '0 24px 20px' }}>
+    <div className="map-page" style={{ padding: '24px 0 80px' }}>
+      <div className="map-page-header" style={{ padding: '0 24px 20px' }}>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('map.title')}</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>{t('map.subtitle')}</p>
       </div>
-      <div style={{ height: 520, borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--border)', margin: '0 24px' }}>
+      <div className="map-container" style={{ height: 520, minHeight: 320, borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--border)', margin: '0 24px' }}>
         {typeof window !== 'undefined' && (
           <MapContainer
             center={GEORGIA_CENTER}

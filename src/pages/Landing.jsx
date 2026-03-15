@@ -78,7 +78,7 @@ export default function Landing() {
       </Helmet>
 
       {/* ─── HERO ─── */}
-      <section style={{ minHeight: '92vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
+      <section className="landing-hero" style={{ minHeight: '92vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
         {/* Collage background */}
         <div className="landing-hero-collage" aria-hidden>
           <div className="landing-hero-collage-inner">
@@ -94,7 +94,7 @@ export default function Landing() {
           <div className="landing-hero-fade landing-hero-fade-r" />
         </div>
 
-        <div style={{ position: 'relative', zIndex: 2, padding: '100px 24px 160px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+        <div className="landing-hero-content" style={{ position: 'relative', zIndex: 2, padding: '100px 24px 160px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
           <div style={{ maxWidth: 680 }} className="animate-fade-up">
             {/* Badge */}
             <div style={{
@@ -148,7 +148,7 @@ export default function Landing() {
             </form>
 
             {/* Quick filters */}
-            <div style={{ display: 'flex', gap: 10, marginTop: 20, flexWrap: 'wrap' }}>
+            <div className="landing-hero-quick-filters" style={{ display: 'flex', gap: 10, marginTop: 20, flexWrap: 'wrap' }}>
               {[
                 { label: t('hero.guided'), type: 'guide' },
                 { label: t('hero.van'), type: 'van' },
@@ -177,7 +177,7 @@ export default function Landing() {
           background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(16px)',
           borderTop: '1px solid var(--border)',
         }}>
-          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: '20px 24px', gap: 8 }}>
+          <div className="landing-stats-grid" style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: '20px 24px', gap: 8 }}>
             {STATS.map(({ value, label }) => (
               <div key={label} style={{ textAlign: 'center', padding: '8px 0' }}>
                 <div style={{ fontSize: 'clamp(20px, 3vw, 30px)', fontWeight: 800, color: 'var(--gold)', fontFamily: 'var(--font-display)' }}>{value}</div>

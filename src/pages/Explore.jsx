@@ -38,7 +38,7 @@ export default function Explore() {
   const regions = [...new Set(tours.flatMap((tour) => [tour.region, tour.area]).filter(Boolean))].sort();
 
   return (
-    <div style={{ padding: '40px 24px 80px', maxWidth: 1200, margin: '0 auto' }}>
+    <div className="explore-page" style={{ padding: '40px 24px 80px', maxWidth: 1200, margin: '0 auto' }}>
       {toast && (
         <div style={{ marginBottom: 16, padding: 12, borderRadius: 8, background: 'rgba(224,92,92,.1)', border: '1px solid rgba(224,92,92,.3)', color: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <span>{toast}</span>
@@ -54,7 +54,7 @@ export default function Explore() {
       </h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: 28 }}>{t('explore.subtitle')}</p>
 
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 32 }}>
+      <div className="explore-filters" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 32 }}>
         <button
           onClick={() => setTypeFilter('all')}
           style={{
@@ -120,7 +120,7 @@ export default function Explore() {
       {loading ? (
         <div style={{ color: 'var(--text-muted)', padding: 60 }}>Loading…</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
+        <div className="explore-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
           {filtered.map((t) => (
             <TourCard
               key={t.id}
