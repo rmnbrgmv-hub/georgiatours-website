@@ -12,18 +12,18 @@ function photoUrl(p) {
 }
 
 export default function Tour(props) {
+  const { t } = useLocale();
   const outlet = useOutletContext?.();
   const user = outlet?.user ?? props?.user;
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const inApp = location.pathname.startsWith('/app');
   const fromAdminProvider = location.state?.fromAdminProvider && location.state?.providerId;
   const backToProviderPath = fromAdminProvider ? `/app/admin-provider/${location.state.providerId}` : null;
   const explorePath = inApp ? '/app/explore' : '/explore';
   const backPath = backToProviderPath || explorePath;
   const backLabel = backToProviderPath ? 'Back to provider' : t('tour.backToExplore');
-  const { t } = useLocale();
-  const navigate = useNavigate();
   const [tour, setTour] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
