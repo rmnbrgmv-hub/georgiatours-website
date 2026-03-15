@@ -47,6 +47,7 @@ export const translations = {
     chat: { title: 'Chat', subtitle: 'Message your guides and drivers.', noPartners: 'No conversations yet.', placeholder: 'Type a message…', send: 'Send' },
     profile: { title: 'Profile', subtitle: 'Your account and stats.', bookings: 'Bookings', completed: 'Completed', reviewsLeft: 'Reviews left', memberSince: 'Member since' },
     common: { loading: 'Loading...', error: 'An error occurred', perPerson: 'per person', bookNow: 'Book Now', viewDetails: 'View Details' },
+    overview: { clickForBreakdown: 'Click for breakdown', extendedInfo: 'Extended info', close: 'Close', viewAllBookings: 'View all bookings →', viewAllRequests: 'View all requests →', viewAllProviders: 'View all providers →', viewAllTours: 'View all tours →', loading: 'Loading…', suspended: 'Suspended' },
   },
   ka: {
     nav: { home: 'მთავარი', explore: 'ტურები', map: 'რუკა', stories: 'ისტორიები', contact: 'კონტაქტი', bookings: 'ჯავშნები', requests: 'მოთხოვნები', chat: 'შეტყობინებები', profile: 'პროფილი', signIn: 'შესვლა', signOut: 'გასვლა', getStarted: 'დაწყება', becomeGuide: 'გახდი გიდი', language: 'ენა', dashboard: 'პანელი', myTrips: 'ჩემი მოგზაურობები', myTours: 'ჩემი ტურები', jobs: 'სამუშაოები', overview: 'მიმოხილვა', providers: 'პროვაიდერები', tours: 'ტურები', approvals: 'დამოწმება', messages: 'შეტყობინებები', providerPortal: 'პროვაიდერის პორტალი', adminPanel: 'ადმინ პანელი', appName: 'GeorgiaTours', adminGroupData: 'ჯავშნები და მოთხოვნები', adminGroupPeople: 'პროვაიდერები და ტურები', adminGroupMore: 'დამოწმება და შეტყობინებები' },
@@ -96,6 +97,7 @@ export const translations = {
     chat: { title: 'შეტყობინებები', subtitle: 'დაუკავშირდი ჰიდებს და მძღოლებს.', noPartners: 'ჯერ საუბარი არ არის.', placeholder: 'შეიყვანეთ შეტყობინება…', send: 'გაგზავნა' },
     profile: { title: 'პროფილი', subtitle: 'თქვენი ანგარიში.', bookings: 'ჯავშნები', completed: 'დასრულებული', reviewsLeft: 'შეფასებები', memberSince: 'წევრი' },
     common: { loading: 'იტვირთება...', error: 'მოხდა შეცდომა', perPerson: 'ადამიანზე', bookNow: 'დაჯავშნე', viewDetails: 'დეტალების ნახვა' },
+    overview: { clickForBreakdown: 'დაწკაპუნებით დეტალები', extendedInfo: 'დეტალური ინფო', close: 'დახურვა', viewAllBookings: 'ყველა ჯავშანი →', viewAllRequests: 'ყველა მოთხოვნა →', viewAllProviders: 'ყველა პროვაიდერი →', viewAllTours: 'ყველა ტური →', loading: 'იტვირთება…', suspended: 'შეჩერებული' },
   },
   ru: {
     nav: { home: 'Главная', explore: 'Туры', map: 'Карта', stories: 'Истории', contact: 'Контакты', bookings: 'Брони', requests: 'Заявки', chat: 'Чат', profile: 'Профиль', signIn: 'Войти', signOut: 'Выйти', getStarted: 'Начать', becomeGuide: 'Стать гидом', language: 'Язык', dashboard: 'Кабинет', myTrips: 'Мои поездки', myTours: 'Мои туры', jobs: 'Заказы', overview: 'Обзор', providers: 'Провайдеры', tours: 'Туры', approvals: 'Одобрения', messages: 'Сообщения', providerPortal: 'Портал провайдера', adminPanel: 'Панель администратора', appName: 'GeorgiaTours', adminGroupData: 'Брони и заявки', adminGroupPeople: 'Провайдеры и туры', adminGroupMore: 'Одобрения и сообщения' },
@@ -145,6 +147,7 @@ export const translations = {
     chat: { title: 'Чат', subtitle: 'Переписка с гидами и водителями.', noPartners: 'Пока нет диалогов.', placeholder: 'Введите сообщение…', send: 'Отправить' },
     profile: { title: 'Профиль', subtitle: 'Ваш аккаунт и статистика.', bookings: 'Брони', completed: 'Завершено', reviewsLeft: 'Отзывы', memberSince: 'С нами с' },
     common: { loading: 'Загрузка...', error: 'Произошла ошибка', perPerson: 'за человека', bookNow: 'Забронировать', viewDetails: 'Подробнее' },
+    overview: { clickForBreakdown: 'Нажмите для разбивки', extendedInfo: 'Подробная информация', close: 'Закрыть', viewAllBookings: 'Все брони →', viewAllRequests: 'Все заявки →', viewAllProviders: 'Все провайдеры →', viewAllTours: 'Все туры →', loading: 'Загрузка…', suspended: 'Приостановлено' },
   },
   ar: {
     nav: { home: 'الرئيسية', explore: 'الجولات', map: 'الخريطة', stories: 'قصص', contact: 'اتصل', bookings: 'الحجوزات', requests: 'الطلبات', chat: 'المحادثة', profile: 'الملف', signIn: 'تسجيل الدخول', signOut: 'خروج', getStarted: 'ابدأ الآن', becomeGuide: 'كن مرشداً', language: 'اللغة', dashboard: 'لوحة التحكم', myTrips: 'رحلاتي', myTours: 'جولاتي', jobs: 'الوظائف', overview: 'نظرة عامة', providers: 'مقدمو الخدمة', tours: 'الجولات', approvals: 'الموافقات', messages: 'الرسائل', providerPortal: 'بوابة المزود', adminPanel: 'لوحة الإدارة', appName: 'GeorgiaTours', adminGroupData: 'الحجوزات والطلبات', adminGroupPeople: 'مقدمو الخدمة والجولات', adminGroupMore: 'الموافقات والرسائل' },
@@ -194,6 +197,7 @@ export const translations = {
     chat: { title: 'المحادثة', subtitle: 'مراسلة المرشدين والسائقين.', noPartners: 'لا محادثات بعد.', placeholder: 'اكتب رسالة…', send: 'إرسال' },
     profile: { title: 'الملف', subtitle: 'حسابك وإحصائياتك.', bookings: 'الحجوزات', completed: 'مكتمل', reviewsLeft: 'المراجعات', memberSince: 'عضو منذ' },
     common: { loading: 'جاري التحميل...', error: 'حدث خطأ', perPerson: 'للشخص', bookNow: 'احجز الآن', viewDetails: 'عرض التفاصيل' },
+    overview: { clickForBreakdown: 'انقر للتفصيل', extendedInfo: 'معلومات إضافية', close: 'إغلاق', viewAllBookings: 'كل الحجوزات ←', viewAllRequests: 'كل الطلبات ←', viewAllProviders: 'كل المزودين ←', viewAllTours: 'كل الجولات ←', loading: 'جاري التحميل…', suspended: 'معلقة' },
   },
 };
 
