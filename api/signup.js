@@ -95,7 +95,9 @@ export default async function handler(req, res) {
     userRow.provider_type = null;
     userRow.color = null;
   }
-  const { error: dbErr } = await supabase.from('users').insert(userRow);
+  const { error: dbErr } = await supabase
+    .from('users')
+    .upsert(userRow, { onConflict: 'id' });
 
   if (dbErr) {
     json(res, 500, { error: dbErr.message || 'Profile save failed' });

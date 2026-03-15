@@ -51,7 +51,7 @@ async function insertUser({ id, name, email, role, providerType }) {
     total_bookings: 0,
     earnings: '₾0',
   };
-  const { error } = await supabase.from('users').insert(payload);
+  const { error } = await supabase.from('users').upsert(payload, { onConflict: 'id' });
   return error;
 }
 
