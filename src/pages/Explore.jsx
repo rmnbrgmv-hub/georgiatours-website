@@ -46,7 +46,7 @@ export default function Explore() {
         </div>
       )}
       <Helmet>
-        <title>Explore tours — GeorgiaTours</title>
+        <title>Explore tours — TourBid</title>
         <meta name="description" content="Browse van tours, guides, and transfers across Georgia." />
       </Helmet>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '2rem', marginBottom: 8 }}>

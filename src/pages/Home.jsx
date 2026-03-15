@@ -60,9 +60,9 @@ export default function Home() {
   return (
     <div>
       <Helmet>
-        <title>GeorgiaTours — Explore Georgia</title>
+        <title>TourBid — Your Georgia Tour Marketplace</title>
         <meta name="description" content="Discover tours and experiences across Georgia. Van tours, local guides, and transfers." />
-        <meta property="og:title" content="GeorgiaTours — Explore Georgia" />
+        <meta property="og:title" content="TourBid — Your Georgia Tour Marketplace" />
         <meta property="og:description" content="Discover tours and experiences across Georgia." />
       </Helmet>
       {/* Hero with photo collage behind */}

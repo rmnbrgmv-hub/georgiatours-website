@@ -73,7 +73,7 @@ export default function Landing() {
   return (
     <Layout>
       <Helmet>
-        <title>GeorgiaTours — Explore Georgia</title>
+        <title>TourBid — Your Georgia Tour Marketplace</title>
         <meta name="description" content="Discover tours and experiences across Georgia. Van tours, local guides, and transfers." />
       </Helmet>
 

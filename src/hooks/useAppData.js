@@ -1,5 +1,5 @@
 /**
- * Shared data hooks and row mappers matching the GeorgiaTours app (admin/src/App.jsx).
+ * Shared data hooks and row mappers matching the TourBid app (admin/src/App.jsx).
  * Same Supabase tables, same column names, same shape so website and app share data.
  */
 import { useState, useEffect, useCallback } from 'react';

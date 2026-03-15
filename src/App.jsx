@@ -42,7 +42,7 @@ function AppRedirectWithUser({ user }) {
 export default function App() {
   const [user, setUser] = useState(() => {
     try {
-      const s = sessionStorage.getItem('georgiatours-user');
+      const s = sessionStorage.getItem('tourbid-user');
       return s ? JSON.parse(s) : null;
     } catch (_) {
       return null;
@@ -53,14 +53,14 @@ export default function App() {
     const syncUser = async (authUser) => {
       if (!authUser?.id) {
         setUser(null);
-        try { sessionStorage.removeItem('georgiatours-user'); } catch (_) {}
+        try { sessionStorage.removeItem('tourbid-user'); } catch (_) {}
         return;
       }
       const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery').eq('id', authUser.id).maybeSingle();
       const u = data ? mapUserRow(data) : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist' };
       if (authUser.email === 'admin@tourbid.ge') u.role = 'admin';
       setUser(u);
-      try { sessionStorage.setItem('georgiatours-user', JSON.stringify(u)); } catch (_) {}
+      try { sessionStorage.setItem('tourbid-user', JSON.stringify(u)); } catch (_) {}
     };
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) syncUser(session.user);
@@ -73,13 +73,13 @@ export default function App() {
 
   const handleLogin = (u) => {
     setUser(u);
-    try { sessionStorage.setItem('georgiatours-user', JSON.stringify(u)); } catch (_) {}
+    try { sessionStorage.setItem('tourbid-user', JSON.stringify(u)); } catch (_) {}
   };
 
   const handleLogout = () => {
     supabase.auth.signOut();
     setUser(null);
-    try { sessionStorage.removeItem('georgiatours-user'); } catch (_) {}
+    try { sessionStorage.removeItem('tourbid-user'); } catch (_) {}
   };
 
   return (

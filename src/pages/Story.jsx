@@ -18,7 +18,7 @@ export default function Story() {
   return (
     <>
       <Helmet>
-        <title>{story.title} — GeorgiaTours</title>
+        <title>{story.title} — TourBid</title>
         <meta name="description" content={story.excerpt} />
       </Helmet>
       <article style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px 80px' }}>

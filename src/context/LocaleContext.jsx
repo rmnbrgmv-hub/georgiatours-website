@@ -6,7 +6,7 @@ const LocaleContext = createContext(null);
 export function LocaleProvider({ children }) {
   const [locale, setLocaleState] = useState(() => {
     try {
-      const s = localStorage.getItem('georgiatours-locale');
+      const s = localStorage.getItem('tourbid-locale');
       return s && translations[s] ? s : 'en';
     } catch (_) {
       return 'en';
@@ -17,7 +17,7 @@ export function LocaleProvider({ children }) {
     if (translations[lang]) {
       setLocaleState(lang);
       try {
-        localStorage.setItem('georgiatours-locale', lang);
+        localStorage.setItem('tourbid-locale', lang);
         document.documentElement.lang = lang;
         document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
       } catch (_) {}

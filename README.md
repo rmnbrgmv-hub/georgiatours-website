@@ -1,11 +1,11 @@
-# GeorgiaTours Website
+# TourBid Website
 
-Web frontend for GeorgiaTours — **same functionality as the app**, modern UI, same database. Use as admin, tourist, guide, or driver from the browser.
+Web frontend for TourBid — **same functionality as the app**, modern UI, same database. Use as admin, tourist, guide, or driver from the browser.
 
 - **Flow**: Landing → Sign in → Role-based app (Tourist / Provider / Admin).
 - **Design**: Dark and light themes, gold + cyan accents, glassmorphism. Responsive sidebar layout.
 - **Languages**: English, Russian, Georgian (ქართ), Arabic — with RTL for Arabic.
-- **Same DB**: Connects to the same Supabase project as the GeorgiaTours app; same `users`, `services`, `bookings`, `requests`, `offers`, `messages`.
+- **Same DB**: Connects to the same Supabase project as the TourBid app; same `users`, `services`, `bookings`, `requests`, `offers`, `messages`.
 
 ## Role-based areas
 
@@ -25,7 +25,7 @@ After login you are redirected to the correct default tab for your role.
 
 ## Same database as the app
 
-Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env` to the **same** Supabase project as the GeorgiaTours app. Tables used: `users`, `services`, `bookings`, `requests`, `offers`, `messages`, `reviews`, etc.
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env` to the **same** Supabase project as the TourBid app. Tables used: `users`, `services`, `bookings`, `requests`, `offers`, `messages`, `reviews`, etc.
 
 ## Setup
 

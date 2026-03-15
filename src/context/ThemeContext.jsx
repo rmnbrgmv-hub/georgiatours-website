@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useCallback, useEffect } from 'rea
 
 const ThemeContext = createContext(null);
 
-const STORAGE_KEY = 'georgiatours-theme';
+const STORAGE_KEY = 'tourbid-theme';
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {

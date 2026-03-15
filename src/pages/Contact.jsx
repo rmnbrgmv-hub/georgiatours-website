@@ -43,7 +43,7 @@ export default function Contact() {
   return (
     <>
       <Helmet>
-        <title>Contact — GeorgiaTours</title>
+        <title>Contact — TourBid</title>
         <meta name="description" content="Get in touch or request a custom tour in Georgia." />
       </Helmet>
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '60px 24px 80px' }}>

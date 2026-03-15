@@ -112,7 +112,7 @@ export default function Tour(props) {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px 80px' }}>
       <Helmet>
-        <title>{tour.name} — GeorgiaTours</title>
+        <title>{tour.name} — TourBid</title>
         <meta name="description" content={description || `${tour.region} · ${tour.duration} · ₾${tour.price}`} />
         <meta property="og:title" content={tour.name} />
       </Helmet>

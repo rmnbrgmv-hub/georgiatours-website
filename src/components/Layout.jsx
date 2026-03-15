@@ -59,7 +59,7 @@ export default function Layout({ children, user, onLogout }) {
         <div className="layout-header-inner">
           {/* Logo */}
           <Link to="/" className="layout-logo">
-            Georgia<span style={{ color: 'var(--gold)' }}>Tours</span>
+            TourBid
           </Link>
 
           {/* Desktop nav */}

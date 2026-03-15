@@ -9,7 +9,7 @@ export default function Stories() {
   return (
     <>
       <Helmet>
-        <title>Stories — GeorgiaTours</title>
+        <title>Stories — TourBid</title>
         <meta name="description" content="Travel stories and tips from Georgia." />
       </Helmet>
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '48px 24px 80px' }}>
