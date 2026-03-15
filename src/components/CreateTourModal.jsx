@@ -125,9 +125,8 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
           maxHeight: '90vh',
           overflowY: 'auto',
           border: '1px solid var(--border)',
-          background: 'var(--surface, var(--bg, #fff))',
-          opacity: 1,
-          boxShadow: '0 20px 40px rgba(0,0,0,0.35)',
+          background: 'var(--bg-elevated)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
