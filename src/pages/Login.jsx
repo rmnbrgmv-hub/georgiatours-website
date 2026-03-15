@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
@@ -50,7 +50,9 @@ async function insertUser({ id, name, email, role, providerType }) {
 }
 
 export default function Login({ onLogin }) {
-  const { t } = useLocale();
+  const { t, locale, setLocale, localeNames } = useLocale();
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef(null);
   const [mode, setMode] = useState('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -127,11 +129,34 @@ export default function Login({ onLogin }) {
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (!langOpen) return;
+    const handler = (e) => { if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [langOpen]);
+
   return (
     <div style={{ maxWidth: 400, margin: '0 auto', padding: '60px 24px' }}>
-      <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 24, textDecoration: 'none' }}>
-        ← {t('login.backToHome')}
-      </Link>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: '0.9rem', textDecoration: 'none' }}>
+          ← {t('login.backToHome')}
+        </Link>
+        <div ref={langRef} style={{ position: 'relative' }}>
+          <button type="button" onClick={() => setLangOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.9rem', cursor: 'pointer' }}>
+            🌐 {localeNames[locale]} ▾
+          </button>
+          {langOpen && (
+            <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, minWidth: 120, padding: 4, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-elevated)', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 10 }}>
+              {Object.entries(localeNames).map(([lang, label]) => (
+                <button key={lang} type="button" onClick={() => { setLocale(lang); setLangOpen(false); }} style={{ display: 'block', width: '100%', padding: '8px 12px', textAlign: 'start', background: locale === lang ? 'var(--gold-soft)' : 'none', border: 'none', color: 'var(--text)', cursor: 'pointer', borderRadius: 6, fontSize: '0.9rem' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.8rem', marginBottom: 8 }}>
         {t('login.title')}
       </h1>
