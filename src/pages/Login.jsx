@@ -139,6 +139,12 @@ export default function Login({ onLogin }) {
           if (u && (u.provider_type === 'guide' || u.provider_type === 'transfer' || u.type === 'guide' || u.type === 'transfer')) {
             resolved = { ...resolved, role: 'provider', type: u.type ?? u.provider_type, provider_type: u.provider_type ?? u.type };
           }
+          if (formRole === 'driver') {
+            resolved = { ...resolved, role: 'provider', type: 'transfer', provider_type: 'transfer', color: resolved.color ?? '#c9a84c' };
+          }
+          if (formRole === 'guide') {
+            resolved = { ...resolved, role: 'provider', type: 'guide', provider_type: 'guide', color: resolved.color ?? '#5b8dee' };
+          }
           onLogin(resolved);
           setError('');
           setLoading(false);
