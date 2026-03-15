@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapUserRow } from '../hooks/useAppData';
@@ -140,6 +140,9 @@ export default function Login({ onLogin }) {
 
   return (
     <div style={{ maxWidth: 400, margin: '0 auto', padding: '60px 24px' }}>
+      <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 24, textDecoration: 'none' }}>
+        ← {t('login.backToHome')}
+      </Link>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.8rem', marginBottom: 8 }}>
         {t('login.title')}
       </h1>
