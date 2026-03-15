@@ -116,13 +116,18 @@ export default function Login({ onLogin }) {
         if (apiResult.ok) {
           const formRole = selectedRole === 'admin' ? 'tourist' : selectedRole;
           if (formRole === 'driver') {
-            const userId = apiResult.userId;
-            if (!userId) {
-              setError('Signup succeeded but could not continue. Please sign in.');
-              setLoading(false);
-              return;
-            }
             try { sessionStorage.setItem('driverVehiclePending', '1'); } catch (_) {}
+            let userId = apiResult.userId;
+            if (!userId) {
+              const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+              if (signInErr) {
+                try { sessionStorage.removeItem('driverVehiclePending'); } catch (_) {}
+                setError('Account created. Please sign in.');
+                setLoading(false);
+                return;
+              }
+              userId = signInData.user.id;
+            }
             setPendingUser({
               id: userId,
               name: name.trim() || email.split('@')[0],
