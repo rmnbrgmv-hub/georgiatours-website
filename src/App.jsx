@@ -61,11 +61,17 @@ export default function App() {
       const { data } = await supabase.from('users').select('id,name,email,role,provider_type,avatar,color,bio,rating,total_bookings,earnings,vehicle_make,vehicle_model,vehicle_year,vehicle_color,vehicle_plate,max_seats,profile_picture,gallery').eq('id', authUser.id).maybeSingle();
       const current = userRef.current;
       const sameIdAndProvider = current?.id === authUser.id && (current?.role === 'provider' || current?.type === 'guide' || current?.type === 'transfer');
-      const u = data
-        ? mapUserRow(data)
-        : sameIdAndProvider
-          ? current
-          : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist', type: undefined };
+      let u;
+      if (data) {
+        const mapped = mapUserRow(data);
+        if (current?.id === authUser.id && (current?.role === 'provider' || current?.type) && mapped.role !== 'provider' && !mapped.type) {
+          u = current;
+        } else {
+          u = mapped;
+        }
+      } else {
+        u = sameIdAndProvider ? current : { id: authUser.id, name: authUser.email?.split('@')[0], email: authUser.email, role: 'tourist', type: undefined };
+      }
       if (authUser.email === 'admin@tourbid.ge') u.role = 'admin';
       setUser(u);
       try { sessionStorage.setItem('tourbid-user', JSON.stringify(u)); } catch (_) {}

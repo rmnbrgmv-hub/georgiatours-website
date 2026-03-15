@@ -115,7 +115,7 @@ export default function Login({ onLogin }) {
           const authEmail = signInData.user?.email || '';
           const formRole = role === 'admin' ? 'tourist' : role;
           const isProviderRole = formRole === 'guide' || formRole === 'driver';
-          const resolved = u
+          let resolved = u
             ? (authEmail === 'admin@tourbid.ge' ? { ...u, role: 'admin' } : u)
             : {
                 id: signInData.user.id,
@@ -126,6 +126,9 @@ export default function Login({ onLogin }) {
                 avatar: (name.trim() || authEmail).split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?',
                 color: formRole === 'guide' ? '#5b8dee' : formRole === 'driver' ? '#c9a84c' : undefined,
               };
+          if (isProviderRole) {
+            resolved = { ...resolved, role: 'provider', type: formRole === 'guide' ? 'guide' : 'transfer', color: formRole === 'guide' ? '#5b8dee' : '#c9a84c' };
+          }
           onLogin(resolved);
           setError('');
           setLoading(false);
