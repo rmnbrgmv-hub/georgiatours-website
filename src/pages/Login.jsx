@@ -179,12 +179,11 @@ export default function Login({ onLogin }) {
               { label: 'Tourist', email: 'tourist@demo.com', pass: 'demo123', icon: '🧳' },
               { label: 'Guide', email: 'guide@demo.com', pass: 'demo123', icon: '🗺️' },
               { label: 'Driver', email: 'driver@demo.com', pass: 'demo123', icon: '🚐' },
-              { label: 'Admin', email: 'admin@georgiatours.ge', pass: 'admin123', icon: '⚙️' },
             ].map((d) => (
               <button
                 key={d.label}
                 type="button"
-                onClick={() => { setEmail(d.email); setPassword(d.pass); setRole(d.label === 'Admin' ? 'admin' : d.label.toLowerCase()); setMode('login'); setError(''); }}
+                onClick={() => { setEmail(d.email); setPassword(d.pass); setRole(d.label.toLowerCase()); setMode('login'); setError(''); }}
                 style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
               >
                 <span>{d.icon}</span>
@@ -200,8 +199,8 @@ export default function Login({ onLogin }) {
       </div>
       <div style={{ marginBottom: 24 }}>
         <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('login.iAm')}</label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-          {(mode === 'signup' ? ROLES.filter((r) => r.id !== 'admin') : ROLES).map((r) => (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          {(mode === 'signup' ? ROLES.filter((r) => r.id !== 'admin') : ROLES.filter((r) => r.id !== 'admin')).map((r) => (
             <button
               key={r.id}
               type="button"
