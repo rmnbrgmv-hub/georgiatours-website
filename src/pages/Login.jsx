@@ -79,6 +79,50 @@ export default function Login({ onLogin }) {
           setLoading(false);
           return;
         }
+        // Try serverless signup first (no confirmation email → no rate limit)
+        const apiSignup = async () => {
+          const res = await fetch('/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: email.trim(),
+              password,
+              name: name.trim() || undefined,
+              role: role === 'admin' ? 'tourist' : role,
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) return { error: data.error || `Signup failed (${res.status})` };
+          return { ok: true };
+        };
+        const apiResult = await apiSignup();
+        if (apiResult.ok) {
+          const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+          if (signInErr) {
+            setError('Account created. Please sign in.');
+            setLoading(false);
+            setMode('login');
+            return;
+          }
+          const u = await fetchUserById(signInData.user.id);
+          const authEmail = signInData.user?.email || '';
+          const resolved = u
+            ? (authEmail === 'admin@tourbid.ge' ? { ...u, role: 'admin' } : u)
+            : { id: signInData.user.id, name: authEmail.split('@')[0], email: authEmail, role: authEmail === 'admin@tourbid.ge' ? 'admin' : role === 'admin' ? 'tourist' : role };
+          onLogin(resolved);
+          setError('');
+          setLoading(false);
+          navigate(redirect);
+          return;
+        }
+        if (apiResult.error && !apiResult.error.includes('404') && !apiResult.error.includes('Signup not configured')) {
+          const msg = apiResult.error;
+          const isRateLimit = /rate|exceeded|limit|too many/i.test(msg);
+          setError(isRateLimit ? 'Too many sign-up attempts. Try again later.' : msg);
+          setLoading(false);
+          return;
+        }
+        // Fallback: client-side signUp (may hit rate limit if confirmation email is on)
         const { data: authData, error: authErr } = await supabase.auth.signUp({ email: email.trim(), password });
         if (authErr) {
           const msg = authErr.message || '';
