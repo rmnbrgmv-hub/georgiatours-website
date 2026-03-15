@@ -9,11 +9,19 @@ import ExpandableItem from '../components/ExpandableItem';
 export default function Requests() {
   const { user } = useOutletContext();
   const { t } = useLocale();
-  const { requests: dbRequests, loading: requestsLoading, refetch: refetchRequests } = useRequests();
+  const { requests: dbRequests, loading: requestsLoading, error: requestsError, refetch: refetchRequests } = useRequests();
   const [offersByRequestId, setOffersByRequestId] = useState({});
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '' });
+  const [toast, setToast] = useState('');
+  useEffect(() => {
+    if (requestsError) {
+      setToast('Could not load requests. Try again.');
+      const id = setTimeout(() => setToast(''), 2500);
+      return () => clearTimeout(id);
+    }
+  }, [requestsError]);
 
   const requests = (dbRequests || []).filter((r) => String(r.touristId) === String(user?.id));
 
@@ -120,6 +128,12 @@ export default function Requests() {
 
   return (
     <div style={{ padding: '40px 24px 80px', maxWidth: 700, margin: '0 auto' }}>
+      {toast && (
+        <div style={{ marginBottom: 16, padding: 12, borderRadius: 8, background: 'rgba(224,92,92,.1)', border: '1px solid rgba(224,92,92,.3)', color: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <span>{toast}</span>
+          <button type="button" onClick={() => { refetchRequests(); setToast(''); }} style={{ padding: '6px 12px', borderRadius: 6, border: 'none', background: 'var(--surface)', cursor: 'pointer', fontSize: '0.85rem' }}>Retry</button>
+        </div>
+      )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.8rem', marginBottom: 4 }}>{t('requests.title')}</h1>

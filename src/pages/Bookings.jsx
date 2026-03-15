@@ -61,14 +61,22 @@ export default function Bookings() {
     return () => clearInterval(id);
   }, [user?.id]);
 
+  const [toast, setToast] = useState('');
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
+
   const handleMarkComplete = async (bookingId) => {
     const { error } = await supabase.from('bookings').update({ status: 'tourist_done' }).eq('id', bookingId);
     if (!error) setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'tourist_done' } : b)));
   };
 
+  /** From provider_done: set tourist_done, show toast, open review modal (match app). */
   const handleConfirmCompletion = async (bookingId) => {
-    const { error } = await supabase.from('bookings').update({ status: 'completed' }).eq('id', bookingId);
-    if (!error) setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'completed' } : b)));
+    const b = bookings.find((x) => x.id === bookingId);
+    const { error } = await supabase.from('bookings').update({ status: 'tourist_done' }).eq('id', bookingId);
+    if (error) return;
+    setBookings((prev) => prev.map((x) => (x.id === bookingId ? { ...x, status: 'tourist_done' } : x)));
+    showToast('Awaiting provider confirmation');
+    if (b) setReviewTarget(b);
   };
 
   const handleReview = async (booking, stars, text) => {
@@ -85,6 +93,7 @@ export default function Bookings() {
     }
     setBookings((prev) => prev.map((b) => (b.id === booking.id ? { ...b, reviewed: true } : b)));
     setReviewTarget(null);
+    showToast('Review submitted');
   };
 
   if (!user) {
@@ -98,6 +107,7 @@ export default function Bookings() {
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '40px 24px 80px' }}>
+      {toast && <p style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', padding: '10px 20px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,.15)', zIndex: 1000, fontSize: '0.9rem' }}>{toast}</p>}
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.8rem', marginBottom: 8 }}>
         Your bookings
       </h1>
@@ -155,10 +165,10 @@ export default function Bookings() {
                     Confirm completion
                   </button>
                 )}
-                {b.status === 'completed' && !b.reviewed && (
+                {(b.status === 'completed' || b.status === 'tourist_done') && !b.reviewed && (
                   <button type="button" onClick={() => setReviewTarget(b)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--gold)', background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.85rem', cursor: 'pointer' }}>★ Leave a Review</button>
                 )}
-                {b.status === 'completed' && b.reviewed && <span style={{ fontSize: '0.85rem', color: 'var(--cyan)' }}>✓ Reviewed</span>}
+                {(b.status === 'completed' || b.status === 'tourist_done') && b.reviewed && <span style={{ fontSize: '0.85rem', color: 'var(--cyan)' }}>✓ Reviewed</span>}
                 <Link to="/app/chat" style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.85rem', textDecoration: 'none' }}>Chat with provider</Link>
               </div>
             </ExpandableItem>

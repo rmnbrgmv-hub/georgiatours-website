@@ -42,6 +42,13 @@ export default function AdminTours() {
     showToast(suspended ? 'Tour suspended. Hidden from explore.' : 'Tour resumed. Visible in explore again.');
   };
 
+  /** Delete from list only (match app: local state only, no Supabase delete). */
+  const handleDelete = (e, tour) => {
+    e?.stopPropagation?.();
+    setTours((prev) => prev.filter((t) => t.id !== tour.id));
+    showToast('Tour removed from list.');
+  };
+
   if (!user) return null;
   if (user.role !== 'admin') return <Navigate to="/app" replace />;
   if (loading) return <div style={{ color: 'var(--text-muted)' }}>Loading…</div>;
@@ -65,8 +72,9 @@ export default function AdminTours() {
                     <span style={{ fontWeight: 600, opacity: s.suspended ? 0.6 : 1 }}>{s.name}{s.suspended ? ' (suspended)' : ''}</span>
                     <span style={{ color: 'var(--text-muted)' }}>{s.provider} · {s.region} · {s.type}</span>
                     <span style={{ color: 'var(--gold)' }}>₾{s.price}</span>
-                    <span onClick={(e) => e.stopPropagation()}>
+                    <span onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <button type="button" onClick={(ev) => setSuspended(ev, s.id, !s.suspended)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: s.suspended ? 'var(--cyan-soft)' : 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer' }}>{s.suspended ? 'Resume' : 'Suspend'}</button>
+                      <button type="button" onClick={(ev) => handleDelete(ev, s)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(224,92,92,.4)', background: 'rgba(224,92,92,.15)', color: 'var(--red)', fontSize: '0.85rem', cursor: 'pointer' }}>Delete</button>
                     </span>
                     <Link to={`/app/tour/${s.id}`} onClick={(e) => e.stopPropagation()} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>View →</Link>
                   </span>
@@ -82,6 +90,10 @@ export default function AdminTours() {
                   <dt style={{ color: 'var(--text-muted)' }}>Price</dt><dd style={{ margin: 0 }}>₾{s.price}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Suspended</dt><dd style={{ margin: 0 }}>{s.suspended ? 'Yes' : 'No'}</dd>
                   {s.desc && <><dt style={{ color: 'var(--text-muted)' }}>Description</dt><dd style={{ margin: 0 }}>{s.desc}</dd></>}
+                  <dt style={{ color: 'var(--text-muted)' }}></dt>
+                  <dd style={{ margin: 0 }}>
+                    <button type="button" onClick={(ev) => handleDelete(ev, s)} style={{ marginTop: 8, padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(224,92,92,.4)', background: 'rgba(224,92,92,.15)', color: 'var(--red)', fontSize: '0.85rem', cursor: 'pointer' }}>Delete from list</button>
+                  </dd>
                 </dl>
               </ExpandableItem>
             ))}

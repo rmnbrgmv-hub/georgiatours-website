@@ -9,7 +9,15 @@ export default function Explore() {
   const { t } = useLocale();
   const location = useLocation();
   const inApp = location.pathname.startsWith('/app');
-  const { services, loading } = useServices();
+  const { services, loading, error, refetch } = useServices();
+  const [toast, setToast] = useState('');
+  useEffect(() => {
+    if (error) {
+      setToast('Could not load tours. Try again.');
+      const id = setTimeout(() => setToast(''), 2500);
+      return () => clearTimeout(id);
+    }
+  }, [error]);
   const [typeFilter, setTypeFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('');
   const [priceFilter, setPriceFilter] = useState(500);
@@ -31,6 +39,12 @@ export default function Explore() {
 
   return (
     <div style={{ padding: '40px 24px 80px', maxWidth: 1200, margin: '0 auto' }}>
+      {toast && (
+        <div style={{ marginBottom: 16, padding: 12, borderRadius: 8, background: 'rgba(224,92,92,.1)', border: '1px solid rgba(224,92,92,.3)', color: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <span>{toast}</span>
+          <button type="button" onClick={() => { refetch(); setToast(''); }} style={{ padding: '6px 12px', borderRadius: 6, border: 'none', background: 'var(--surface)', cursor: 'pointer', fontSize: '0.85rem' }}>Retry</button>
+        </div>
+      )}
       <Helmet>
         <title>Explore tours — GeorgiaTours</title>
         <meta name="description" content="Browse van tours, guides, and transfers across Georgia." />

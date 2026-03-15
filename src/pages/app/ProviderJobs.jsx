@@ -92,7 +92,7 @@ export default function ProviderJobs() {
                 {j.status === 'active' && (
                   <button type="button" onClick={() => markDone(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, cursor: 'pointer' }}>Mark done</button>
                 )}
-                {j.status === 'provider_done' && (
+                {(j.status === 'provider_done' || j.status === 'tourist_done') && (
                   <button type="button" onClick={() => complete(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Complete</button>
                 )}
               </div>

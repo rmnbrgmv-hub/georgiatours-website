@@ -147,6 +147,29 @@ export default function Login({ onLogin }) {
         {t('login.subtitle')}
       </p>
       {useSupabaseAuth && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Quick Demo</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {[
+              { label: 'Tourist', email: 'tourist@demo.com', pass: 'demo123', icon: '🧳' },
+              { label: 'Guide', email: 'guide@demo.com', pass: 'demo123', icon: '🗺️' },
+              { label: 'Driver', email: 'driver@demo.com', pass: 'demo123', icon: '🚐' },
+              { label: 'Admin', email: 'admin@georgiatours.ge', pass: 'admin123', icon: '⚙️' },
+            ].map((d) => (
+              <button
+                key={d.label}
+                type="button"
+                onClick={() => { setEmail(d.email); setPassword(d.pass); setRole(d.label === 'Admin' ? 'admin' : d.label.toLowerCase()); setMode('login'); setError(''); }}
+                style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                <span>{d.icon}</span>
+                <span>{d.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {useSupabaseAuth && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
           <button type="button" onClick={() => { setMode('login'); setError(''); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: `1px solid ${mode === 'login' ? 'var(--gold)' : 'var(--border)'}`, background: mode === 'login' ? 'var(--gold-soft)' : 'var(--surface)', color: mode === 'login' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: mode === 'login' ? 600 : 500, cursor: 'pointer' }}>Sign in</button>
           <button type="button" onClick={() => { setMode('signup'); setError(''); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: `1px solid ${mode === 'signup' ? 'var(--gold)' : 'var(--border)'}`, background: mode === 'signup' ? 'var(--gold-soft)' : 'var(--surface)', color: mode === 'signup' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: mode === 'signup' ? 600 : 500, cursor: 'pointer' }}>Create account</button>
