@@ -10,6 +10,7 @@ export default function AdminRequests() {
   const { user } = useOutletContext();
   const { t } = useLocale();
   const [requests, setRequests] = useState([]);
+  const [offersByRequestId, setOffersByRequestId] = useState({});
   const [loading, setLoading] = useState(true);
 
   const refetch = () => {
@@ -22,6 +23,22 @@ export default function AdminRequests() {
     supabase.from('requests').select('*').order('created_at', { ascending: false }).then(({ data }) => {
       setRequests((data || []).map(mapRequestRow));
       setLoading(false);
+    });
+    supabase.from('offers').select('*').then(({ data }) => {
+      const byRequest = {};
+      (data || []).forEach((o) => {
+        const rid = o.request_id;
+        if (!byRequest[rid]) byRequest[rid] = [];
+        byRequest[rid].push({
+          id: o.id,
+          provider_id: o.provider_id,
+          provider_name: o.provider_name,
+          price: o.price,
+          description: o.description,
+          status: o.status,
+        });
+      });
+      setOffersByRequestId(byRequest);
     });
   }, []);
 
@@ -59,20 +76,34 @@ export default function AdminRequests() {
               >
                 <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 20px' }}>
                   <dt style={{ color: 'var(--text-muted)' }}>ID</dt><dd style={{ margin: 0 }}>{r.id}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Title</dt><dd style={{ margin: 0 }}>{r.title || '—'}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Tourist</dt><dd style={{ margin: 0 }}>{r.tourist}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Region</dt><dd style={{ margin: 0 }}>{r.region}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Type</dt><dd style={{ margin: 0 }}>{r.type}</dd>
-                  <dt style={{ color: 'var(--text-muted)' }}>Date</dt><dd style={{ margin: 0 }}>{r.date}</dd>
-                  <dt style={{ color: 'var(--text-muted)' }}>Budget</dt><dd style={{ margin: 0 }}>₾{r.budget}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Date</dt><dd style={{ margin: 0 }}>{r.date || '—'}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Budget</dt><dd style={{ margin: 0 }}>₾{r.budget ?? '—'}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Status</dt><dd style={{ margin: 0 }}>{r.status}</dd>
-                  {r.desc && <><dt style={{ color: 'var(--text-muted)' }}>Description</dt><dd style={{ margin: 0 }}>{r.desc}</dd></>}
                   {r.createdAt && <><dt style={{ color: 'var(--text-muted)' }}>Created</dt><dd style={{ margin: 0 }}>{new Date(r.createdAt).toLocaleString()}</dd></>}
-                  {r.status !== 'completed' && (
-                    <><dt style={{ color: 'var(--text-muted)' }}></dt><dd style={{ margin: 0 }}>
-                      <button type="button" onClick={() => forceCompleteRequest(r)} style={{ marginTop: 8, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>Force complete</button>
-                    </dd></>
-                  )}
+                  {r.desc && <><dt style={{ color: 'var(--text-muted)' }}>Description</dt><dd style={{ margin: 0, whiteSpace: 'pre-wrap', maxWidth: '100%' }}>{r.desc}</dd></>}
                 </dl>
+                {((offersByRequestId[r.id] || []).length > 0) && (
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase' }}>Offers ({(offersByRequestId[r.id] || []).length})</div>
+                    <ul style={{ margin: 0, paddingLeft: 20 }}>
+                      {(offersByRequestId[r.id] || []).map((o) => (
+                        <li key={o.id} style={{ marginBottom: 8, fontSize: '0.9rem' }}>
+                          <strong>{o.provider_name || 'Provider'}</strong> · ₾{o.price} · <span style={{ color: 'var(--text-muted)' }}>{o.status || '—'}</span>
+                          {o.description && <div style={{ marginTop: 4, color: 'var(--text-muted)', fontSize: '0.85rem' }}>{o.description}</div>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {r.status !== 'completed' && (
+                  <div style={{ marginTop: 16 }}>
+                    <button type="button" onClick={() => forceCompleteRequest(r)} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>Force complete</button>
+                  </div>
+                )}
               </ExpandableItem>
             ))}
           </div>

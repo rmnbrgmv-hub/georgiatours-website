@@ -80,15 +80,30 @@ export default function AdminTours() {
                   </span>
                 }
               >
+                {(s.photos && s.photos.length > 0) && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase' }}>Photos</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {s.photos.map((p, i) => (
+                        <img key={i} src={typeof p === 'object' && p?.base64 ? p.base64 : p} alt="" style={{ width: 100, height: 72, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border)' }} />
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 20px' }}>
                   <dt style={{ color: 'var(--text-muted)' }}>ID</dt><dd style={{ margin: 0 }}>{s.id}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Name</dt><dd style={{ margin: 0 }}>{s.name}</dd>
-                  <dt style={{ color: 'var(--text-muted)' }}>Provider</dt><dd style={{ margin: 0 }}>{s.provider}</dd>
-                  <dt style={{ color: 'var(--text-muted)' }}>Region</dt><dd style={{ margin: 0 }}>{s.region}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Provider</dt><dd style={{ margin: 0 }}><Link to={`/app/providers`} style={{ color: 'var(--gold)' }}>{s.provider}</Link></dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Region / Area</dt><dd style={{ margin: 0 }}>{s.region}{s.area && s.area !== s.region ? ` · ${s.area}` : ''}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Type</dt><dd style={{ margin: 0 }}>{s.type}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Duration</dt><dd style={{ margin: 0 }}>{s.duration || '—'}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Price</dt><dd style={{ margin: 0 }}>₾{s.price}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Rating / Reviews</dt><dd style={{ margin: 0 }}>⭐ {s.rating ?? '—'} ({s.reviews ?? 0} reviews)</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Suspended</dt><dd style={{ margin: 0 }}>{s.suspended ? 'Yes' : 'No'}</dd>
+                  {s.emoji && <><dt style={{ color: 'var(--text-muted)' }}>Emoji</dt><dd style={{ margin: 0 }}>{s.emoji}</dd></>}
+                  {Array.isArray(s.tags) && s.tags.length > 0 && <><dt style={{ color: 'var(--text-muted)' }}>Tags</dt><dd style={{ margin: 0 }}>{s.tags.join(', ')}</dd></>}
+                  {Array.isArray(s.available) && s.available.length > 0 && <><dt style={{ color: 'var(--text-muted)' }}>Available</dt><dd style={{ margin: 0 }}>{s.available.join(', ')}</dd></>}
+                  {s.maxSeats != null && <><dt style={{ color: 'var(--text-muted)' }}>Max seats</dt><dd style={{ margin: 0 }}>{s.maxSeats}</dd></>}
                   {s.desc && <><dt style={{ color: 'var(--text-muted)' }}>Description</dt><dd style={{ margin: 0 }}>{s.desc}</dd></>}
                   <dt style={{ color: 'var(--text-muted)' }}></dt>
                   <dd style={{ margin: 0 }}>
