@@ -17,7 +17,11 @@ export default function Tour(props) {
   const { id } = useParams();
   const location = useLocation();
   const inApp = location.pathname.startsWith('/app');
+  const fromAdminProvider = location.state?.fromAdminProvider && location.state?.providerId;
+  const backToProviderPath = fromAdminProvider ? `/app/admin-provider/${location.state.providerId}` : null;
   const explorePath = inApp ? '/app/explore' : '/explore';
+  const backPath = backToProviderPath || explorePath;
+  const backLabel = backToProviderPath ? 'Back to provider' : t('tour.backToExplore');
   const { t } = useLocale();
   const navigate = useNavigate();
   const [tour, setTour] = useState(null);
@@ -54,7 +58,7 @@ export default function Tour(props) {
   }, [id]);
 
   if (loading) return <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>;
-  if (!tour) return <div style={{ padding: 80, textAlign: 'center' }}>{t('tour.notFound')} <Link to={explorePath}>{t('tour.backToExplore')}</Link></div>;
+  if (!tour) return <div style={{ padding: 80, textAlign: 'center' }}>{t('tour.notFound')} <Link to={backPath}>{backLabel}</Link></div>;
 
   const mainPhoto = photoUrl(tour.photos?.[photoIndex]);
   const description = tour.desc ?? tour.description;
@@ -97,8 +101,8 @@ export default function Tour(props) {
         <meta name="description" content={description || `${tour.region} · ${tour.duration} · ₾${tour.price}`} />
         <meta property="og:title" content={tour.name} />
       </Helmet>
-      <Link to={explorePath} style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 24, display: 'inline-block' }}>
-        ← {t('tour.backToExplore')}
+      <Link to={backPath} style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 24, display: 'inline-block' }}>
+        ← {backLabel}
       </Link>
 
       <div

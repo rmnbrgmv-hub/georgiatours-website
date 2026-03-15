@@ -90,7 +90,7 @@ export default function AdminProviderDetail() {
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             {tours.map((t) => (
               <li key={t.id} style={{ marginBottom: 8 }}>
-                <Link to={`/app/tour/${t.id}`} style={{ color: 'var(--gold)', fontWeight: 500 }}>{t.name}</Link>
+                <Link to={`/app/tour/${t.id}`} state={{ fromAdminProvider: true, providerId: id }} style={{ color: 'var(--gold)', fontWeight: 500 }}>{t.name}</Link>
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}> · {t.region} · ₾{t.price} {t.suspended ? '(suspended)' : ''}</span>
               </li>
             ))}
@@ -105,7 +105,7 @@ export default function AdminProviderDetail() {
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             {jobs.map((b) => (
               <li key={b.id} style={{ marginBottom: 8, fontSize: '0.95rem' }}>
-                <Link to={`/app/admin-booking/${b.id}`} style={{ color: 'var(--gold)', textDecoration: 'none' }}>{b.tourist} · {b.service} · {b.date} · ₾{b.amount} · {b.status}</Link>
+                <Link to={`/app/admin-booking/${b.id}`} style={{ color: 'var(--gold)', textDecoration: 'none', cursor: 'pointer' }} onClick={(e) => e.stopPropagation()}>{b.tourist} · {b.service} · {b.date} · ₾{b.amount} · {b.status}</Link>
               </li>
             ))}
           </ul>
