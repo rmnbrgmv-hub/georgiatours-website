@@ -90,7 +90,7 @@ export default function AdminProviderDetail() {
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             {tours.map((t) => (
               <li key={t.id} style={{ marginBottom: 8 }}>
-                <Link to={`/app/tour/${t.id}`} state={{ fromAdminProvider: true, providerId: id }} style={{ color: 'var(--gold)', fontWeight: 500 }}>{t.name}</Link>
+                <Link to={`/app/tour/${t.id}?from=admin-provider&fromProvider=${id}`} state={{ fromAdminProvider: true, providerId: id }} style={{ color: 'var(--gold)', fontWeight: 500 }}>{t.name}</Link>
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}> · {t.region} · ₾{t.price} {t.suspended ? '(suspended)' : ''}</span>
               </li>
             ))}

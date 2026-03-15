@@ -1,4 +1,4 @@
-import { useParams, Link, useOutletContext, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, Link, useOutletContext, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
@@ -18,10 +18,12 @@ export default function Tour(props) {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const inApp = location.pathname.startsWith('/app');
-  const fromAdminProvider = location.state?.fromAdminProvider && location.state?.providerId;
-  const fromAdminTours = location.state?.fromAdminTours;
-  const backToProviderPath = fromAdminProvider ? `/app/admin-provider/${location.state.providerId}` : null;
+  const fromAdminProviderId = location.state?.providerId ?? searchParams.get('fromProvider');
+  const fromAdminProvider = (location.state?.fromAdminProvider || searchParams.get('from') === 'admin-provider') && fromAdminProviderId;
+  const fromAdminTours = location.state?.fromAdminTours || searchParams.get('from') === 'admin-tours';
+  const backToProviderPath = fromAdminProvider ? `/app/admin-provider/${fromAdminProviderId}` : null;
   const backToAdminToursPath = fromAdminTours ? '/app/admin-tours' : null;
   const explorePath = inApp ? '/app/explore' : '/explore';
   const backPath = backToProviderPath || backToAdminToursPath || explorePath;
