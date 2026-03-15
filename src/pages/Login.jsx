@@ -116,8 +116,15 @@ export default function Login({ onLogin }) {
         if (apiResult.ok) {
           const formRole = selectedRole === 'admin' ? 'tourist' : selectedRole;
           if (formRole === 'driver') {
+            const userId = apiResult.userId;
+            if (!userId) {
+              setError('Signup succeeded but could not continue. Please sign in.');
+              setLoading(false);
+              return;
+            }
+            try { sessionStorage.setItem('driverVehiclePending', '1'); } catch (_) {}
             setPendingUser({
-              id: apiResult.userId,
+              id: userId,
               name: name.trim() || email.split('@')[0],
               email: email.trim(),
               role: 'provider',
@@ -192,6 +199,7 @@ export default function Login({ onLogin }) {
         }
         const selectedRoleFallback = roleRef.current;
         if (selectedRoleFallback === 'driver') {
+          try { sessionStorage.setItem('driverVehiclePending', '1'); } catch (_) {}
           const nu = {
             id: authData.user.id,
             name: name.trim() || email.split('@')[0],
@@ -305,6 +313,7 @@ export default function Login({ onLogin }) {
                 setError(err.message || 'Could not save vehicle.');
                 return;
               }
+              try { sessionStorage.removeItem('driverVehiclePending'); } catch (_) {}
               if (_fromApiSignup) {
                 const { error: signInErr } = await supabase.auth.signInWithPassword({ email: pendingUser.email, password });
                 if (signInErr) {
@@ -324,7 +333,7 @@ export default function Login({ onLogin }) {
                 setTimeout(() => navigate('/login'), 0);
               }
             }}
-            onBack={() => { setVehicleStep(false); setPendingUser(null); }}
+            onBack={() => { try { sessionStorage.removeItem('driverVehiclePending'); } catch (_) {} setVehicleStep(false); setPendingUser(null); }}
           />
         </div>
       </div>

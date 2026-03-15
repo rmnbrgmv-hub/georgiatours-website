@@ -118,7 +118,7 @@ export default function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={user ? <Navigate to="/app" replace /> : <Landing />} />
-              <Route path="/login" element={user ? <Navigate to="/app" replace /> : <Login onLogin={handleLogin} />} />
+              <Route path="/login" element={(user && !(typeof sessionStorage !== 'undefined' && sessionStorage.getItem('driverVehiclePending'))) ? <Navigate to="/app" replace /> : <Login onLogin={handleLogin} />} />
               <Route path="/tour/:id" element={<Tour user={user} />} />
               <Route path="/provider/:id" element={<Provider />} />
               <Route path="/explore" element={user ? <Navigate to="/app/explore" replace /> : <Layout><Explore /></Layout>} />
