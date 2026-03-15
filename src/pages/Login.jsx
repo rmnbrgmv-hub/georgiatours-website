@@ -142,7 +142,7 @@ export default function Login({ onLogin }) {
           onLogin(resolved);
           setError('');
           setLoading(false);
-          navigate(redirect);
+          setTimeout(() => navigate(redirect), 0);
           return;
         }
         if (apiResult.error && !apiResult.error.includes('404') && !apiResult.error.includes('Signup not configured')) {

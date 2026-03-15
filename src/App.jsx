@@ -74,6 +74,7 @@ export default function App() {
       }
       u.type = u.provider_type ?? u.type;
       if (authUser.email === 'admin@tourbid.ge') u.role = 'admin';
+      if (u.provider_type === 'guide' || u.provider_type === 'transfer' || u.type === 'guide' || u.type === 'transfer') u.role = 'provider';
       const final = (current?.id === authUser.id && isProviderUser(current) && !isProviderUser(u)) ? current : u;
       setUser(final);
       try { sessionStorage.setItem('tourbid-user', JSON.stringify(final)); } catch (_) {}
@@ -88,6 +89,7 @@ export default function App() {
   }, []);
 
   const handleLogin = (u) => {
+    userRef.current = u;
     setUser(u);
     try { sessionStorage.setItem('tourbid-user', JSON.stringify(u)); } catch (_) {}
   };
