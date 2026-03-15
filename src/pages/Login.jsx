@@ -83,7 +83,7 @@ export default function Login({ onLogin }) {
         if (authErr) {
           const msg = authErr.message || '';
           const isRateLimit = /rate|exceeded|limit|too many|try again later/i.test(msg);
-          setError(isRateLimit ? 'Too many sign-up attempts. Please try again in a few minutes.' : (msg || 'Sign up failed'));
+          setError(isRateLimit ? 'Too many sign-up attempts. Try again later.' : (msg || 'Sign up failed'));
           setLoading(false);
           return;
         }
