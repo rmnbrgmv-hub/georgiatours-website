@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapUserRow } from '../hooks/useAppData';
+import DriverVehicleForm from '../components/DriverVehicleForm';
 
 /** Fetch user from users table by Supabase Auth id (auth.uid()). Never throws. Normalizes type/provider_type. */
 async function fetchUserById(id) {
@@ -28,8 +29,8 @@ const ROLES = [
   { id: 'admin', icon: '⚙️', key: 'roleAdmin' },
 ];
 
-/** Insert user row with id = Supabase Auth user id (required for signup). Sets role + provider_type from signup choice. */
-async function insertUser({ id, name, email, role, providerType }) {
+/** Insert user row with id = Supabase Auth user id (required for signup). Sets role + provider_type. Optional vehicle fields for drivers. */
+async function insertUser({ id, name, email, role, providerType, vehicleMake, vehicleModel, vehicleYear, vehicleColor, vehiclePlate, maxSeats }) {
   const avatar = (name || email || '')
     .trim()
     .split(/\s+/)
@@ -52,6 +53,12 @@ async function insertUser({ id, name, email, role, providerType }) {
     rating: 0,
     total_bookings: 0,
     earnings: '₾0',
+    vehicle_make: vehicleMake ?? null,
+    vehicle_model: vehicleModel ?? null,
+    vehicle_year: vehicleYear ?? null,
+    vehicle_color: vehicleColor ?? null,
+    vehicle_plate: vehiclePlate ?? null,
+    max_seats: maxSeats ?? null,
   };
   const { error } = await supabase.from('users').upsert(payload, { onConflict: 'id' });
   return error;
@@ -70,6 +77,8 @@ export default function Login({ onLogin }) {
   roleRef.current = role;
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [vehicleStep, setVehicleStep] = useState(false);
+  const [pendingUser, setPendingUser] = useState(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect') || '/app';
@@ -145,6 +154,12 @@ export default function Login({ onLogin }) {
           if (formRole === 'guide') {
             resolved = { ...resolved, role: 'provider', type: 'guide', provider_type: 'guide', color: resolved.color ?? '#5b8dee' };
           }
+          if (formRole === 'driver') {
+            setPendingUser({ ...resolved, _fromApiSignup: true });
+            setVehicleStep(true);
+            setLoading(false);
+            return;
+          }
           onLogin(resolved);
           setError('');
           setLoading(false);
@@ -172,6 +187,23 @@ export default function Login({ onLogin }) {
           return;
         }
         const selectedRoleFallback = roleRef.current;
+        if (selectedRoleFallback === 'driver') {
+          const nu = {
+            id: authData.user.id,
+            name: name.trim() || email.split('@')[0],
+            email: authData.user?.email || email.trim(),
+            role: 'provider',
+            type: 'transfer',
+            provider_type: 'transfer',
+            avatar: (name.trim() || email).split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?',
+            color: '#c9a84c',
+            _fromApiSignup: false,
+          };
+          setPendingUser(nu);
+          setVehicleStep(true);
+          setLoading(false);
+          return;
+        }
         const insertErr = await insertUser({
           id: authData.user.id,
           name: name.trim() || email.split('@')[0],
@@ -226,6 +258,64 @@ export default function Login({ onLogin }) {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [langOpen]);
+
+  if (vehicleStep && pendingUser) {
+    return (
+      <div className="login-page" style={{ maxWidth: 420, margin: '0 auto', padding: '60px 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+          <button type="button" onClick={() => { setVehicleStep(false); setPendingUser(null); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>← Back</button>
+          <div ref={langRef} style={{ position: 'relative' }}>
+            <button type="button" onClick={() => setLangOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.9rem', cursor: 'pointer' }}>🌐 {localeNames[locale]} ▾</button>
+            {langOpen && (
+              <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, minWidth: 120, padding: 4, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-elevated)', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 10 }}>
+                {Object.entries(localeNames).map(([lang, label]) => (
+                  <button key={lang} type="button" onClick={() => { setLocale(lang); setLangOpen(false); }} style={{ display: 'block', width: '100%', padding: '8px 12px', textAlign: 'start', background: locale === lang ? 'var(--gold-soft)' : 'none', border: 'none', color: 'var(--text)', cursor: 'pointer', borderRadius: 6, fontSize: '0.9rem' }}>{label}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        {error && <p style={{ color: '#f87171', fontSize: '0.9rem', marginBottom: 16 }}>{error}</p>}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 24 }}>
+          <DriverVehicleForm
+            onComplete={async (vehicleData) => {
+              setLoading(true);
+              setError('');
+              const { _fromApiSignup, ...userWithoutFlag } = pendingUser;
+              const fullUser = { ...userWithoutFlag, ...vehicleData };
+              const err = await insertUser({
+                id: pendingUser.id,
+                name: pendingUser.name,
+                email: pendingUser.email,
+                role: 'provider',
+                providerType: 'transfer',
+                vehicleMake: vehicleData.vehicleMake,
+                vehicleModel: vehicleData.vehicleModel,
+                vehicleYear: vehicleData.vehicleYear,
+                vehicleColor: vehicleData.vehicleColor,
+                vehiclePlate: vehicleData.vehiclePlate,
+                maxSeats: vehicleData.maxSeats,
+              });
+              setLoading(false);
+              if (err) {
+                setError(err.message || 'Could not save vehicle.');
+                return;
+              }
+              setVehicleStep(false);
+              setPendingUser(null);
+              if (_fromApiSignup) {
+                onLogin(fullUser);
+                setTimeout(() => navigate('/app/dashboard'), 0);
+              } else {
+                setTimeout(() => navigate('/login'), 0);
+              }
+            }}
+            onBack={() => { setVehicleStep(false); setPendingUser(null); }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="login-page" style={{ maxWidth: 400, margin: '0 auto', padding: '60px 24px' }}>
@@ -286,6 +376,9 @@ export default function Login({ onLogin }) {
             </button>
           ))}
         </div>
+        {mode === 'signup' && role === 'driver' && (
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 10, padding: '8px 12px', background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)' }}>🚐 You'll register your vehicle on the next step.</p>
+        )}
       </div>
       <form onSubmit={handleSubmit}>
         {mode === 'signup' && (
