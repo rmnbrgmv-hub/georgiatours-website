@@ -42,7 +42,8 @@ export default function Home() {
         });
         setTours(mapped);
         setLoading(false);
-      });
+      })
+      .catch(() => { setTours([]); setLoading(false); });
   }, []);
 
   useEffect(() => {

@@ -138,14 +138,18 @@ export function useServices() {
   const [error, setError] = useState(null);
 
   const fetchServices = useCallback(async () => {
-    const { data, error: e } = await supabase.from('services').select('*');
-    if (e) {
-      setError(e);
+    try {
+      const { data, error: e } = await supabase.from('services').select('*');
+      if (e) {
+        setError(e);
+        setServices([]);
+        setLoading(false);
+        return;
+      }
+      setServices((data || []).map(mapServiceRow));
+    } catch (_) {
       setServices([]);
-      setLoading(false);
-      return;
     }
-    setServices((data || []).map(mapServiceRow));
     setLoading(false);
   }, []);
 

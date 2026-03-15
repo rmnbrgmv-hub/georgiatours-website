@@ -49,12 +49,12 @@ export default function AdminOverview() {
         setExtended((e) => ({ ...e, providers: byType }));
       });
     } else if (expandedStat === 'tours') {
-      supabase.from('services').select('type', 'suspended').then(({ data }) => {
+      supabase.from('services').select('*').then(({ data }) => {
         const byType = {};
         let suspended = 0;
         (data || []).forEach((row) => { byType[row.type] = (byType[row.type] || 0) + 1; if (row.suspended) suspended++; });
         setExtended((e) => ({ ...e, tours: { byType, suspended } }));
-      });
+      }).catch(() => {});
     }
   }, [expandedStat, extended]);
 

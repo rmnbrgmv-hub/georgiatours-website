@@ -48,7 +48,8 @@ export default function Landing() {
             return { id: row.id, name: row.name, region: row.region, price: row.price, duration: row.duration, type: row.type, emoji: row.emoji, rating: row.rating, photo: photos?.[0]?.base64 || photos?.[0] };
           })
         );
-      });
+      })
+      .catch(() => setTours([]));
   }, []);
 
   const handleSearch = (e) => {
