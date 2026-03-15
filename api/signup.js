@@ -39,7 +39,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  const safeRole = ['tourist', 'guide', 'driver'].includes(role) ? role : 'tourist';
+  // Map UI role (tourist | guide | driver) to DB: role='provider' for guide/driver, provider_type='guide'|'transfer'|null
+  const rawRole = typeof role === 'string' ? role.trim().toLowerCase() : 'tourist';
+  const safeRole = ['tourist', 'guide', 'driver'].includes(rawRole) ? rawRole : 'tourist';
   const isProvider = safeRole === 'guide' || safeRole === 'driver';
   const providerType = safeRole === 'guide' ? 'guide' : safeRole === 'driver' ? 'transfer' : null;
 
@@ -75,19 +77,25 @@ export default async function handler(req, res) {
     .slice(0, 2)
     .toUpperCase() || '?';
 
-  const { error: dbErr } = await supabase.from('users').insert({
+  const userRow = {
     id: uid,
     name: displayName.trim(),
     email: email.trim().toLowerCase(),
-    role: isProvider ? 'provider' : safeRole,
-    provider_type: providerType,
+    role: isProvider ? 'provider' : 'tourist',
     avatar,
-    color: safeRole === 'guide' ? '#5b8dee' : safeRole === 'driver' ? '#c9a84c' : null,
     bio: '',
     rating: 0,
     total_bookings: 0,
     earnings: '₾0',
-  });
+  };
+  if (isProvider) {
+    userRow.provider_type = providerType;
+    userRow.color = safeRole === 'guide' ? '#5b8dee' : '#c9a84c';
+  } else {
+    userRow.provider_type = null;
+    userRow.color = null;
+  }
+  const { error: dbErr } = await supabase.from('users').insert(userRow);
 
   if (dbErr) {
     json(res, 500, { error: dbErr.message || 'Profile save failed' });

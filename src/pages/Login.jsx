@@ -26,7 +26,7 @@ const ROLES = [
   { id: 'admin', icon: '⚙️', key: 'roleAdmin' },
 ];
 
-/** Insert user row with id = Supabase Auth user id (required for signup). */
+/** Insert user row with id = Supabase Auth user id (required for signup). Sets role + provider_type from signup choice. */
 async function insertUser({ id, name, email, role, providerType }) {
   const avatar = (name || email || '')
     .trim()
@@ -35,15 +35,17 @@ async function insertUser({ id, name, email, role, providerType }) {
     .join('')
     .slice(0, 2)
     .toUpperCase() || '?';
-  const isProvider = role === 'guide' || role === 'driver';
+  const formRole = role === 'admin' ? 'tourist' : role;
+  const isProvider = formRole === 'guide' || formRole === 'driver';
+  const provider_type = isProvider ? (formRole === 'driver' ? 'transfer' : 'guide') : null;
   const payload = {
     id,
     name: (name || email?.split('@')[0] || '').trim(),
     email: (email || '').trim(),
-    role: isProvider ? 'provider' : role,
-    provider_type: isProvider ? (role === 'driver' ? 'transfer' : 'guide') : null,
+    role: isProvider ? 'provider' : formRole,
+    provider_type,
     avatar,
-    color: role === 'guide' ? '#5b8dee' : role === 'driver' ? '#c9a84c' : null,
+    color: formRole === 'guide' ? '#5b8dee' : formRole === 'driver' ? '#c9a84c' : null,
     bio: '',
     rating: 0,
     total_bookings: 0,
@@ -88,7 +90,7 @@ export default function Login({ onLogin }) {
               email: email.trim(),
               password,
               name: name.trim() || undefined,
-              role: role === 'admin' ? 'tourist' : role,
+              role: role === 'admin' ? 'tourist' : role, // 'tourist' | 'guide' | 'driver' → API sets role + provider_type in Supabase
             }),
           });
           const data = await res.json().catch(() => ({}));
