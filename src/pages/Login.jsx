@@ -81,7 +81,9 @@ export default function Login({ onLogin }) {
         }
         const { data: authData, error: authErr } = await supabase.auth.signUp({ email: email.trim(), password });
         if (authErr) {
-          setError(authErr.message || 'Sign up failed');
+          const msg = authErr.message || '';
+          const isRateLimit = /rate|exceeded|limit|too many|try again later/i.test(msg);
+          setError(isRateLimit ? 'Too many sign-up attempts. Please try again in a few minutes.' : (msg || 'Sign up failed'));
           setLoading(false);
           return;
         }
