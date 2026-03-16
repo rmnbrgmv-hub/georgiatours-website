@@ -183,6 +183,9 @@ export default function Layout({ children, user, onLogout }) {
           <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.1rem', color: 'var(--text-muted)', marginBottom: 8 }}>
             {t('footer.tagline')}
           </p>
+          <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginBottom: 8 }}>
+            Contact: <a href="mailto:support@tourbid.ge" style={{ color: 'var(--gold)', textDecoration: 'none' }}>support@tourbid.ge</a>
+          </p>
           <form onSubmit={handleNewsletter} style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
             <input
               type="email"

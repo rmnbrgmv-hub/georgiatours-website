@@ -48,7 +48,13 @@ export default function Contact() {
       </Helmet>
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '60px 24px 80px' }}>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.9rem', marginBottom: 8 }}>{t('contact.title')}</h1>
-        <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>We’ll get back to you as soon as we can.</p>
+        <p style={{ color: 'var(--text-muted)', marginBottom: 12 }}>We’ll get back to you as soon as we can.</p>
+        <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>
+          Or email us directly at{' '}
+          <a href="mailto:support@tourbid.ge" style={{ color: 'var(--gold)', textDecoration: 'none' }}>
+            support@tourbid.ge
+          </a>.
+        </p>
 
         {sent ? (
           <p style={{ color: 'var(--gold)', fontWeight: 500 }}>{t('contact.sent')}</p>
