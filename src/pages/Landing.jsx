@@ -65,9 +65,9 @@ export default function Landing() {
   ];
 
   const HOW_IT_WORKS = [
-    { step: '01', icon: '🔍', title: t('howItWorks.s1t'), desc: t('howItWorks.s1d') },
-    { step: '02', icon: '📅', title: t('howItWorks.s2t'), desc: t('howItWorks.s2d') },
-    { step: '03', icon: '🏔️', title: t('howItWorks.s3t'), desc: t('howItWorks.s3d') },
+    { step: '01', icon: '/images/map-explore-200.png', title: t('howItWorks.s1t'), desc: t('howItWorks.s1d') },
+    { step: '02', icon: '/images/booking-connect-200.png', title: t('howItWorks.s2t'), desc: t('howItWorks.s2d') },
+    { step: '03', icon: '/images/chat-icon-200.png', title: t('howItWorks.s3t'), desc: t('howItWorks.s3d') },
   ];
 
   return (
@@ -79,15 +79,13 @@ export default function Landing() {
 
       {/* ─── HERO ─── */}
       <section className="landing-hero" style={{ minHeight: '92vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-        {/* Collage background */}
-        <div className="landing-hero-collage" aria-hidden>
-          <div className="landing-hero-collage-inner">
-            {imageSrcs.map((src, i) => (
-              <div key={i} className="landing-hero-tile" style={{ '--i': i }}>
-                <img src={src} alt="" loading="lazy" />
-              </div>
-            ))}
-          </div>
+        {/* Static hero image background */}
+        <div aria-hidden style={{ position: 'absolute', inset: 0 }}>
+          <img
+            src="/images/hero-landscape-1200.jpg"
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
           <div className="landing-hero-fade landing-hero-fade-t" />
           <div className="landing-hero-fade landing-hero-fade-b" />
           <div className="landing-hero-fade landing-hero-fade-l" />
@@ -204,9 +202,18 @@ export default function Landing() {
               }}>
                 <div style={{ position: 'absolute', top: -8, right: -8, fontSize: 88, fontWeight: 900, color: 'var(--surface)', fontFamily: 'var(--font-display)', lineHeight: 1, userSelect: 'none' }}>{step}</div>
                 <div style={{
-                  width: 60, height: 60, borderRadius: 16, background: 'var(--gold-soft)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, marginBottom: 20,
-                }}>{icon}</div>
+                  width: 60,
+                  height: 60,
+                  borderRadius: 16,
+                  background: 'var(--gold-soft)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 20,
+                  overflow: 'hidden',
+                }}>
+                  <img src={icon} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
                 <h3 style={{ fontSize: 19, fontWeight: 700, marginBottom: 12 }}>{title}</h3>
                 <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.65 }}>{desc}</p>
               </div>

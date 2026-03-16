@@ -23,9 +23,9 @@ async function fetchUserById(id) {
 }
 
 const ROLES = [
-  { id: 'tourist', icon: '🧳', key: 'roleTourist' },
-  { id: 'guide', icon: '🗺️', key: 'roleGuide' },
-  { id: 'driver', icon: '🚐', key: 'roleDriver' },
+  { id: 'tourist', icon: '/images/tourist-icon-200.png', key: 'roleTourist' },
+  { id: 'guide', icon: '/images/guide-icon-200.png', key: 'roleGuide' },
+  { id: 'driver', icon: '/images/driver-icon-200.png', key: 'roleDriver' },
   { id: 'admin', icon: '⚙️', key: 'roleAdmin' },
 ];
 
@@ -399,7 +399,7 @@ export default function Login({ onLogin }) {
                 gap: 6,
               }}
             >
-              <span style={{ fontSize: '1.4rem' }}>{r.icon}</span>
+              <img src={r.icon} alt={t('login.' + r.key)} style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover' }} />
               <span>{t('login.' + r.key)}</span>
             </button>
           ))}
