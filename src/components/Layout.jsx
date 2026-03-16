@@ -59,7 +59,7 @@ export default function Layout({ children, user, onLogout }) {
         <div className="layout-header-inner">
           {/* Logo */}
           <Link to="/" className="layout-logo" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <img src="/images/favicon-logo.jpg" alt="TourBid" style={{ height: 36, borderRadius: 999, objectFit: 'cover' }} />
+            <img src="/images/favicon-logo.jpg" alt="TourBid" style={{ height: 36, borderRadius: 999, objectFit: 'cover', opacity: 0.9 }} />
             <span>TourBid</span>
           </Link>
 
