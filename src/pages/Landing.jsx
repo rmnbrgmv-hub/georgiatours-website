@@ -212,7 +212,19 @@ export default function Landing() {
                   marginBottom: 20,
                   overflow: 'hidden',
                 }}>
-                  <img src={icon} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }} />
+                  <img
+                    src={icon}
+                    alt=""
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      background: '#ffffff',
+                      borderRadius: 16,
+                      padding: 4,
+                      objectFit: 'cover',
+                      opacity: 0.9,
+                    }}
+                  />
                 </div>
                 <h3 style={{ fontSize: 19, fontWeight: 700, marginBottom: 12 }}>{title}</h3>
                 <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.65 }}>{desc}</p>

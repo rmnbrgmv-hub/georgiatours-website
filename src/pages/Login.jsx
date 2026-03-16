@@ -399,7 +399,19 @@ export default function Login({ onLogin }) {
                 gap: 6,
               }}
             >
-              <img src={r.icon} alt={t('login.' + r.key)} style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover', opacity: 0.9 }} />
+              <img
+                src={r.icon}
+                alt={t('login.' + r.key)}
+                style={{
+                  width: 64,
+                  height: 64,
+                  background: '#ffffff',
+                  borderRadius: 16,
+                  padding: 4,
+                  objectFit: 'cover',
+                  opacity: 0.9,
+                }}
+              />
               <span>{t('login.' + r.key)}</span>
             </button>
           ))}
