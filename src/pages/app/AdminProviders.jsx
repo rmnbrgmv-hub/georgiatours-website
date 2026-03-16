@@ -183,7 +183,9 @@ export default function AdminProviders() {
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase' }}>Gallery</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                       {parseGallery(p.gallery).map((src, i) => (
-                        <img key={i} src={typeof src === 'object' && src?.base64 ? src.base64 : src} alt="" style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border)' }} />
+                        <div key={i} style={{ width: 64, height: 64, borderRadius: 8, overflow: 'hidden', background: 'var(--s2, #1a1a2e)' }}>
+                          <img src={typeof src === 'object' && src?.base64 ? src.base64 : src} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8, background: 'var(--s2, #1a1a2e)' }} />
+                        </div>
                       ))}
                     </div>
                   </div>

@@ -88,11 +88,13 @@ export default function Provider() {
       {gallery.length > 0 && (
         <div style={{ marginBottom: 32 }}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.1rem', marginBottom: 12 }}>Gallery</h2>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {gallery.slice(0, 8).map((img, i) => (
-              <img key={i} src={photoUrl(img)} alt="" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />
-            ))}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {gallery.slice(0, 8).map((img, i) => (
+          <div key={i} style={{ width: 80, height: 80, borderRadius: 8, overflow: 'hidden', background: 'var(--s2, #1a1a2e)' }}>
+            <img src={photoUrl(img)} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8, background: 'var(--s2, #1a1a2e)' }} />
           </div>
+        ))}
+      </div>
         </div>
       )}
 
@@ -118,7 +120,9 @@ export default function Provider() {
               }}
             >
               {tour.photo ? (
-                <img src={tour.photo} alt="" style={{ width: 72, height: 48, objectFit: 'cover', borderRadius: 8 }} />
+                <div style={{ width: 72, height: 48, borderRadius: 8, overflow: 'hidden', background: 'var(--s2, #1a1a2e)' }}>
+                  <img src={tour.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8, background: 'var(--s2, #1a1a2e)' }} />
+                </div>
               ) : (
                 <span style={{ width: 72, height: 48, background: 'var(--bg-elevated)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗺️</span>
               )}

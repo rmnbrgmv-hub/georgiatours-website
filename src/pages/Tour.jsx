@@ -131,7 +131,7 @@ export default function Tour(props) {
       >
         <div style={{ aspectRatio: '21/9', background: 'var(--bg-elevated)' }}>
           {mainPhoto ? (
-            <img src={mainPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={mainPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 0, background: 'var(--s2, #1a1a2e)' }} />
           ) : (
             <span style={{ fontSize: '4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
               {tour.emoji || '🗺️'}
@@ -154,7 +154,7 @@ export default function Tour(props) {
                   padding: 0,
                 }}
               >
-                <img src={photoUrl(p)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={photoUrl(p)} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8, background: 'var(--s2, #1a1a2e)' }} />
               </button>
             ))}
           </div>

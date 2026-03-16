@@ -18,9 +18,19 @@ export default function TourCard({ tour, linkTo, actions }) {
   const photo = getTourPhoto(tour);
   const content = (
     <>
-      <div style={{ aspectRatio: '16/10', background: 'var(--bg-elevated)' }}>
+      <div style={{ aspectRatio: '16/10', background: 'var(--s2, var(--bg-elevated))', borderRadius: 12, overflow: 'hidden' }}>
         {photo ? (
-          <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img
+            src={photo}
+            alt=""
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              borderRadius: 12,
+              background: 'var(--s2, #1a1a2e)',
+            }}
+          />
         ) : (
           <span style={{ fontSize: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             {tour.emoji || '🗺️'}
