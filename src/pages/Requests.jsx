@@ -81,6 +81,13 @@ export default function Requests() {
       status: 'open',
     };
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Auth session [web:handlePostRequest]:', session ? 'ACTIVE' : 'NONE', session?.user?.id);
+      if (!session) {
+        setToast('You are signed out. Please sign in again.');
+        const id = setTimeout(() => setToast(''), 2500);
+        return () => clearTimeout(id);
+      }
       console.log('Inserting web request payload', payload);
       const { error } = await supabase.from('requests').insert(payload).select('*').single();
       if (error) {

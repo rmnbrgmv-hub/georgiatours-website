@@ -74,6 +74,13 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
     }
     setSaving(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Auth session [web:CreateTourModal]:', session ? 'ACTIVE' : 'NONE', session?.user?.id);
+      if (!session) {
+        setError('You are signed out. Please sign in again.');
+        setSaving(false);
+        return;
+      }
       const photosNorm = normalizePhotos(form.photos);
       const base = {
         ...form,

@@ -171,10 +171,15 @@ export default function Chat() {
     };
   }, [user?.id, selected?.id]);
 
-  const send = () => {
+  const send = async () => {
     if (!input.trim() || !selected) return;
     const text = input.trim();
     setInput('');
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('Auth session [web:Chat.send]:', session ? 'ACTIVE' : 'NONE', session?.user?.id);
+    if (!session) {
+      return;
+    }
     supabase.from('messages').insert({
       from_id: user.id,
       to_id: selected.id,

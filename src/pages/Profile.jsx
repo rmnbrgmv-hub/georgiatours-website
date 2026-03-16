@@ -137,6 +137,34 @@ export default function Profile() {
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{user.email}</p>
           </div>
         </div>
+        {isProviderUser(user) && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 12, marginBottom: 8 }}>
+            {user.vehicleMake && user.vehicleModel && (
+              <div style={{ padding: 12, background: 'var(--surface-hover)', borderRadius: 8 }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Vehicle</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{user.vehicleMake} {user.vehicleModel}</div>
+              </div>
+            )}
+            {user.vehicleYear && (
+              <div style={{ padding: 12, background: 'var(--surface-hover)', borderRadius: 8 }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Year</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{user.vehicleYear}</div>
+              </div>
+            )}
+            {user.maxSeats != null && (
+              <div style={{ padding: 12, background: 'var(--surface-hover)', borderRadius: 8 }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Max seats</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{user.maxSeats}</div>
+              </div>
+            )}
+            {user.vehiclePlate && (
+              <div style={{ padding: 12, background: 'var(--surface-hover)', borderRadius: 8 }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Plate</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.12em' }}>{user.vehiclePlate}</div>
+              </div>
+            )}
+          </div>
+        )}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 16 }}>
           <div style={{ padding: 16, background: 'var(--surface-hover)', borderRadius: 8, textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--font-classic)', fontSize: '1.5rem', color: 'var(--gold)', fontWeight: 600 }}>{bookings.length}</div>
