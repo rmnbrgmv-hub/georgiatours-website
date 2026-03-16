@@ -1,1 +1,16 @@
-﻿{name:TourBid,short_name:TourBid,icons: [{src:/android-chrome-192.png,sizes:192x192,type:image/png}],theme_color:#1D9E75,background_color:#ffffff,display:standalone}
+{
+  "name": "TourBid",
+  "short_name": "TourBid",
+  "description": "Find local guides and drivers in Georgia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1D9E75",
+  "icons": [
+    {
+      "src": "/android-chrome-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
