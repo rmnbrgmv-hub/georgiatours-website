@@ -91,8 +91,14 @@ export default function Requests() {
       console.log('Inserting web request payload', payload);
       const { error } = await supabase.from('requests').insert(payload).select('*').single();
       if (error) {
-        console.error('Failed to insert web request:', error);
-        setToast('Could not post request. Please try again.');
+        console.error('Failed to insert web request:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
+        const msg = error.message || 'Could not post request. Please try again.';
+        setToast(msg);
         const id = setTimeout(() => setToast(''), 2500);
         return () => clearTimeout(id);
       }
