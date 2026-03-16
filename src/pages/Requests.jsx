@@ -68,7 +68,9 @@ export default function Requests() {
 
   const handlePostRequest = async (e) => {
     e.preventDefault();
+    const clientId = `#REQ-${String(Math.floor(Math.random() * 900 + 100)).padStart(3, '0')}`;
     const payload = {
+      id: clientId,
       tourist_id: user.id,
       tourist_name: user.name,
       avatar: user.avatar ?? (user.name || '').slice(0, 2).toUpperCase(),
