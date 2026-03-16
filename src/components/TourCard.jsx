@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 
-/** Get first photo URL/base64 for a tour (same as Explore). */
+/** Get main photo URL/base64 for a tour (main flagged first, fallback to index 0). */
 export function getTourPhoto(tour) {
-  const p = tour.photos?.[0];
-  return (p && (p.base64 || p.url || p)) || null;
+  const photos = Array.isArray(tour.photos) ? tour.photos : [];
+  const main = photos.find((p) => p && p.isMain) || photos[0];
+  return (main && (main.base64 || main.url || main)) || null;
 }
 
 function typeLabel(type) {

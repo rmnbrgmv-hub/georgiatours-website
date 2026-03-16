@@ -220,8 +220,33 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
                     <>
                       <img src={photo.base64} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 10, background: 'var(--s2, #1a1a2e)', display: 'block' }} />
                       {photo.isMain && <span style={{ position: 'absolute', top: 4, left: 4, fontSize: '0.65rem', background: 'var(--gold)', color: 'var(--bg)', padding: '2px 5px', borderRadius: 6, fontWeight: 700 }}>Main</span>}
-                      <button type="button" onClick={(ev) => { ev.stopPropagation(); const next = form.photos.filter((_, j) => j !== i); if (next.length && !next.some((p) => p.isMain)) next[0] = { ...next[0], isMain: true }; setForm((f) => ({ ...f, photos: next })); }} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: '#e11d48', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.75rem', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-                      <button type="button" onClick={() => setForm((f) => ({ ...f, photos: f.photos.map((p, j) => ({ ...p, isMain: j === i })) }))} style={{ position: 'absolute', bottom: 4, left: 4, right: 4, fontSize: '0.6rem', padding: '3px 6px', borderRadius: 6, background: 'rgba(0,0,0,0.6)', color: 'var(--gold)', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Set main</button>
+                      <button
+                        type="button"
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          const next = form.photos.filter((_, j) => j !== i);
+                          if (next.length && !next.some((p) => p.isMain)) next[0] = { ...next[0], isMain: true };
+                          setForm((f) => ({ ...f, photos: next }));
+                        }}
+                        style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: '#e11d48', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.75rem', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        ×
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => {
+                            const photos = Array.isArray(f.photos) ? [...f.photos] : [];
+                            if (!photos[i]) return f;
+                            const [main] = photos.splice(i, 1);
+                            const reordered = [{ ...main, isMain: true }, ...photos.map((p) => ({ ...p, isMain: false }))];
+                            return { ...f, photos: reordered };
+                          })
+                        }
+                        style={{ position: 'absolute', bottom: 4, left: 4, right: 4, fontSize: '0.6rem', padding: '3px 6px', borderRadius: 6, background: 'rgba(0,0,0,0.6)', color: 'var(--gold)', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                      >
+                        Set main
+                      </button>
                     </>
                   ) : (
                     <button type="button" onClick={() => fileInputRef.current?.click()} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.5rem' }}>+</button>

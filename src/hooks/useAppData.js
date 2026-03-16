@@ -11,6 +11,13 @@ import { supabase } from '../supabase';
 export function toServicesRow(tour, user) {
   const providerName = user ? user.name : tour.provider;
   const photosArr = Array.isArray(tour.photos) ? tour.photos : [];
+  const normalizedPhotos = photosArr.length
+    ? (() => {
+        const arr = photosArr.map((p, i) => ({ ...p, isMain: p.isMain || i === 0 }));
+        arr.sort((a, b) => (b.isMain ? 1 : 0) - (a.isMain ? 1 : 0));
+        return arr;
+      })()
+    : [];
   return {
     name: tour.name,
     provider_name: providerName,
@@ -29,7 +36,7 @@ export function toServicesRow(tour, user) {
     max_seats: Number(tour.maxSeats) ?? 8,
     booked_seats: tour.bookedSeats ?? 0,
     total_bookings: tour.total_bookings ?? 0,
-    photos: photosArr.length ? JSON.stringify(photosArr) : null,
+    photos: normalizedPhotos.length ? JSON.stringify(normalizedPhotos) : null,
   };
 }
 
