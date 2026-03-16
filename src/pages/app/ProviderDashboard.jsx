@@ -47,7 +47,7 @@ export default function ProviderDashboard() {
           <div style={{ fontFamily: 'var(--font-classic)', fontSize: '1.75rem', color: 'var(--gold)' }}>{user.earnings ?? '₾0'}</div>
         </div>
         <div className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4 }}>Bookings</div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4 }}>My Jobs</div>
           <div style={{ fontFamily: 'var(--font-classic)', fontSize: '1.75rem', color: 'var(--text)' }}>{user.totalBookings ?? jobs.length}</div>
         </div>
         <div className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>

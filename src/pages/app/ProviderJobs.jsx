@@ -61,7 +61,9 @@ export default function ProviderJobs() {
       <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Bookings assigned to you.</p>
 
       {jobs.length === 0 ? (
-        <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>No jobs yet.</div>
+        <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>
+          No jobs yet — tourists will book you after you respond to their requests
+        </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {jobs.map((j) => (
