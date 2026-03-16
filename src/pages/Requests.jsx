@@ -80,11 +80,24 @@ export default function Requests() {
       budget: Number(form.budget) || 0,
       status: 'open',
     };
-    const { error } = await supabase.from('requests').insert(payload).select('*').single();
-    if (error) return;
-    refetchRequests();
-    setForm({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '' });
-    setShowForm(false);
+    try {
+      console.log('Inserting web request payload', payload);
+      const { error } = await supabase.from('requests').insert(payload).select('*').single();
+      if (error) {
+        console.error('Failed to insert web request:', error);
+        setToast('Could not post request. Please try again.');
+        const id = setTimeout(() => setToast(''), 2500);
+        return () => clearTimeout(id);
+      }
+      refetchRequests();
+      setForm({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '' });
+      setShowForm(false);
+    } catch (err) {
+      console.error('Exception inserting web request:', err);
+      setToast('Could not post request. Please try again.');
+      const id = setTimeout(() => setToast(''), 2500);
+      return () => clearTimeout(id);
+    }
   };
 
   const confirmRequestCompleted = async (requestId) => {
