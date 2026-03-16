@@ -212,7 +212,14 @@ export default function Requests() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-              <button type="button" onClick={() => setShowForm(false)} style={{ padding: '10px 18px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  setForm({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '' });
+                }}
+                style={{ padding: '10px 18px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
+              >
                 Cancel
               </button>
               <button type="submit" style={{ padding: '10px 18px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600 }}>
@@ -227,14 +234,7 @@ export default function Requests() {
         <div style={{ color: 'var(--text-muted)' }}>Loading…</div>
       ) : requests.length === 0 ? (
         <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center' }}>
-          <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>{t('requests.noRequests')}</p>
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600 }}
-          >
-            {t('requests.newRequest')}
-          </button>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 0 }}>{t('requests.noRequests')}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

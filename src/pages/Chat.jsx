@@ -31,8 +31,31 @@ export default function Chat() {
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
-      const { data: adminRow } = await supabase.from('users').select('id, name, avatar, color').eq('role', 'admin').maybeSingle();
-      const supportPartner = adminRow ? { id: adminRow.id, name: adminRow.name || 'Support', avatar: adminRow.avatar, color: adminRow.color || 'var(--cyan)', isSupport: true } : null;
+      const ADMIN_ID = 'ecded33c-be0b-4c27-a87f-ab5f7f4f952f';
+      let supportPartner = null;
+      try {
+        const { data: adminRow, error } = await supabase.from('users').select('id, name, avatar, color').eq('id', ADMIN_ID).maybeSingle();
+        if (error) console.error('Failed to load support user (web):', error);
+        if (adminRow) {
+          supportPartner = {
+            id: adminRow.id,
+            name: adminRow.name || 'Support',
+            avatar: adminRow.avatar,
+            color: adminRow.color || 'var(--cyan)',
+            isSupport: true,
+          };
+        } else {
+          supportPartner = {
+            id: ADMIN_ID,
+            name: 'Support',
+            avatar: 'GT',
+            color: 'var(--cyan)',
+            isSupport: true,
+          };
+        }
+      } catch (e) {
+        console.error('Exception loading support user (web):', e);
+      }
 
       if (isProviderUser(user)) {
         const { data: bookingData } = await supabase.from('bookings').select('tourist_id, tourist_name').eq('provider_id', user.id);
