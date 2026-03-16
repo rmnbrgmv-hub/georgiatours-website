@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
-import { supabase } from '../supabase';
+import { supabase, compressImage } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapBookingRow, isProviderUser } from '../hooks/useAppData';
 
@@ -42,10 +42,11 @@ export default function Profile() {
     supabase.from('reviews').select('rating, text, tourist_name, date, created_at').eq('provider_id', user.id).order('created_at', { ascending: false }).limit(20).then(({ data }) => setProfileReviews(data || []));
   }, [user?.id, user?.role, user?.provider_type, user?.type]);
 
-  const handlePhotoChange = (e) => {
-    const file = e.target?.files?.[0];
-    if (!file || !user?.id || !isProviderUser(user)) return;
+  const handlePhotoChange = async (e) => {
+    const raw = e.target?.files?.[0];
+    if (!raw || !user?.id || !isProviderUser(user)) return;
     setUploading(true);
+    const file = await compressImage(raw, { maxWidth: 300, maxHeight: 300, maxSizeKB: 60 });
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const base64 = ev.target?.result;
@@ -62,16 +63,17 @@ export default function Profile() {
     reader.readAsDataURL(file);
   };
 
-  const handleGalleryAdd = (e) => {
+  const handleGalleryAdd = async (e) => {
     const files = Array.from(e.target.files || []);
     const remaining = MAX_GALLERY - gallery.length;
     if (remaining <= 0) return;
     const toAdd = files.slice(0, remaining);
-    toAdd.forEach((file) => {
+    for (const raw of toAdd) {
+      const file = await compressImage(raw, { maxWidth: 1200, maxHeight: 800, maxSizeKB: 60 });
       const reader = new FileReader();
       reader.onload = (ev) => setGallery((g) => [...g, ev.target?.result].slice(0, MAX_GALLERY));
       reader.readAsDataURL(file);
-    });
+    }
     e.target.value = '';
   };
 
@@ -127,7 +129,7 @@ export default function Profile() {
             )}
             {isProviderUser(user) && (
               <>
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
+                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} style={{ display: 'none' }} />
                 <button type="button" disabled={uploading} onClick={() => fileInputRef.current?.click()} style={{ position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: '50%', border: '2px solid var(--surface)', background: 'var(--gold)', color: 'var(--bg)', cursor: uploading ? 'wait' : 'pointer', fontSize: 14 }}>{uploading ? '…' : '📷'}</button>
               </>
             )}
@@ -236,7 +238,7 @@ export default function Profile() {
         <div className="glass" style={{ padding: 28, borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginTop: 24 }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 8 }}>Gallery ({gallery.length}/{MAX_GALLERY})</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 12 }}>Photos shown on your public profile.</p>
-          <input ref={galleryRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleGalleryAdd} />
+          <input ref={galleryRef} type="file" accept="image/jpeg,image/png,image/webp" multiple style={{ display: 'none' }} onChange={handleGalleryAdd} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 10, marginBottom: 12 }}>
             {gallery.map((src, i) => (
               <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: 8, overflow: 'hidden', background: 'var(--surface-hover)' }}>

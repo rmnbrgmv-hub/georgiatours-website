@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '../supabase';
+import { supabase, compressImage } from '../supabase';
 import { toServicesRow } from '../hooks/useAppData';
 
 const MAX_PHOTOS = 4;
@@ -194,12 +194,13 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             style={{ display: 'none' }}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
+            onChange={async (e) => {
+              const raw = e.target.files?.[0];
+              if (!raw) return;
               e.target.value = '';
+              const file = await compressImage(raw, { maxWidth: 1200, maxHeight: 800, maxSizeKB: 60 });
               const reader = new FileReader();
               reader.onload = () => {
                 const base64 = reader.result;
