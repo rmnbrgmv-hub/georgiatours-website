@@ -5,7 +5,11 @@ import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapServiceRow } from '../hooks/useAppData';
 import { bookingInsertFromTour, photoUrl } from '../utils/supabaseMappers';
-import { getUserSettingsFromBadges, getAvailabilityStatusForDate } from '../utils/providerSettings';
+import {
+  getUserSettingsFromBadges,
+  getAvailabilityStatusForDate,
+  getDailyCapacity,
+} from '../utils/providerSettings';
 
 export default function Tour(props) {
   const { t } = useLocale();
@@ -31,6 +35,7 @@ export default function Tour(props) {
   const [booking, setBooking] = useState(false);
   const [bookError, setBookError] = useState('');
   const [availabilityStatus, setAvailabilityStatus] = useState(null);
+  const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   useEffect(() => {
     if (!id) return;
@@ -66,8 +71,7 @@ export default function Tour(props) {
               .then(({ data: providerRow }) => {
                 if (!providerRow) return;
                 const settings = getUserSettingsFromBadges(providerRow.badges);
-                const today = new Date().toISOString().slice(0, 10);
-                const status = getAvailabilityStatusForDate(settings, today);
+                const status = getAvailabilityStatusForDate(settings, bookingDate);
                 setAvailabilityStatus(status);
               });
           }
@@ -98,14 +102,75 @@ export default function Tour(props) {
     }
     setBookError('');
     setBooking(true);
-    const payload = bookingInsertFromTour(user, tour);
-    const { error } = await supabase.from('bookings').insert(payload);
-    setBooking(false);
-    if (error) {
-      setBookError(error.message || 'Booking failed');
-      return;
+    try {
+      const { data: providerRow } = await supabase
+        .from('users')
+        .select('badges')
+        .eq('id', providerId)
+        .maybeSingle();
+      const settings = getUserSettingsFromBadges(providerRow?.badges);
+      const status = getAvailabilityStatusForDate(settings, bookingDate);
+      if (!status.available) {
+        setBooking(false);
+        setBookError(status.text || 'Provider not available on this date');
+        return;
+      }
+
+      const { count } = await supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('provider_id', providerId)
+        .eq('date', bookingDate)
+        .eq('status', 'confirmed');
+
+      const capacity = getDailyCapacity(settings);
+      if ((count ?? 0) >= capacity) {
+        setBooking(false);
+        setBookError('Provider fully booked on this date');
+        return;
+      }
+
+      const payload = {
+        ...bookingInsertFromTour(user, tour),
+        date: bookingDate,
+      };
+      const { error } = await supabase.from('bookings').insert(payload);
+      if (error) {
+        setBooking(false);
+        setBookError(error.message || 'Booking failed');
+        return;
+      }
+
+      if ((count ?? 0) + 1 >= capacity) {
+        const nextSettings = {
+          ...settings,
+          availability: {
+            ...settings.availability,
+            unavailable_dates: Array.from(
+              new Set([
+                ...(settings.availability.unavailable_dates || []),
+                bookingDate,
+              ])
+            ),
+          },
+        };
+        // best-effort; ignore error
+        await supabase
+          .from('users')
+          .update({
+            badges: JSON.stringify(
+              buildBadgesWithSettings(providerRow?.badges, nextSettings)
+            ),
+          })
+          .eq('id', providerId);
+      }
+
+      setBooking(false);
+      navigate('/app/bookings');
+    } catch (err) {
+      setBooking(false);
+      setBookError(err?.message || 'Booking failed');
     }
-    navigate('/app/bookings');
   };
 
   return (
@@ -198,7 +263,7 @@ export default function Tour(props) {
           {availabilityStatus.available ? '● Available' : `○ ${availabilityStatus.text}`}
         </p>
       )}
-      <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.8rem', color: 'var(--gold)', marginBottom: 24 }}>
+      <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.8rem', color: 'var(--gold)', marginBottom: 16 }}>
         {isAskForPrice ? (
           <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)', fontSize: '1rem' }}>
             Ask for price
@@ -207,6 +272,27 @@ export default function Tour(props) {
           <>₾{tour.price}</>
         )}
       </p>
+      <div style={{ marginBottom: 24 }}>
+        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 4 }}>
+          Choose date
+        </label>
+        <input
+          type="date"
+          value={bookingDate}
+          onChange={(e) => {
+            const v = e.target.value;
+            setBookingDate(v);
+          }}
+          style={{
+            padding: '8px 12px',
+            borderRadius: 8,
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
+            color: 'var(--text)',
+            fontSize: '0.9rem',
+          }}
+        />
+      </div>
       <p style={{ color: 'var(--text)', lineHeight: 1.7, marginBottom: 24 }}>{description}</p>
 
       {(tour.providerId ?? tour.provider_id) && (

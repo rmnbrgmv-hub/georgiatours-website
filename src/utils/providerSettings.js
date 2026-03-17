@@ -74,3 +74,10 @@ export function getAvailabilityStatusForDate(settings, requestedDate) {
   return { available: true, text: 'Available' };
 }
 
+export function getDailyCapacity(settings) {
+  const avail = settings?.availability || DEFAULT_AVAILABILITY;
+  const maxPerPerson = avail.max_bookings_per_day || 1;
+  const teamSize = settings?.provider_mode === 'company' ? settings.team_size || 1 : 1;
+  return maxPerPerson * teamSize;
+}
+
