@@ -116,7 +116,14 @@ export default function Provider() {
               )}
               <div>
                 <strong style={{ display: 'block' }}>{tour.name}</strong>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{tour.region} · {tour.duration} · ₾{tour.price}</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  {tour.region} · {tour.duration} ·{' '}
+                  {tour.price == null || Number(tour.price) <= 0 ? (
+                    <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)' }}>Ask for price</span>
+                  ) : (
+                    <>₾{tour.price}</>
+                  )}
+                </span>
               </div>
             </Link>
           ))}

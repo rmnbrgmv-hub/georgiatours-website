@@ -181,8 +181,23 @@ export default function AdminProviders() {
                     <ul style={{ margin: 0, paddingLeft: 20 }}>
                       {(toursByProviderId[p.id] || []).map((t) => (
                         <li key={t.id} style={{ marginBottom: 4 }}>
-                          <Link to={`/app/tour/${t.id}?from=admin-provider&fromProvider=${p.id}`} state={{ fromAdminProvider: true, providerId: p.id }} style={{ color: 'var(--gold)', fontSize: '0.9rem' }}>{t.name}</Link>
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> · {t.region} · ₾{t.price} {t.suspended ? '(suspended)' : ''}</span>
+                          <Link
+                            to={`/app/tour/${t.id}?from=admin-provider&fromProvider=${p.id}`}
+                            state={{ fromAdminProvider: true, providerId: p.id }}
+                            style={{ color: 'var(--gold)', fontSize: '0.9rem' }}
+                          >
+                            {t.name}
+                          </Link>
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                            {' '}
+                            · {t.region} ·{' '}
+                            {t.price == null || Number(t.price) <= 0 ? (
+                              <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)' }}>Ask for price</span>
+                            ) : (
+                              <>₾{t.price}</>
+                            )}{' '}
+                            {t.suspended ? '(suspended)' : ''}
+                          </span>
                         </li>
                       ))}
                     </ul>

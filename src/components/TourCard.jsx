@@ -17,6 +17,7 @@ function typeLabel(type) {
  */
 export default function TourCard({ tour, linkTo, actions }) {
   const photo = getTourPhoto(tour);
+  const isAskForPrice = tour.price == null || Number(tour.price) <= 0;
   const content = (
     <>
       <div style={{ aspectRatio: '16/10', background: 'var(--s2, var(--bg-elevated))', borderRadius: 12, overflow: 'hidden' }}>
@@ -57,7 +58,15 @@ export default function TourCard({ tour, linkTo, actions }) {
         <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: actions ? 12 : 0 }}>
           {tour.region} · {tour.duration} · ⭐ {tour.rating || '—'}
         </p>
-        <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.35rem', color: 'var(--gold)' }}>₾{tour.price}</p>
+        <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.35rem', color: 'var(--gold)' }}>
+          {isAskForPrice ? (
+            <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)', fontSize: '0.95rem' }}>
+              Ask for price
+            </span>
+          ) : (
+            <>₾{tour.price}</>
+          )}
+        </p>
         {actions && (
           <div style={{ marginTop: 12 }} onClick={(e) => e.stopPropagation()}>
             {actions}

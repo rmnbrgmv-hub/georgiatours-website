@@ -72,6 +72,7 @@ export default function Tour(props) {
 
   const mainPhoto = photoUrl(tour.photos?.[photoIndex]);
   const description = tour.desc ?? tour.description;
+  const isAskForPrice = tour.price == null || Number(tour.price) <= 0;
 
   const handleBook = async () => {
     if (!user?.id || booking) return;
@@ -96,7 +97,15 @@ export default function Tour(props) {
     <div className="tour-page" style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px 80px' }}>
       <Helmet>
         <title>{tour.name} — TourBid</title>
-        <meta name="description" content={description || `${tour.region} · ${tour.duration} · ₾${tour.price}`} />
+        <meta
+          name="description"
+          content={
+            description ||
+            `${tour.region} · ${tour.duration}${
+              isAskForPrice ? '' : ` · ₾${tour.price}`
+            }`
+          }
+        />
         <meta property="og:title" content={tour.name} />
       </Helmet>
       <Link to={backPath} style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 24, display: 'inline-block' }}>
@@ -163,7 +172,13 @@ export default function Tour(props) {
         {tour.region} · {tour.duration} · ⭐ {tour.rating || '—'} ({tour.reviews || 0} reviews)
       </p>
       <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.8rem', color: 'var(--gold)', marginBottom: 24 }}>
-        ₾{tour.price}
+        {isAskForPrice ? (
+          <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)', fontSize: '1rem' }}>
+            Ask for price
+          </span>
+        ) : (
+          <>₾{tour.price}</>
+        )}
       </p>
       <p style={{ color: 'var(--text)', lineHeight: 1.7, marginBottom: 24 }}>{description}</p>
 

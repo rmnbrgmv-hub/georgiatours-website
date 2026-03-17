@@ -276,7 +276,15 @@ export default function Landing() {
                 <div style={{ padding: 20 }}>
                   <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.1rem', marginBottom: 6 }}>{tour.name}</h3>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: 12 }}>{tour.region} · {tour.duration} · ⭐ {tour.rating || '—'}</p>
-                  <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.4rem', color: 'var(--gold)' }}>₾{tour.price}</p>
+                  <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.4rem', color: 'var(--gold)' }}>
+                    {tour.price == null || Number(tour.price) <= 0 ? (
+                      <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)', fontSize: '0.95rem' }}>
+                        Ask for price
+                      </span>
+                    ) : (
+                      <>₾{tour.price}</>
+                    )}
+                  </p>
                 </div>
               </Link>
             ))}

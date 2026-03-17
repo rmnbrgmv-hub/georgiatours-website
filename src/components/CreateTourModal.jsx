@@ -29,6 +29,7 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
     region: 'Tbilisi',
     duration: '',
     price: '',
+    askForPrice: false,
     desc: '',
     emoji: '🏛️',
     maxSeats: 8,
@@ -48,12 +49,14 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
           ? { id: p.id || Math.random().toString(36).slice(2), base64: p.base64, isMain: !!p.isMain }
           : { id: Math.random().toString(36).slice(2), base64: p, isMain: false }
       ).slice(0, MAX_PHOTOS);
+      const hasNoPrice = initialTour.price == null;
       setForm({
         name: initialTour.name || '',
         type: initialTour.type || (isGuide ? 'guide' : 'van'),
         region: initialTour.region || 'Tbilisi',
         duration: initialTour.duration || '',
         price: initialTour.price != null ? String(initialTour.price) : '',
+        askForPrice: hasNoPrice,
         desc: initialTour.desc || initialTour.description || '',
         emoji: initialTour.emoji || '🏛️',
         maxSeats: initialTour.maxSeats ?? initialTour.max_seats ?? 8,
@@ -68,8 +71,12 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!form.name?.trim() || !form.type || (form.price !== '' && isNaN(Number(form.price)))) {
-      setError('Please enter name, type, and a valid price.');
+    if (!form.name?.trim() || !form.type) {
+      setError('Please enter a name and type.');
+      return;
+    }
+    if (!form.askForPrice && (form.price === '' || isNaN(Number(form.price)))) {
+      setError('Please enter a valid price or choose Ask for price.');
       return;
     }
     setSaving(true);
@@ -84,7 +91,7 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
       const photosNorm = normalizePhotos(form.photos);
       const base = {
         ...form,
-        price: Number(form.price) || 0,
+        price: form.askForPrice ? null : Number(form.price) || 0,
         provider: user.name,
         providerId: user.id,
         area: form.region,
@@ -179,9 +186,23 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
             value={form.price}
             onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
             placeholder="0"
-            required
-            style={{ ...inputStyle, marginBottom: 12 }}
+            disabled={form.askForPrice}
+            style={{ ...inputStyle, marginBottom: 8, opacity: form.askForPrice ? 0.6 : 1, cursor: form.askForPrice ? 'not-allowed' : 'text' }}
           />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 12 }}>
+            <input
+              type="checkbox"
+              checked={form.askForPrice}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  askForPrice: e.target.checked,
+                  price: e.target.checked ? '' : f.price,
+                }))
+              }
+            />
+            <span>Hide exact price and show “Ask for price” instead.</span>
+          </label>
           <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4 }}>Description</label>
           <textarea
             value={form.desc}

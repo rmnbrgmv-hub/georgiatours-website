@@ -251,7 +251,13 @@ export default function Home() {
                     {t.region} · {t.duration}
                   </p>
                   <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.4rem', color: 'var(--gold)' }}>
-                    ₾{t.price}
+                    {t.price == null || Number(t.price) <= 0 ? (
+                      <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)', fontSize: '0.95rem' }}>
+                        Ask for price
+                      </span>
+                    ) : (
+                      <>₾{t.price}</>
+                    )}
                   </p>
                 </div>
               </Link>

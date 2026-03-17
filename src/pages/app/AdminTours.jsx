@@ -71,7 +71,15 @@ export default function AdminTours() {
                   <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
                     <span style={{ fontWeight: 600, opacity: s.suspended ? 0.6 : 1 }}>{s.name}{s.suspended ? ' (suspended)' : ''}</span>
                     <span style={{ color: 'var(--text-muted)' }}>{s.provider} · {s.region} · {s.type}</span>
-                    <span style={{ color: 'var(--gold)' }}>₾{s.price}</span>
+                    <span style={{ color: 'var(--gold)' }}>
+                      {s.price == null || Number(s.price) <= 0 ? (
+                        <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)', fontSize: '0.8rem' }}>
+                          Ask for price
+                        </span>
+                      ) : (
+                        <>₾{s.price}</>
+                      )}
+                    </span>
                     <span onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <button type="button" onClick={(ev) => setSuspended(ev, s.id, !s.suspended)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: s.suspended ? 'var(--cyan-soft)' : 'var(--surface)', fontSize: '0.85rem', cursor: 'pointer' }}>{s.suspended ? 'Resume' : 'Suspend'}</button>
                       <button type="button" onClick={(ev) => handleDelete(ev, s)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(224,92,92,.4)', background: 'rgba(224,92,92,.15)', color: 'var(--red)', fontSize: '0.85rem', cursor: 'pointer' }}>Delete</button>
@@ -99,7 +107,16 @@ export default function AdminTours() {
                   <dt style={{ color: 'var(--text-muted)' }}>Region / Area</dt><dd style={{ margin: 0 }}>{s.region}{s.area && s.area !== s.region ? ` · ${s.area}` : ''}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Type</dt><dd style={{ margin: 0 }}>{s.type}</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Duration</dt><dd style={{ margin: 0 }}>{s.duration || '—'}</dd>
-                  <dt style={{ color: 'var(--text-muted)' }}>Price</dt><dd style={{ margin: 0 }}>₾{s.price}</dd>
+                  <dt style={{ color: 'var(--text-muted)' }}>Price</dt>
+                  <dd style={{ margin: 0 }}>
+                    {s.price == null || Number(s.price) <= 0 ? (
+                      <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)', fontSize: '0.9rem' }}>
+                        Ask for price
+                      </span>
+                    ) : (
+                      <>₾{s.price}</>
+                    )}
+                  </dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Rating / Reviews</dt><dd style={{ margin: 0 }}>⭐ {s.rating ?? '—'} ({s.reviews ?? 0} reviews)</dd>
                   <dt style={{ color: 'var(--text-muted)' }}>Suspended</dt><dd style={{ margin: 0 }}>{s.suspended ? 'Yes' : 'No'}</dd>
                   {s.emoji && <><dt style={{ color: 'var(--text-muted)' }}>Emoji</dt><dd style={{ margin: 0 }}>{s.emoji}</dd></>}
