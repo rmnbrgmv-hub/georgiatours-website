@@ -5,6 +5,7 @@ import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapServiceRow } from '../hooks/useAppData';
 import { bookingInsertFromTour, photoUrl } from '../utils/supabaseMappers';
+import { getUserSettingsFromBadges, getAvailabilityStatusForDate } from '../utils/providerSettings';
 
 export default function Tour(props) {
   const { t } = useLocale();
@@ -29,6 +30,7 @@ export default function Tour(props) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [booking, setBooking] = useState(false);
   const [bookError, setBookError] = useState('');
+  const [availabilityStatus, setAvailabilityStatus] = useState(null);
 
   useEffect(() => {
     if (!id) return;
@@ -46,7 +48,8 @@ export default function Tour(props) {
         }
         const showSuspended = user?.role === 'admin';
         if (data && (showSuspended || !data.suspended)) {
-          setTour(mapServiceRow(data));
+          const mappedTour = mapServiceRow(data);
+          setTour(mappedTour);
           if (data.provider_id) {
             supabase
               .from('reviews')
@@ -55,6 +58,18 @@ export default function Tour(props) {
               .order('created_at', { ascending: false })
               .limit(10)
               .then(({ data: rev }) => setReviews(rev || []));
+            supabase
+              .from('users')
+              .select('badges')
+              .eq('id', data.provider_id)
+              .maybeSingle()
+              .then(({ data: providerRow }) => {
+                if (!providerRow) return;
+                const settings = getUserSettingsFromBadges(providerRow.badges);
+                const today = new Date().toISOString().slice(0, 10);
+                const status = getAvailabilityStatusForDate(settings, today);
+                setAvailabilityStatus(status);
+              });
           }
         } else {
           setTour(null);
@@ -171,6 +186,18 @@ export default function Tour(props) {
       <p style={{ color: 'var(--text-muted)', marginBottom: 20 }}>
         {tour.region} · {tour.duration} · ⭐ {tour.rating || '—'} ({tour.reviews || 0} reviews)
       </p>
+      {availabilityStatus && (
+        <p
+          style={{
+            marginTop: -8,
+            marginBottom: 16,
+            fontSize: '0.9rem',
+            color: availabilityStatus.available ? 'var(--green, #4CAF50)' : 'var(--red, #f44336)',
+          }}
+        >
+          {availabilityStatus.available ? '● Available' : `○ ${availabilityStatus.text}`}
+        </p>
+      )}
       <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.8rem', color: 'var(--gold)', marginBottom: 24 }}>
         {isAskForPrice ? (
           <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)', fontSize: '1rem' }}>

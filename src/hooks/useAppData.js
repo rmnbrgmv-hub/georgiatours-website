@@ -5,6 +5,7 @@ import {
   parseJsonArray,
   parsePhotosColumn,
 } from '../utils/supabaseMappers';
+import { getUserSettingsFromBadges } from '../utils/providerSettings';
 
 export function toServicesRow(tour, user) {
   const providerName = user ? user.name : tour.provider;
@@ -107,6 +108,7 @@ export function isProviderUser(user) {
 
 export function mapUserRow(row) {
   const type = row.provider_type ?? undefined;
+  const settings = getUserSettingsFromBadges(row.badges);
   return {
     id: row.id,
     name: row.name ?? '',
@@ -132,6 +134,10 @@ export function mapUserRow(row) {
     badges: parseJsonArray(row.badges),
     profile_picture: row.profile_picture ?? row.profilePic ?? null,
     gallery: parseJsonArray(row.gallery),
+    availability: settings.availability,
+    provider_mode: settings.provider_mode,
+    company_name: settings.company_name,
+    team_size: settings.team_size,
   };
 }
 

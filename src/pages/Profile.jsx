@@ -4,6 +4,7 @@ import { useOutletContext } from 'react-router-dom';
 import { supabase, compressImage } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapBookingRow, isProviderUser } from '../hooks/useAppData';
+import { buildBadgesWithSettings, getUserSettingsFromBadges } from '../utils/providerSettings';
 
 const MAX_GALLERY = 12;
 
@@ -17,6 +18,17 @@ export default function Profile() {
   const [gallery, setGallery] = useState(() => (Array.isArray(user?.gallery) ? user.gallery : []));
   const [gallerySaving, setGallerySaving] = useState(false);
   const [profileReviews, setProfileReviews] = useState([]);
+  const [availability, setAvailability] = useState(() =>
+    isProviderUser(user)
+      ? getUserSettingsFromBadges(user.badges).availability
+      : {
+          type: 'always',
+          unavailable_dates: [],
+          working_days: [1, 2, 3, 4, 5],
+          max_bookings_per_day: 1,
+          notice_hours: 24,
+        }
+  );
   const fileInputRef = useRef(null);
   const galleryRef = useRef(null);
 
@@ -36,6 +48,12 @@ export default function Profile() {
   useEffect(() => {
     setGallery(Array.isArray(user?.gallery) ? user.gallery : []);
   }, [user?.gallery]);
+
+  useEffect(() => {
+    if (!isProviderUser(user)) return;
+    const settings = getUserSettingsFromBadges(user.badges);
+    setAvailability(settings.availability);
+  }, [user?.id, user?.badges]);
 
   useEffect(() => {
     if (!isProviderUser(user) || !user?.id) return;
@@ -85,6 +103,20 @@ export default function Profile() {
     const { error } = await supabase.from('users').update({ gallery: JSON.stringify(gallery) }).eq('id', user.id);
     setGallerySaving(false);
     if (!error) setUser?.((prev) => (prev ? { ...prev, gallery } : prev));
+  };
+
+  const saveAvailability = async () => {
+    if (!user?.id || !isProviderUser(user)) return;
+    const settings = getUserSettingsFromBadges(user.badges);
+    const nextSettings = { ...settings, availability };
+    const nextBadges = buildBadgesWithSettings(user.badges, nextSettings);
+    const { error } = await supabase
+      .from('users')
+      .update({ badges: JSON.stringify(nextBadges) })
+      .eq('id', user.id);
+    if (!error) {
+      setUser?.((prev) => (prev ? { ...prev, badges: nextBadges } : prev));
+    }
   };
 
   if (!user) {
@@ -233,6 +265,103 @@ export default function Profile() {
           📢 {t('nav.requests')}
         </Link>
       </div>
+
+      {isProviderUser(user) && (
+        <div className="glass" style={{ padding: 28, borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginTop: 24 }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 8 }}>Availability</h3>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontWeight: 500, fontSize: '0.9rem', display: 'block', marginBottom: 6 }}>Schedule</label>
+            <select
+              value={availability.type}
+              onChange={(e) =>
+                setAvailability((a) => ({
+                  ...a,
+                  type: e.target.value,
+                }))
+              }
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'var(--surface)',
+                color: 'var(--text)',
+                fontSize: '0.9rem',
+              }}
+            >
+              <option value="always">Available every day</option>
+              <option value="weekdays">Weekdays only (Mon-Fri)</option>
+              <option value="custom">Custom schedule</option>
+            </select>
+          </div>
+          <label style={{ marginTop: 12, display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            Max tours per day
+            <input
+              type="number"
+              min="1"
+              max="10"
+              value={availability.max_bookings_per_day}
+              onChange={(e) =>
+                setAvailability((a) => ({
+                  ...a,
+                  max_bookings_per_day: parseInt(e.target.value || '1', 10),
+                }))
+              }
+              style={{
+                width: '100%',
+                marginTop: 4,
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'var(--surface)',
+                color: 'var(--text)',
+                fontSize: '0.9rem',
+              }}
+            />
+          </label>
+          <label style={{ marginTop: 12, display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            Minimum booking notice (hours)
+            <input
+              type="number"
+              min="0"
+              max="168"
+              value={availability.notice_hours}
+              onChange={(e) =>
+                setAvailability((a) => ({
+                  ...a,
+                  notice_hours: parseInt(e.target.value || '0', 10),
+                }))
+              }
+              style={{
+                width: '100%',
+                marginTop: 4,
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'var(--surface)',
+                color: 'var(--text)',
+                fontSize: '0.9rem',
+              }}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={saveAvailability}
+            style={{
+              marginTop: 16,
+              padding: '8px 16px',
+              borderRadius: 8,
+              border: 'none',
+              background: 'var(--gold)',
+              color: 'var(--bg)',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Save availability
+          </button>
+        </div>
+      )}
 
       {isProviderUser(user) && (
         <div className="glass" style={{ padding: 28, borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginTop: 24 }}>

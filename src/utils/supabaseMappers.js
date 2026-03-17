@@ -107,13 +107,14 @@ export function bookingInsertFromOffer(user, request, offer) {
 
 export function bookingInsertFromTour(user, tour) {
   const providerId = tour.providerId ?? tour.provider_id;
+  const today = new Date().toISOString().slice(0, 10);
   return {
     tourist_id: user.id,
     tourist_name: touristShortName(user.name),
     service_name: tour.name,
     provider_id: providerId,
     provider_name: tour.provider || '',
-    date: 'TBD',
+    date: today,
     amount: tour.price ?? 0,
     status: 'confirmed',
     reviewed: false,

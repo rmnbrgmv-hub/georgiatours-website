@@ -30,7 +30,22 @@ const ROLES = [
 ];
 
 /** Insert user row with id = Supabase Auth user id (required for signup). Sets role + provider_type. Optional vehicle fields for drivers. */
-async function insertUser({ id, name, email, role, providerType, vehicleMake, vehicleModel, vehicleYear, vehicleColor, vehiclePlate, maxSeats }) {
+async function insertUser({
+  id,
+  name,
+  email,
+  role,
+  providerType,
+  vehicleMake,
+  vehicleModel,
+  vehicleYear,
+  vehicleColor,
+  vehiclePlate,
+  maxSeats,
+  providerMode = 'individual',
+  companyName = '',
+  teamSize = 1,
+}) {
   const avatar = (name || email || '')
     .trim()
     .split(/\s+/)
@@ -41,6 +56,19 @@ async function insertUser({ id, name, email, role, providerType, vehicleMake, ve
   const formRole = role === 'admin' ? 'tourist' : role;
   const isProvider = formRole === 'guide' || formRole === 'driver';
   const provider_type = isProvider ? (formRole === 'driver' ? 'transfer' : 'guide') : null;
+  const settingsBadge = {
+    _type: 'settings',
+    availability: {
+      type: 'always',
+      unavailable_dates: [],
+      working_days: [1, 2, 3, 4, 5],
+      max_bookings_per_day: 1,
+      notice_hours: 24,
+    },
+    provider_mode: isProvider ? providerMode : 'individual',
+    company_name: isProvider ? companyName : '',
+    team_size: isProvider ? Number(teamSize) || 1 : 1,
+  };
   const payload = {
     id,
     name: (name || email?.split('@')[0] || '').trim(),
@@ -59,6 +87,7 @@ async function insertUser({ id, name, email, role, providerType, vehicleMake, ve
     vehicle_color: vehicleColor ?? null,
     vehicle_plate: vehiclePlate ?? null,
     max_seats: maxSeats ?? null,
+    badges: JSON.stringify([settingsBadge]),
   };
   const { error } = await supabase.from('users').upsert(payload, { onConflict: 'id' });
   return error;
@@ -79,6 +108,9 @@ export default function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [vehicleStep, setVehicleStep] = useState(false);
   const [pendingUser, setPendingUser] = useState(null);
+  const [providerMode, setProviderMode] = useState('individual');
+  const [companyName, setCompanyName] = useState('');
+  const [teamSize, setTeamSize] = useState('2');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect') || '/app';
@@ -227,6 +259,9 @@ export default function Login({ onLogin }) {
           email: authData.user?.email || email.trim(),
           role: selectedRoleFallback === 'admin' ? 'tourist' : selectedRoleFallback,
           providerType: selectedRoleFallback === 'guide' ? 'guide' : selectedRoleFallback === 'driver' ? 'transfer' : null,
+          providerMode,
+          companyName,
+          teamSize: Number(teamSize) || 1,
         });
         if (insertErr) {
           setError(insertErr.message || 'Account created but profile could not be saved. Try signing in.');
@@ -425,6 +460,50 @@ export default function Login({ onLogin }) {
           <>
             <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 6 }}>Full name</label>
             <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" style={{ width: '100%', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '1rem', marginBottom: 20 }} />
+            {(role === 'guide' || role === 'driver') && (
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontWeight: 500, fontSize: '0.9rem' }}>Provider type</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, fontSize: '0.9rem' }}>
+                  <input
+                    type="radio"
+                    name="providerMode"
+                    value="individual"
+                    checked={providerMode === 'individual'}
+                    onChange={() => setProviderMode('individual')}
+                  />
+                  Individual — I work alone
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, fontSize: '0.9rem' }}>
+                  <input
+                    type="radio"
+                    name="providerMode"
+                    value="company"
+                    checked={providerMode === 'company'}
+                    onChange={() => setProviderMode('company')}
+                  />
+                  Company/Group — I manage multiple guides or drivers
+                </label>
+                {providerMode === 'company' && (
+                  <div style={{ marginTop: 12 }}>
+                    <input
+                      placeholder="Company name"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      style={{ width: '100%', padding: 10, borderRadius: 8, marginBottom: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
+                    />
+                    <input
+                      placeholder="Number of team members"
+                      type="number"
+                      min="2"
+                      max="50"
+                      value={teamSize}
+                      onChange={(e) => setTeamSize(e.target.value)}
+                      style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
         <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 6 }}>{t('login.email')}</label>
