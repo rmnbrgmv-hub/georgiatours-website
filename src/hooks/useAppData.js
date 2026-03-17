@@ -10,10 +10,7 @@ export function toServicesRow(tour, user) {
   const providerName = user ? user.name : tour.provider;
   const photosArr = Array.isArray(tour.photos) ? tour.photos : [];
   const normalizedPhotos = normalizeTourPhotosForInsert(photosArr);
-  const price =
-    tour.price == null || tour.price === ''
-      ? null
-      : Number(tour.price) || 0;
+  const price = Number(tour.price) || 0;
   return {
     name: tour.name,
     provider_name: providerName,

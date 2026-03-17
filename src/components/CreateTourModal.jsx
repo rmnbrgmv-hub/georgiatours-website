@@ -49,7 +49,7 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
           ? { id: p.id || Math.random().toString(36).slice(2), base64: p.base64, isMain: !!p.isMain }
           : { id: Math.random().toString(36).slice(2), base64: p, isMain: false }
       ).slice(0, MAX_PHOTOS);
-      const hasNoPrice = initialTour.price == null;
+      const hasNoPrice = initialTour.price == null || Number(initialTour.price) <= 0;
       setForm({
         name: initialTour.name || '',
         type: initialTour.type || (isGuide ? 'guide' : 'van'),
@@ -91,7 +91,7 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
       const photosNorm = normalizePhotos(form.photos);
       const base = {
         ...form,
-        price: form.askForPrice ? null : Number(form.price) || 0,
+        price: form.askForPrice ? 0 : Number(form.price) || 0,
         provider: user.name,
         providerId: user.id,
         area: form.region,
