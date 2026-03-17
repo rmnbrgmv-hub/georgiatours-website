@@ -1,23 +1,15 @@
-/**
- * Shared data hooks and row mappers matching the TourBid app (admin/src/App.jsx).
- * Same Supabase tables, same column names, same shape so website and app share data.
- */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
+import {
+  normalizeTourPhotosForInsert,
+  parseJsonArray,
+  parsePhotosColumn,
+} from '../utils/supabaseMappers';
 
-// ─── Row mappers (DB → app shape) ─────────────────────────────────────────────
-
-/** Build DB row for services insert/update (matches app toServicesRow). */
 export function toServicesRow(tour, user) {
   const providerName = user ? user.name : tour.provider;
   const photosArr = Array.isArray(tour.photos) ? tour.photos : [];
-  const normalizedPhotos = photosArr.length
-    ? (() => {
-        const arr = photosArr.map((p, i) => ({ ...p, isMain: p.isMain || i === 0 }));
-        arr.sort((a, b) => (b.isMain ? 1 : 0) - (a.isMain ? 1 : 0));
-        return arr;
-      })()
-    : [];
+  const normalizedPhotos = normalizeTourPhotosForInsert(photosArr);
   return {
     name: tour.name,
     provider_name: providerName,
@@ -33,7 +25,7 @@ export function toServicesRow(tour, user) {
     area: tour.area ?? tour.region ?? 'Tbilisi',
     region: tour.region ?? 'Tbilisi',
     available: tour.available ?? [],
-    max_seats: Number(tour.maxSeats) ?? 8,
+    max_seats: Number(tour.maxSeats),
     booked_seats: tour.bookedSeats ?? 0,
     total_bookings: tour.total_bookings ?? 0,
     photos: normalizedPhotos.length ? JSON.stringify(normalizedPhotos) : null,
@@ -41,10 +33,6 @@ export function toServicesRow(tour, user) {
 }
 
 export function mapServiceRow(row) {
-  let photos = [];
-  try {
-    if (row.photos) photos = typeof row.photos === 'string' ? JSON.parse(row.photos) : row.photos;
-  } catch (_) {}
   return {
     id: row.id,
     name: row.name,
@@ -64,7 +52,7 @@ export function mapServiceRow(row) {
     maxSeats: row.max_seats ?? undefined,
     bookedSeats: row.booked_seats ?? undefined,
     total_bookings: row.total_bookings ?? 0,
-    photos: Array.isArray(photos) ? photos : [],
+    photos: parsePhotosColumn(row.photos),
     updatedAt: row.updated_at ?? null,
     suspended: !!row.suspended,
   };
@@ -106,9 +94,14 @@ export function mapBookingRow(row) {
   };
 }
 
-/** True if user is a guide or driver (provider). */
 export function isProviderUser(user) {
-  return user?.role === 'provider' || user?.provider_type === 'guide' || user?.provider_type === 'transfer' || user?.type === 'guide' || user?.type === 'transfer';
+  return (
+    user?.role === 'provider' ||
+    user?.provider_type === 'guide' ||
+    user?.provider_type === 'transfer' ||
+    user?.type === 'guide' ||
+    user?.type === 'transfer'
+  );
 }
 
 export function mapUserRow(row) {
@@ -120,7 +113,9 @@ export function mapUserRow(row) {
     role: row.role ?? 'tourist',
     type,
     provider_type: row.provider_type ?? undefined,
-    avatar: row.avatar ?? (row.name ? row.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase() : ''),
+    avatar:
+      row.avatar ??
+      (row.name ? row.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase() : ''),
     color: row.color ?? undefined,
     bio: row.bio ?? '',
     rating: row.rating ?? 0,
@@ -133,18 +128,11 @@ export function mapUserRow(row) {
     vehiclePlate: row.vehicle_plate,
     maxSeats: row.max_seats,
     verified: !!row.verified,
-    badges: Array.isArray(row.badges) ? row.badges : typeof row.badges === 'string' ? (() => { try { return JSON.parse(row.badges) || []; } catch (_) { return []; } })() : [],
+    badges: parseJsonArray(row.badges),
     profile_picture: row.profile_picture ?? row.profilePic ?? null,
-    gallery: (() => {
-      const g = row.gallery;
-      if (Array.isArray(g)) return g;
-      if (typeof g === 'string') { try { return JSON.parse(g) || []; } catch (_) { return []; } }
-      return [];
-    })(),
+    gallery: parseJsonArray(row.gallery),
   };
 }
-
-// ─── Hooks ───────────────────────────────────────────────────────────────────
 
 export function useServices() {
   const [services, setServices] = useState([]);
@@ -161,22 +149,18 @@ export function useServices() {
         return;
       }
       setServices((data || []).map(mapServiceRow));
-    } catch (_) {
+    } catch {
       setServices([]);
     }
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    let alive = true;
     setLoading(true);
     setError(null);
-    fetchServices().then(() => {});
+    fetchServices();
     const interval = setInterval(fetchServices, 30000);
-    return () => {
-      alive = false;
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [fetchServices]);
 
   return { services, loading, error, refetch: fetchServices };
@@ -189,7 +173,9 @@ export function useUsers() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const { data, error } = await supabase.from('users').select('id,name,email,avatar,color,role,provider_type,verified,badges');
+      const { data, error } = await supabase
+        .from('users')
+        .select('id,name,email,avatar,color,role,provider_type,verified,badges');
       if (!alive) return;
       if (error) {
         setUsers([]);
@@ -199,7 +185,9 @@ export function useUsers() {
       setUsers((data || []).map(mapUserRow));
       setLoading(false);
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   return { users, loading };
@@ -249,7 +237,9 @@ export function useOpenRequests() {
       setOpenRequests((data || []).map(mapRequestRow));
       setLoading(false);
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   return { openRequests, loading };

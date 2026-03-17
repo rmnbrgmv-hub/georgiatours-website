@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
+import { serviceRowHeroThumb } from '../utils/supabaseMappers';
 
 const COLLAGE_SIZE = 20;
 
@@ -24,22 +25,16 @@ export default function Home() {
           return;
         }
         const rows = (data || []).filter((row) => row.suspended !== true);
-        const mapped = rows.map((row) => {
-          let photos = [];
-          try {
-            if (row.photos) photos = typeof row.photos === 'string' ? JSON.parse(row.photos) : row.photos;
-          } catch (_) {}
-          return {
-            id: row.id,
-            name: row.name,
-            region: row.region,
-            price: row.price,
-            duration: row.duration,
-            type: row.type,
-            emoji: row.emoji,
-            photo: photos?.[0]?.base64 || photos?.[0],
-          };
-        });
+        const mapped = rows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          region: row.region,
+          price: row.price,
+          duration: row.duration,
+          type: row.type,
+          emoji: row.emoji,
+          photo: serviceRowHeroThumb(row),
+        }));
         setTours(mapped);
         setLoading(false);
       })

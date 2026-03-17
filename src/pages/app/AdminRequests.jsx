@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useOutletContext, Navigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import { mapRequestRow } from '../../hooks/useAppData';
+import { indexOffersByRequestId } from '../../utils/supabaseMappers';
 import { useLocale } from '../../context/LocaleContext';
 import CollapsibleSection from '../../components/CollapsibleSection';
 import ExpandableItem from '../../components/ExpandableItem';
@@ -13,33 +14,23 @@ export default function AdminRequests() {
   const [offersByRequestId, setOffersByRequestId] = useState({});
   const [loading, setLoading] = useState(true);
 
+  const loadRequests = () =>
+    supabase
+      .from('requests')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => (data || []).map(mapRequestRow));
+
   const refetch = () => {
-    supabase.from('requests').select('*').order('created_at', { ascending: false }).then(({ data }) => {
-      setRequests((data || []).map(mapRequestRow));
-    });
+    loadRequests().then(setRequests);
   };
 
   useEffect(() => {
-    supabase.from('requests').select('*').order('created_at', { ascending: false }).then(({ data }) => {
-      setRequests((data || []).map(mapRequestRow));
+    loadRequests().then((rows) => {
+      setRequests(rows);
       setLoading(false);
     });
-    supabase.from('offers').select('*').then(({ data }) => {
-      const byRequest = {};
-      (data || []).forEach((o) => {
-        const rid = o.request_id;
-        if (!byRequest[rid]) byRequest[rid] = [];
-        byRequest[rid].push({
-          id: o.id,
-          provider_id: o.provider_id,
-          provider_name: o.provider_name,
-          price: o.price,
-          description: o.description,
-          status: o.status,
-        });
-      });
-      setOffersByRequestId(byRequest);
-    });
+    supabase.from('offers').select('*').then(({ data }) => setOffersByRequestId(indexOffersByRequestId(data)));
   }, []);
 
   const forceCompleteRequest = async (r) => {

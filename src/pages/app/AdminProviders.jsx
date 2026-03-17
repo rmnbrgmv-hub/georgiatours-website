@@ -5,14 +5,7 @@ import { mapServiceRow, mapBookingRow } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
 import CollapsibleSection from '../../components/CollapsibleSection';
 import ExpandableItem from '../../components/ExpandableItem';
-
-function parseGallery(g) {
-  if (Array.isArray(g)) return g;
-  if (typeof g === 'string') {
-    try { return JSON.parse(g) || []; } catch (_) { return []; }
-  }
-  return [];
-}
+import { parseJsonArray } from '../../utils/supabaseMappers';
 
 const MANUAL_BADGES = [
   { id: 'verified', icon: '✅', label: 'Verified' },
@@ -24,14 +17,6 @@ const MANUAL_BADGES = [
   { id: 'roadmaster', icon: '🚐', label: 'Road Master' },
   { id: 'highcompletion', icon: '🔁', label: 'High Completion' },
 ];
-
-function parseBadges(badges) {
-  if (Array.isArray(badges)) return badges;
-  if (typeof badges === 'string') {
-    try { return JSON.parse(badges) || []; } catch (_) { return []; }
-  }
-  return [];
-}
 
 export default function AdminProviders() {
   const { user } = useOutletContext();
@@ -89,7 +74,7 @@ export default function AdminProviders() {
 
   const handleAssignBadge = async (provider, badgeId) => {
     if (!badgeId) return;
-    let current = parseBadges(provider.badges);
+    let current = parseJsonArray(provider.badges);
     if (current.includes(badgeId)) {
       showToast('Provider already has this badge');
       return;
@@ -106,7 +91,7 @@ export default function AdminProviders() {
   };
 
   const handleRemoveBadge = async (provider, badgeId) => {
-    let current = parseBadges(provider.badges);
+    let current = parseJsonArray(provider.badges);
     const newBadges = current.filter((b) => b !== badgeId);
     const { error } = await supabase.from('users').update({ badges: JSON.stringify(newBadges) }).eq('id', provider.id);
     if (error) {
@@ -178,11 +163,11 @@ export default function AdminProviders() {
                     </dl>
                   </div>
                 </div>
-                {parseGallery(p.gallery).length > 0 && (
+                {parseJsonArray(p.gallery).length > 0 && (
                   <div style={{ marginBottom: 16 }}>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase' }}>Gallery</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      {parseGallery(p.gallery).map((src, i) => (
+                      {parseJsonArray(p.gallery).map((src, i) => (
                         <div key={i} style={{ width: 64, height: 64, borderRadius: 8, overflow: 'hidden', background: 'var(--s2, #1a1a2e)' }}>
                           <img src={typeof src === 'object' && src?.base64 ? src.base64 : src} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8, background: 'var(--s2, #1a1a2e)' }} />
                         </div>
@@ -229,9 +214,9 @@ export default function AdminProviders() {
                     </select>
                     <button type="button" onClick={() => handleAssignBadge(p, selectedBadge[p.id])} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(91,141,238,.4)', background: 'rgba(91,141,238,.15)', color: 'var(--blue)', fontSize: '0.85rem', cursor: 'pointer' }}>Assign badge</button>
                   </div>
-                  {parseBadges(p.badges).length > 0 && (
+                  {parseJsonArray(p.badges).length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-                      {parseBadges(p.badges).map((bid) => {
+                      {parseJsonArray(p.badges).map((bid) => {
                         const b = MANUAL_BADGES.find((x) => x.id === bid);
                         return b ? (
                           <span key={bid} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'var(--surface-hover)', fontSize: '0.85rem' }}>

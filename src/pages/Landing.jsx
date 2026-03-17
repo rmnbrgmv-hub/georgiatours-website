@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import Layout from '../components/Layout';
+import { serviceRowHeroThumb } from '../utils/supabaseMappers';
 
 const HERO_IMAGES = 30;
 const imageSrcs = Array.from({ length: HERO_IMAGES }, (_, i) => `/geoimages/${i + 1}.jpg`);
@@ -42,11 +43,17 @@ export default function Landing() {
         const rows = (data || []).filter((row) => row.suspended !== true);
         const byRating = (a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0);
         setTours(
-          rows.sort(byRating).slice(0, 6).map((row) => {
-            let photos = [];
-            try { if (row.photos) photos = typeof row.photos === 'string' ? JSON.parse(row.photos) : row.photos; } catch (_) {}
-            return { id: row.id, name: row.name, region: row.region, price: row.price, duration: row.duration, type: row.type, emoji: row.emoji, rating: row.rating, photo: photos?.[0]?.base64 || photos?.[0] };
-          })
+          rows.sort(byRating).slice(0, 6).map((row) => ({
+            id: row.id,
+            name: row.name,
+            region: row.region,
+            price: row.price,
+            duration: row.duration,
+            type: row.type,
+            emoji: row.emoji,
+            rating: row.rating,
+            photo: serviceRowHeroThumb(row),
+          }))
         );
       })
       .catch(() => setTours([]));

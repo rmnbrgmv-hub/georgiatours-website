@@ -4,12 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapServiceRow } from '../hooks/useAppData';
-
-function photoUrl(p) {
-  if (!p) return '';
-  if (typeof p === 'string') return p;
-  return p.url ?? p.base64 ?? '';
-}
+import { bookingInsertFromTour, photoUrl } from '../utils/supabaseMappers';
 
 export default function Tour(props) {
   const { t } = useLocale();
@@ -87,19 +82,7 @@ export default function Tour(props) {
     }
     setBookError('');
     setBooking(true);
-    const parts = (user.name || '').trim().split(/\s+/);
-    const shortName = parts.length > 1 ? parts[0] + ' ' + parts[parts.length - 1][0] + '.' : (parts[0] || 'Tourist');
-    const payload = {
-      tourist_id: user.id,
-      tourist_name: shortName,
-      service_name: tour.name,
-      provider_id: providerId,
-      provider_name: tour.provider || '',
-      date: 'TBD',
-      amount: tour.price ?? 0,
-      status: 'confirmed',
-      reviewed: false,
-    };
+    const payload = bookingInsertFromTour(user, tour);
     const { error } = await supabase.from('bookings').insert(payload);
     setBooking(false);
     if (error) {

@@ -41,10 +41,9 @@ export default function Bookings() {
 
   useEffect(() => {
     if (!user?.id) return;
-    const map = (row) => mapBookingRow(row);
     const tick = async () => {
       const { data } = await supabase.from('bookings').select('*').eq('tourist_id', user.id);
-      const fetched = (data || []).map(map);
+      const fetched = (data || []).map(mapBookingRow);
       fetched.forEach((b) => { if (b.status === 'completed') completedBookingIds.current.add(b.id); });
       setBookings((prev) =>
         fetched.map((newB) => {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useOutletContext, Navigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import { mapRequestRow, isProviderUser } from '../../hooks/useAppData';
+import { providerOfferInsertPayload } from '../../utils/supabaseMappers';
 import { useLocale } from '../../context/LocaleContext';
 
 export default function ProviderRequests() {
@@ -43,17 +44,7 @@ export default function ProviderRequests() {
 
   const sendOffer = async () => {
     if (!offerModal || !user?.id || !offerForm.price) return;
-    const { error } = await supabase.from('offers').insert({
-      request_id: offerModal.id,
-      provider_id: user.id,
-      provider_name: user.name || '',
-      provider_avatar: user.avatar ?? null,
-      provider_color: user.color ?? null,
-      price: Number(offerForm.price) || 0,
-      duration: offerForm.duration || null,
-      description: offerForm.msg || '',
-      status: 'pending',
-    });
+    const { error } = await supabase.from('offers').insert(providerOfferInsertPayload(user, offerModal.id, offerForm));
     if (!error) {
       setOfferModal(null);
       setOfferForm({ price: '', msg: '' });

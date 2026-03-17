@@ -4,6 +4,11 @@ import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { useRequests } from '../hooks/useAppData';
+import {
+  bookingInsertFromOffer,
+  indexOffersByRequestId,
+  newRequestInsertPayload,
+} from '../utils/supabaseMappers';
 import ExpandableItem from '../components/ExpandableItem';
 
 export default function Requests() {
@@ -36,23 +41,7 @@ export default function Requests() {
       .from('offers')
       .select('*')
       .in('request_id', ids)
-      .then(({ data: offData }) => {
-        const byReq = {};
-        (offData || []).forEach((o) => {
-          if (!byReq[o.request_id]) byReq[o.request_id] = [];
-          byReq[o.request_id].push({
-            id: o.id,
-            provider_id: o.provider_id,
-            providerId: o.provider_id,
-            provider_name: o.provider_name,
-            provider: o.provider_name,
-            price: o.price,
-            description: o.description,
-            status: o.status,
-          });
-        });
-        setOffersByRequestId(byReq);
-      });
+      .then(({ data: offData }) => setOffersByRequestId(indexOffersByRequestId(offData)));
     setLoading(requestsLoading);
   }, [user?.id, requests.length, requestsLoading]);
 
@@ -68,20 +57,7 @@ export default function Requests() {
 
   const handlePostRequest = async (e) => {
     e.preventDefault();
-    const clientId = `#REQ-${String(Math.floor(Math.random() * 900 + 100)).padStart(3, '0')}`;
-    const payload = {
-      id: clientId,
-      tourist_id: user.id,
-      tourist_name: user.name,
-      avatar: user.avatar ?? (user.name || '').slice(0, 2).toUpperCase(),
-      title: form.title.trim(),
-      description: form.desc.trim() || null,
-      region: form.region,
-      type: form.type,
-      date: form.date || null,
-      budget: Number(form.budget) || 0,
-      status: 'open',
-    };
+    const payload = newRequestInsertPayload(user, form);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       console.log('Auth session [web:handlePostRequest]:', session ? 'ACTIVE' : 'NONE', session?.user?.id);
@@ -123,19 +99,7 @@ export default function Requests() {
   const acceptOffer = async (requestId, offer) => {
     const r = requests.find((x) => x.id === requestId);
     if (!r || r.status !== 'open') return;
-    const parts = (user?.name || '').trim().split(/\s+/);
-    const shortName = parts.length > 1 ? parts[0] + ' ' + parts[parts.length - 1][0] + '.' : (parts[0] || 'Tourist');
-    const bookingPayload = {
-      tourist_id: user.id,
-      tourist_name: shortName,
-      service_name: r.title || 'Custom request',
-      provider_id: offer.providerId ?? offer.provider_id,
-      provider_name: offer.provider ?? offer.provider_name,
-      date: r.date || 'TBD',
-      amount: offer.price,
-      status: 'confirmed',
-      reviewed: false,
-    };
+    const bookingPayload = bookingInsertFromOffer(user, r, offer);
     const { error: bookErr } = await supabase.from('bookings').insert(bookingPayload);
     if (bookErr) return;
     await supabase.from('offers').update({ status: 'accepted' }).eq('id', offer.id);

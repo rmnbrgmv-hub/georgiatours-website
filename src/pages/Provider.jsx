@@ -2,12 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
-
-function photoUrl(p) {
-  if (!p) return '';
-  if (typeof p === 'string') return p;
-  return p.url ?? p.base64 ?? '';
-}
+import { parseJsonArray, parsePhotosColumn, photoUrl } from '../utils/supabaseMappers';
 
 export default function Provider() {
   const { id } = useParams();
@@ -35,13 +30,10 @@ export default function Provider() {
         .select('id, name, region, duration, price, photos, type')
         .eq('provider_id', id);
       const services = (servicesData || []).filter((row) => row.suspended !== true);
-      const withPhotos = services.map((row) => {
-        let photos = [];
-        try {
-          if (row.photos) photos = typeof row.photos === 'string' ? JSON.parse(row.photos) : row.photos;
-        } catch (_) {}
-        return { ...row, photo: photoUrl(photos?.[0]) };
-      });
+      const withPhotos = services.map((row) => ({
+        ...row,
+        photo: photoUrl(parsePhotosColumn(row.photos)[0]),
+      }));
       setTours(withPhotos);
       setLoading(false);
     })();
@@ -51,11 +43,7 @@ export default function Provider() {
   if (!provider) return <div style={{ padding: 80, textAlign: 'center' }}>Guide not found. <Link to="/explore">Explore tours</Link></div>;
 
   const pic = provider.profile_picture || provider.profilePic;
-  let gallery = [];
-  try {
-    gallery = typeof provider.gallery === 'string' ? JSON.parse(provider.gallery || '[]') : (provider.gallery || []);
-  } catch (_) {}
-  gallery = Array.isArray(gallery) ? gallery : [];
+  const gallery = parseJsonArray(provider.gallery);
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px 80px' }}>
