@@ -81,3 +81,15 @@ export function getDailyCapacity(settings) {
   return maxPerPerson * teamSize;
 }
 
+/** Short line for tour cards (today). */
+export function getTourCardAvailabilityLine(rawBadges) {
+  const today = new Date().toISOString().slice(0, 10);
+  const settings = getUserSettingsFromBadges(rawBadges);
+  const st = getAvailabilityStatusForDate(settings, today);
+  if (!st.available) return { text: st.text, ok: false };
+  if (settings.provider_mode === 'company') {
+    return { text: `Company · ${settings.team_size || 1} guides/drivers`, ok: true };
+  }
+  return { text: 'Available today', ok: true };
+}
+

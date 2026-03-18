@@ -5,6 +5,7 @@ import { supabase, compressImage } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapBookingRow, isProviderUser } from '../hooks/useAppData';
 import { buildBadgesWithSettings, getUserSettingsFromBadges } from '../utils/providerSettings';
+import AvailabilityCalendar from '../components/AvailabilityCalendar';
 
 const MAX_GALLERY = 12;
 
@@ -105,10 +106,34 @@ export default function Profile() {
     if (!error) setUser?.((prev) => (prev ? { ...prev, gallery } : prev));
   };
 
-  const saveAvailability = async () => {
+  const persistAvailability = async (nextAvail) => {
     if (!user?.id || !isProviderUser(user)) return;
     const settings = getUserSettingsFromBadges(user.badges);
-    const nextSettings = { ...settings, availability };
+    const nextSettings = { ...settings, availability: { ...settings.availability, ...nextAvail } };
+    const nextBadges = buildBadgesWithSettings(user.badges, nextSettings);
+    const { error } = await supabase
+      .from('users')
+      .update({ badges: JSON.stringify(nextBadges) })
+      .eq('id', user.id);
+    if (!error) {
+      setAvailability(nextSettings.availability);
+      setUser?.((prev) => (prev ? { ...prev, badges: nextBadges } : prev));
+    }
+  };
+
+  const saveAvailability = async () => {
+    await persistAvailability(availability);
+  };
+
+  const toggleUnavailableDate = async (dateStr) => {
+    const cur = Array.isArray(availability.unavailable_dates) ? availability.unavailable_dates : [];
+    const updated = cur.includes(dateStr) ? cur.filter((d) => d !== dateStr) : [...cur, dateStr].sort();
+    setAvailability((a) => ({ ...a, unavailable_dates: updated }));
+    const settings = getUserSettingsFromBadges(user.badges);
+    const nextSettings = {
+      ...settings,
+      availability: { ...settings.availability, ...availability, unavailable_dates: updated },
+    };
     const nextBadges = buildBadgesWithSettings(user.badges, nextSettings);
     const { error } = await supabase
       .from('users')
@@ -268,32 +293,27 @@ export default function Profile() {
 
       {isProviderUser(user) && (
         <div className="glass" style={{ padding: 28, borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginTop: 24 }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 8 }}>Availability</h3>
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontWeight: 500, fontSize: '0.9rem', display: 'block', marginBottom: 6 }}>Schedule</label>
-            <select
-              value={availability.type}
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 8 }}>My availability</h3>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 8 }}>
+            Tap dates on the calendar to mark when you are not available.
+          </p>
+          <AvailabilityCalendar
+            unavailableDates={availability.unavailable_dates || []}
+            onToggleDate={toggleUnavailableDate}
+          />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, fontSize: '0.9rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={availability.type === 'weekdays'}
               onChange={(e) =>
                 setAvailability((a) => ({
                   ...a,
-                  type: e.target.value,
+                  type: e.target.checked ? 'weekdays' : 'always',
                 }))
               }
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: '1px solid var(--border)',
-                background: 'var(--surface)',
-                color: 'var(--text)',
-                fontSize: '0.9rem',
-              }}
-            >
-              <option value="always">Available every day</option>
-              <option value="weekdays">Weekdays only (Mon-Fri)</option>
-              <option value="custom">Custom schedule</option>
-            </select>
-          </div>
+            />
+            Weekdays only (Mon–Fri)
+          </label>
           <label style={{ marginTop: 12, display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
             Max tours per day
             <input

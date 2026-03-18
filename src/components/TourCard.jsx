@@ -15,7 +15,7 @@ function typeLabel(type) {
  * Tour card matching the discover/explore design: image, type badge, name, region · duration · rating, price.
  * Optional linkTo (whole card links), optional actions (e.g. Edit button; use stopPropagation if inside link).
  */
-export default function TourCard({ tour, linkTo, actions }) {
+export default function TourCard({ tour, linkTo, actions, providerAvailability }) {
   const photo = getTourPhoto(tour);
   const isAskForPrice = tour.price == null || Number(tour.price) <= 0;
   const content = (
@@ -67,6 +67,19 @@ export default function TourCard({ tour, linkTo, actions }) {
             <>₾{tour.price}</>
           )}
         </p>
+        {providerAvailability && (
+          <p
+            style={{
+              fontSize: '0.8rem',
+              marginTop: 6,
+              marginBottom: 0,
+              color: providerAvailability.ok ? 'var(--green, #4CAF50)' : 'var(--red, #f44336)',
+            }}
+          >
+            {providerAvailability.ok ? '● ' : '○ '}
+            {providerAvailability.text}
+          </p>
+        )}
         {actions && (
           <div style={{ marginTop: 12 }} onClick={(e) => e.stopPropagation()}>
             {actions}

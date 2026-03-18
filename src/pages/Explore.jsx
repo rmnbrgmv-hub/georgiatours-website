@@ -2,8 +2,10 @@ import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocale } from '../context/LocaleContext';
+import { supabase } from '../supabase';
 import { useServices } from '../hooks/useAppData';
 import TourCard from '../components/TourCard';
+import { getTourCardAvailabilityLine } from '../utils/providerSettings';
 
 export default function Explore() {
   const { t } = useLocale();
@@ -21,6 +23,27 @@ export default function Explore() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('');
   const [priceFilter, setPriceFilter] = useState(500);
+  const [providerAvailById, setProviderAvailById] = useState({});
+
+  useEffect(() => {
+    const ids = [...new Set((services || []).map((s) => s.providerId).filter(Boolean))];
+    if (!ids.length) {
+      setProviderAvailById({});
+      return;
+    }
+    supabase
+      .from('users')
+      .select('id,badges')
+      .in('id', ids)
+      .then(({ data }) => {
+        const m = {};
+        (data || []).forEach((row) => {
+          m[row.id] = getTourCardAvailabilityLine(row.badges);
+        });
+        setProviderAvailById(m);
+      })
+      .catch(() => setProviderAvailById({}));
+  }, [services]);
 
   const tours = services.filter((s) => !s.suspended);
   const priceMax = tours.length ? Math.max(...tours.map((s) => Number(s.price) || 0), 1) : 500;
@@ -126,6 +149,7 @@ export default function Explore() {
               key={t.id}
               tour={t}
               linkTo={inApp ? `/app/tour/${t.id}` : `/tour/${t.id}`}
+              providerAvailability={t.providerId ? providerAvailById[t.providerId] : undefined}
             />
           ))}
         </div>
