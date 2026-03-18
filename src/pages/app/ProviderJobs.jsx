@@ -73,20 +73,32 @@ export default function ProviderJobs() {
                 <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
                   <span style={{ fontWeight: 600 }}>{j.service}</span>
                   <span style={{ color: 'var(--text-muted)' }}>{j.tourist} · {j.date}</span>
-                  <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{j.amount}</span>
+                  {j.group_size != null && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>👥 {j.group_size}</span>}
+                  <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{j.total_price ?? j.amount}</span>
                   <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, background: j.status === 'completed' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: j.status === 'completed' ? 'var(--cyan)' : 'var(--gold)' }}>{j.status}</span>
                   {isStuck48h(j) && <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: 8, background: 'rgba(201,168,76,0.2)', color: 'var(--gold)', fontWeight: 600 }}>⚠️ Awaiting confirmation 48h+</span>}
                 </span>
               }
             >
               <p style={{ margin: '0 0 8px' }}><strong>Tourist:</strong> {j.tourist}</p>
-              <p style={{ margin: '0 0 8px' }}><strong>Date:</strong> {j.date} · <strong>Amount:</strong> ₾{j.amount}</p>
+              <p style={{ margin: '0 0 8px' }}>
+                <strong>Date:</strong> {j.date}
+                {' · '}
+                <strong>Group:</strong> {j.group_size ?? 1}
+                {' · '}
+                <strong>Total:</strong> ₾{j.total_price ?? j.amount}
+              </p>
               <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                 {j.status === 'pending' && (
                   <>
                     <button type="button" onClick={() => accept(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Accept</button>
                     <button type="button" onClick={() => decline(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer' }}>Decline</button>
                   </>
+                )}
+                {j.status !== 'cancelled' && j.status !== 'completed' && (
+                  <button type="button" onClick={() => decline(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    Cancel
+                  </button>
                 )}
                 {j.status === 'confirmed' && (
                   <button type="button" onClick={() => startJob(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Start job</button>

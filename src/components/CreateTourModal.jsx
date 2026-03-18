@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase, compressImage } from '../supabase';
 import { toServicesRow } from '../hooks/useAppData';
+import AvailabilityCalendar from './AvailabilityCalendar';
+import { buildBadgesWithSettings, getUserSettingsFromBadges } from '../utils/providerSettings';
 
 const MAX_PHOTOS = 4;
 
@@ -29,7 +31,7 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
     region: 'Tbilisi',
     duration: '',
     price: '',
-    askForPrice: false,
+    pricingType: 'fixed',
     desc: '',
     emoji: '🏛️',
     maxSeats: 8,
@@ -38,6 +40,7 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
     tags: [],
     photos: [],
   });
+  const [tourUnavailableDates, setTourUnavailableDates] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -49,14 +52,22 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
           ? { id: p.id || Math.random().toString(36).slice(2), base64: p.base64, isMain: !!p.isMain }
           : { id: Math.random().toString(36).slice(2), base64: p, isMain: false }
       ).slice(0, MAX_PHOTOS);
-      const hasNoPrice = initialTour.price == null || Number(initialTour.price) <= 0;
+      const rawTags = Array.isArray(initialTour.tags) ? initialTour.tags : [];
+      const hasAsk = (initialTour.price == null || Number(initialTour.price) <= 0) || rawTags.includes('ask');
+      const pricingType = hasAsk
+        ? 'ask'
+        : rawTags.includes('per_person')
+          ? 'per_person'
+          : rawTags.includes('starting_from')
+            ? 'starting_from'
+            : 'fixed';
       setForm({
         name: initialTour.name || '',
         type: initialTour.type || (isGuide ? 'guide' : 'van'),
         region: initialTour.region || 'Tbilisi',
         duration: initialTour.duration || '',
         price: initialTour.price != null ? String(initialTour.price) : '',
-        askForPrice: hasNoPrice,
+        pricingType,
         desc: initialTour.desc || initialTour.description || '',
         emoji: initialTour.emoji || '🏛️',
         maxSeats: initialTour.maxSeats ?? initialTour.max_seats ?? 8,
@@ -68,6 +79,33 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
     }
   }, [initialTour, isGuide]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from('users')
+      .select('badges')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        const settings = getUserSettingsFromBadges(data?.badges);
+        setTourUnavailableDates(Array.isArray(settings.availability.unavailable_dates) ? settings.availability.unavailable_dates : []);
+      });
+  }, [user?.id]);
+
+  const persistProviderUnavailableDates = async (nextDates) => {
+    if (!user?.id) return;
+    const { data: providerRow } = await supabase.from('users').select('badges').eq('id', user.id).maybeSingle();
+    const settings = getUserSettingsFromBadges(providerRow?.badges);
+    const nextSettings = {
+      ...settings,
+      availability: { ...settings.availability, unavailable_dates: nextDates },
+    };
+    await supabase
+      .from('users')
+      .update({ badges: JSON.stringify(buildBadgesWithSettings(providerRow?.badges, nextSettings)) })
+      .eq('id', user.id);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -75,8 +113,8 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
       setError('Please enter a name and type.');
       return;
     }
-    if (!form.askForPrice && (form.price === '' || isNaN(Number(form.price)))) {
-      setError('Please enter a valid price or choose Ask for price.');
+    if (form.pricingType !== 'ask' && (form.price === '' || isNaN(Number(form.price)))) {
+      setError('Please enter a valid price.');
       return;
     }
     setSaving(true);
@@ -89,9 +127,17 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
         return;
       }
       const photosNorm = normalizePhotos(form.photos);
+      const pricingTag =
+        form.pricingType === 'per_person'
+          ? 'per_person'
+          : form.pricingType === 'starting_from'
+            ? 'starting_from'
+            : form.pricingType === 'ask'
+              ? 'ask'
+              : 'fixed';
       const base = {
         ...form,
-        price: form.askForPrice ? 0 : Number(form.price) || 0,
+        price: form.pricingType === 'ask' ? -1 : Number(form.price) || 0,
         provider: user.name,
         providerId: user.id,
         area: form.region,
@@ -99,6 +145,7 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
         reviews: initialTour?.reviews ?? 0,
         total_bookings: initialTour?.total_bookings ?? 0,
         photos: photosNorm,
+        tags: Array.from(new Set([pricingTag, ...(Array.isArray(form.tags) ? form.tags : [])])),
       };
       if (initialTour?.id) {
         const payload = { ...toServicesRow(base, user), updated_at: new Date().toISOString() };
@@ -117,6 +164,8 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
         }
         onSave();
       }
+      // best-effort: persist provider-level unavailable dates (shared across tours)
+      await persistProviderUnavailableDates(tourUnavailableDates);
       onClose();
     } finally {
       setSaving(false);
@@ -179,6 +228,18 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
             placeholder="2 hours"
             style={{ ...inputStyle, marginBottom: 12 }}
           />
+          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4 }}>Pricing</label>
+          <select
+            value={form.pricingType}
+            onChange={(e) => setForm((f) => ({ ...f, pricingType: e.target.value }))}
+            style={{ ...inputStyle, marginBottom: 12 }}
+          >
+            <option value="fixed">Fixed price (total)</option>
+            <option value="per_person">Per person</option>
+            <option value="starting_from">Starting from</option>
+            <option value="ask">Ask for price (negotiable)</option>
+          </select>
+
           <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4 }}>Price (₾)</label>
           <input
             type="number"
@@ -186,23 +247,25 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
             value={form.price}
             onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
             placeholder="0"
-            disabled={form.askForPrice}
-            style={{ ...inputStyle, marginBottom: 8, opacity: form.askForPrice ? 0.6 : 1, cursor: form.askForPrice ? 'not-allowed' : 'text' }}
+            disabled={form.pricingType === 'ask'}
+            style={{ ...inputStyle, marginBottom: 12, opacity: form.pricingType === 'ask' ? 0.6 : 1, cursor: form.pricingType === 'ask' ? 'not-allowed' : 'text' }}
           />
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-            <input
-              type="checkbox"
-              checked={form.askForPrice}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  askForPrice: e.target.checked,
-                  price: e.target.checked ? '' : f.price,
-                }))
-              }
+
+          <div style={{ marginTop: 6, marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 6 }}>
+              My availability (shared across all tours)
+            </label>
+            <AvailabilityCalendar
+              unavailableDates={tourUnavailableDates}
+              onToggleDate={async (date) => {
+                const next = tourUnavailableDates.includes(date)
+                  ? tourUnavailableDates.filter((d) => d !== date)
+                  : [...tourUnavailableDates, date].sort();
+                setTourUnavailableDates(next);
+                await persistProviderUnavailableDates(next);
+              }}
             />
-            <span>Hide exact price and show “Ask for price” instead.</span>
-          </label>
+          </div>
           <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4 }}>Description</label>
           <textarea
             value={form.desc}

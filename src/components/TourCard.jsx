@@ -17,7 +17,15 @@ function typeLabel(type) {
  */
 export default function TourCard({ tour, linkTo, actions, providerAvailability }) {
   const photo = getTourPhoto(tour);
-  const isAskForPrice = tour.price == null || Number(tour.price) <= 0;
+  const tags = Array.isArray(tour.tags) ? tour.tags : [];
+  const pricingType = tags.includes('per_person')
+    ? 'per_person'
+    : tags.includes('starting_from')
+      ? 'starting_from'
+      : tags.includes('ask')
+        ? 'ask'
+        : 'fixed';
+  const isAskForPrice = pricingType === 'ask' || tour.price == null || Number(tour.price) <= 0;
   const content = (
     <>
       <div style={{ aspectRatio: '16/10', background: 'var(--s2, var(--bg-elevated))', borderRadius: 12, overflow: 'hidden' }}>
@@ -64,7 +72,11 @@ export default function TourCard({ tour, linkTo, actions, providerAvailability }
               Ask for price
             </span>
           ) : (
-            <>₾{tour.price}</>
+            <>
+              {pricingType === 'starting_from' ? 'From ' : ''}
+              ₾{tour.price}
+              {pricingType === 'per_person' ? ' / person' : ''}
+            </>
           )}
         </p>
         {providerAvailability && (

@@ -5,6 +5,7 @@ import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { mapServiceRow } from '../hooks/useAppData';
 import { bookingInsertFromTour, photoUrl } from '../utils/supabaseMappers';
+import BookingCalendar from '../components/BookingCalendar';
 import {
   getUserSettingsFromBadges,
   getAvailabilityStatusForDate,
@@ -36,7 +37,9 @@ export default function Tour(props) {
   const [booking, setBooking] = useState(false);
   const [bookError, setBookError] = useState('');
   const [availabilityStatus, setAvailabilityStatus] = useState(null);
-  const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [bookingDate, setBookingDate] = useState('');
+  const [groupSize, setGroupSize] = useState('1');
+  const [unavailableDates, setUnavailableDates] = useState([]);
 
   useEffect(() => {
     if (!id) return;
@@ -89,7 +92,7 @@ export default function Tour(props) {
 
   useEffect(() => {
     const pid = tour?.providerId ?? tour?.provider_id;
-    if (!pid || !bookingDate) return;
+    if (!pid) return;
     supabase
       .from('users')
       .select('badges')
@@ -98,7 +101,27 @@ export default function Tour(props) {
       .then(({ data: providerRow }) => {
         if (!providerRow) return;
         const settings = getUserSettingsFromBadges(providerRow.badges);
-        setAvailabilityStatus(getAvailabilityStatusForDate(settings, bookingDate));
+        const dateForStatus = bookingDate || new Date().toISOString().slice(0, 10);
+        setAvailabilityStatus(getAvailabilityStatusForDate(settings, dateForStatus));
+
+        supabase
+          .from('bookings')
+          .select('date,status')
+          .eq('provider_id', pid)
+          .in('status', ['confirmed', 'pending'])
+          .then(({ data: bookings }) => {
+            const capacity = getDailyCapacity(settings);
+            const counts = {};
+            (bookings || []).forEach((b) => {
+              if (!b?.date) return;
+              counts[b.date] = (counts[b.date] || 0) + 1;
+            });
+            const fullyBooked = Object.entries(counts)
+              .filter(([, c]) => (c ?? 0) >= capacity)
+              .map(([d]) => d);
+            const manual = Array.isArray(settings.availability.unavailable_dates) ? settings.availability.unavailable_dates : [];
+            setUnavailableDates(Array.from(new Set([...(manual || []), ...(fullyBooked || [])])));
+          });
       });
   }, [tour?.providerId, tour?.provider_id, bookingDate]);
 
@@ -107,10 +130,19 @@ export default function Tour(props) {
 
   const mainPhoto = photoUrl(tour.photos?.[photoIndex]);
   const description = tour.desc ?? tour.description;
-  const isAskForPrice = tour.price == null || Number(tour.price) <= 0;
+  const tags = Array.isArray(tour.tags) ? tour.tags : [];
+  const pricingType = tags.includes('per_person')
+    ? 'per_person'
+    : tags.includes('starting_from')
+      ? 'starting_from'
+      : tags.includes('ask')
+        ? 'ask'
+        : 'fixed';
+  const isAskForPrice = pricingType === 'ask' || tour.price == null || Number(tour.price) <= 0;
 
   const handleBook = async () => {
     if (!user?.id || booking) return;
+    if (!bookingDate) return;
     const providerId = tour.providerId ?? tour.provider_id;
     if (!providerId) {
       setBookError('Provider not set for this tour.');
@@ -137,7 +169,7 @@ export default function Tour(props) {
         .select('*', { count: 'exact', head: true })
         .eq('provider_id', providerId)
         .eq('date', bookingDate)
-        .eq('status', 'confirmed');
+        .in('status', ['confirmed', 'pending']);
 
       const capacity = getDailyCapacity(settings);
       if ((count ?? 0) >= capacity) {
@@ -146,15 +178,36 @@ export default function Tour(props) {
         return;
       }
 
-      const payload = {
-        ...bookingInsertFromTour(user, tour),
-        date: bookingDate,
-      };
-      const { error } = await supabase.from('bookings').insert(payload);
-      if (error) {
+      const qty = Math.max(1, Math.min(20, parseInt(groupSize, 10) || 1));
+
+      if (isAskForPrice) {
+        const msg = `Hi! I'm interested in your tour "${tour.name}" on ${bookingDate} for ${qty} people. Could you tell me the price?`;
+        await supabase.from('messages').insert({ from_id: user.id, to_id: providerId, text: msg });
         setBooking(false);
-        setBookError(error.message || 'Booking failed');
+        navigate('/app/messages');
         return;
+      }
+
+      const totalPrice = pricingType === 'per_person' ? (Number(tour.price) || 0) * qty : Number(tour.price) || 0;
+      const newPayload = {
+        tourist_id: user.id,
+        provider_id: providerId,
+        service_id: tour.id,
+        date: bookingDate,
+        group_size: qty,
+        total_price: totalPrice,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      };
+      const { error: e1 } = await supabase.from('bookings').insert(newPayload);
+      if (e1) {
+        const legacyPayload = { ...bookingInsertFromTour(user, tour), date: bookingDate, amount: totalPrice, group_size: qty, total_price: totalPrice, status: 'pending' };
+        const { error: e2 } = await supabase.from('bookings').insert(legacyPayload);
+        if (e2) {
+          setBooking(false);
+          setBookError(e2.message || e1.message || 'Booking failed');
+          return;
+        }
       }
 
       if ((count ?? 0) + 1 >= capacity) {
@@ -285,29 +338,29 @@ export default function Tour(props) {
             Ask for price
           </span>
         ) : (
-          <>₾{tour.price}</>
+          <>
+            {pricingType === 'starting_from' ? 'From ' : ''}
+            ₾{tour.price}
+            {pricingType === 'per_person' ? ' / person' : ''}
+          </>
         )}
       </p>
-      <div style={{ marginBottom: 24 }}>
-        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 4 }}>
+      <div style={{ marginBottom: 18 }}>
+        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 6 }}>
           Choose date
         </label>
-        <input
-          type="date"
-          value={bookingDate}
-          onChange={(e) => {
-            const v = e.target.value;
-            setBookingDate(v);
-          }}
-          style={{
-            padding: '8px 12px',
-            borderRadius: 8,
-            border: '1px solid var(--border)',
-            background: 'var(--surface)',
-            color: 'var(--text)',
-            fontSize: '0.9rem',
-          }}
-        />
+        <BookingCalendar unavailableDates={unavailableDates} selectedDate={bookingDate} onSelectDate={setBookingDate} />
+        <div style={{ marginTop: 12 }}>
+          <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Number of people</label>
+          <input
+            type="number"
+            min="1"
+            max="20"
+            value={groupSize}
+            onChange={(e) => setGroupSize(e.target.value)}
+            style={{ width: '100%', padding: 10, borderRadius: 8, marginTop: 4, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
+          />
+        </div>
       </div>
       <p style={{ color: 'var(--text)', lineHeight: 1.7, marginBottom: 24 }}>{description}</p>
 
@@ -327,20 +380,21 @@ export default function Tour(props) {
               type="button"
               className="tour-page-book-btn"
               onClick={handleBook}
-              disabled={booking}
+              disabled={booking || !bookingDate}
               style={{
                 display: 'inline-block',
-                background: 'var(--gold)',
+                background: bookingDate ? (isAskForPrice ? 'var(--gold)' : 'var(--green, #4CAF50)') : 'var(--text-muted)',
                 color: 'var(--bg)',
                 padding: '14px 28px',
                 borderRadius: 'var(--radius-sm)',
                 border: 'none',
                 fontWeight: 600,
                 fontSize: '1rem',
-                cursor: booking ? 'wait' : 'pointer',
+                cursor: booking ? 'wait' : bookingDate ? 'pointer' : 'default',
+                opacity: bookingDate ? 1 : 0.6,
               }}
             >
-              {booking ? 'Booking…' : t('tour.bookInApp')}
+              {!bookingDate ? 'Select a date to book' : booking ? 'Booking…' : isAskForPrice ? `Ask price for ${bookingDate}` : `Book for ${bookingDate}`}
             </button>
             {bookError && <p style={{ color: '#f87171', fontSize: '0.9rem' }}>{bookError}</p>}
           </div>

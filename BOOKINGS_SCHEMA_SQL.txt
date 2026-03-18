@@ -1,0 +1,13 @@
+-- PROMPT 11: bookings table columns (run in Supabase SQL editor)
+-- This project currently supports both a legacy booking payload and the new schema.
+-- Add any missing columns below to fully enable the new workflow.
+
+alter table public.bookings
+  add column if not exists service_id uuid null,
+  add column if not exists group_size integer default 1,
+  add column if not exists total_price numeric null,
+  add column if not exists assigned_to text null;
+
+-- Recommended indexes for date/provider lookups
+create index if not exists bookings_provider_date_idx on public.bookings(provider_id, date);
+
