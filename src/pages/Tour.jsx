@@ -9,6 +9,7 @@ import {
   getUserSettingsFromBadges,
   getAvailabilityStatusForDate,
   getDailyCapacity,
+  buildBadgesWithSettings,
 } from '../utils/providerSettings';
 
 export default function Tour(props) {
@@ -85,6 +86,21 @@ export default function Tour(props) {
         setLoading(false);
       });
   }, [id, user?.role]);
+
+  useEffect(() => {
+    const pid = tour?.providerId ?? tour?.provider_id;
+    if (!pid || !bookingDate) return;
+    supabase
+      .from('users')
+      .select('badges')
+      .eq('id', pid)
+      .maybeSingle()
+      .then(({ data: providerRow }) => {
+        if (!providerRow) return;
+        const settings = getUserSettingsFromBadges(providerRow.badges);
+        setAvailabilityStatus(getAvailabilityStatusForDate(settings, bookingDate));
+      });
+  }, [tour?.providerId, tour?.provider_id, bookingDate]);
 
   if (loading) return <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>;
   if (!tour) return <div style={{ padding: 80, textAlign: 'center' }}>{(t && t('tour.notFound')) || 'Tour not found.'} <Link to={backPath}>{backLabel}</Link></div>;
