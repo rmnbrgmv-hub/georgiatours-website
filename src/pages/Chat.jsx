@@ -4,6 +4,7 @@ import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { isProviderUser } from '../hooks/useAppData';
+import { buildBadgesWithSettings, getUserSettingsFromBadges } from '../utils/providerSettings';
 
 function fmtTime(ts) {
   if (!ts) return '';
@@ -23,6 +24,12 @@ export default function Chat() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const endRef = useRef(null);
+  const [showOfferForm, setShowOfferForm] = useState(false);
+  const [offerPrice, setOfferPrice] = useState('');
+  const [offerDate, setOfferDate] = useState('');
+  const [offerGroupSize, setOfferGroupSize] = useState('1');
+  const [offerTourName, setOfferTourName] = useState('');
+  const [offerDetails, setOfferDetails] = useState('');
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -133,7 +140,10 @@ export default function Chat() {
       }
       setMessages(
         (data || []).map((r) => ({
+          id: r.id,
           from: r.from_id,
+          from_id: r.from_id,
+          to_id: r.to_id,
           text: r.text,
           time: fmtTime(r.created_at),
           isMe: String(r.from_id) === String(uid),
@@ -161,7 +171,7 @@ export default function Chat() {
           if (String(r.to_id) !== String(uid) && String(r.to_id) !== String(pid)) return;
           setMessages((prev) => [
             ...prev,
-            { from: r.from_id, text: r.text, time: fmtTime(r.created_at), isMe: String(r.from_id) === String(uid) },
+            { id: r.id, from: r.from_id, from_id: r.from_id, to_id: r.to_id, text: r.text, time: fmtTime(r.created_at), isMe: String(r.from_id) === String(uid) },
           ]);
         }
       )
@@ -185,8 +195,178 @@ export default function Chat() {
       to_id: selected.id,
       text,
     });
-    setMessages((prev) => [...prev, { from: user.id, text, time: fmtTime(new Date()), isMe: true }]);
+    setMessages((prev) => [...prev, { id: 'optimistic-' + Date.now(), from: user.id, from_id: user.id, to_id: selected.id, text, time: fmtTime(new Date()), isMe: true }]);
   };
+
+  function detectTourFromChat(chatMessages, chatPartnerId) {
+    const inquiry = (chatMessages || []).find(
+      (m) => String(m.from_id ?? m.from) === String(chatPartnerId) && m.text && String(m.text).includes('interested in your tour')
+    );
+    if (!inquiry?.text) return null;
+    const txt = String(inquiry.text);
+    const match = txt.match(/tour\s+["']([^"']+)["']/i);
+    const dateMatch = txt.match(/on\s+(\d{4}-\d{2}-\d{2})/i);
+    const groupMatch = txt.match(/for\s+(\d+)\s+people/i);
+    return {
+      tourName: match ? match[1] : 'Tour',
+      date: dateMatch ? dateMatch[1] : '',
+      groupSize: groupMatch ? groupMatch[1] : '1',
+    };
+  }
+
+  function parseOfferText(text) {
+    const raw = String(text || '');
+    const isAccepted = raw.startsWith('[ACCEPTED]');
+    const isOffer = raw.startsWith('[OFFER]');
+    if (!isOffer && !isAccepted) return null;
+    const parts = raw.replace('[OFFER]', '').replace('[ACCEPTED]', '').split('|');
+    // Expected: [OFFER]|price|date|groupSize|tourId|tourName|details
+    return {
+      isAccepted,
+      price: parts[1] || '0',
+      date: parts[2] || '',
+      groupSize: parts[3] || '1',
+      tourId: parts[4] || '',
+      tourName: parts[5] || 'Tour',
+      details: parts[6] || '',
+    };
+  }
+
+  async function acceptOffer(msg, offer) {
+    if (!user?.id || user.role !== 'tourist') return;
+    const providerId = msg.from_id ?? msg.from;
+    const qty = Math.max(1, Math.min(20, parseInt(offer.groupSize, 10) || 1));
+    const price = Number(offer.price) || 0;
+
+    // Create booking (new schema first; fallback to legacy)
+    const newPayload = {
+      tourist_id: user.id,
+      provider_id: providerId,
+      service_id: offer.tourId || null,
+      date: offer.date,
+      group_size: qty,
+      total_price: price,
+      status: 'confirmed',
+      created_at: new Date().toISOString(),
+    };
+    const { error: e1 } = await supabase.from('bookings').insert(newPayload);
+    if (e1) {
+      const legacyPayload = {
+        tourist_id: user.id,
+        tourist_name: user.name,
+        provider_id: providerId,
+        provider_name: selected?.name,
+        service_id: offer.tourId || undefined,
+        service_name: offer.tourName,
+        date: offer.date,
+        amount: price,
+        total_price: price,
+        group_size: qty,
+        status: 'confirmed',
+        reviewed: false,
+      };
+      const { error: e2 } = await supabase.from('bookings').insert(legacyPayload);
+      if (e2) {
+        alert('Booking failed: ' + (e2.message || e1.message));
+        return;
+      }
+    }
+
+    // Update offer message to accepted
+    if (msg.id && String(msg.id).startsWith('optimistic-') === false) {
+      const updatedText = String(msg.text || '').replace('[OFFER]', '[ACCEPTED]');
+      await supabase.from('messages').update({ text: updatedText }).eq('id', msg.id);
+      setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, text: updatedText } : m)));
+    }
+
+    // Send confirmation message
+    await supabase.from('messages').insert({
+      from_id: user.id,
+      to_id: providerId,
+      text: `✅ Offer accepted! Booking confirmed for ${offer.tourName} on ${offer.date} for ${qty} people. Total: ₾${offer.price}`,
+    });
+
+    // Auto-block date for individual providers (settings badge)
+    const { data: providerRow } = await supabase.from('users').select('badges').eq('id', providerId).maybeSingle();
+    const settings = getUserSettingsFromBadges(providerRow?.badges);
+    if (settings.provider_mode !== 'company') {
+      const nextDates = Array.from(new Set([...(settings.availability.unavailable_dates || []), offer.date])).sort();
+      const nextSettings = { ...settings, availability: { ...settings.availability, unavailable_dates: nextDates } };
+      await supabase
+        .from('users')
+        .update({ badges: JSON.stringify(buildBadgesWithSettings(providerRow?.badges, nextSettings)) })
+        .eq('id', providerId);
+    }
+  }
+
+  async function declineOffer(msg) {
+    const providerId = msg.from_id ?? msg.from;
+    await supabase.from('messages').insert({
+      from_id: user.id,
+      to_id: providerId,
+      text: "Thanks for the offer, but I'll pass on this one.",
+    });
+  }
+
+  function renderOfferCard(msg, offer) {
+    const isFromMe = String(msg.from_id ?? msg.from) === String(user.id);
+    return (
+      <div
+        style={{
+          padding: 14,
+          borderRadius: 12,
+          maxWidth: '85%',
+          border: offer.isAccepted ? '2px solid #4CAF50' : '2px solid var(--gold,#C9A84C)',
+          background: offer.isAccepted ? '#4CAF5015' : 'var(--gold,#C9A84C)15',
+          margin: '8px 0',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span
+            style={{
+              fontSize: '0.8rem',
+              fontWeight: 500,
+              color: offer.isAccepted ? '#4CAF50' : 'var(--gold,#C9A84C)',
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+            }}
+          >
+            {offer.isAccepted ? '✅ Accepted offer' : '💰 Price offer'}
+          </span>
+        </div>
+        <div style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>₾{offer.price}</div>
+        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          <div>🗓 {offer.date}</div>
+          <div>👥 {offer.groupSize} people</div>
+          <div>🏔 {offer.tourName}</div>
+          {offer.details && <div style={{ marginTop: 4 }}>📋 {offer.details}</div>}
+        </div>
+        {!isFromMe && !offer.isAccepted && user.role === 'tourist' && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <button
+              type="button"
+              onClick={() => acceptOffer(msg, offer)}
+              style={{ flex: 1, padding: '10px', borderRadius: 8, background: '#4CAF50', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem' }}
+            >
+              Accept & Book
+            </button>
+            <button
+              type="button"
+              onClick={() => declineOffer(msg)}
+              style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '0.9rem' }}
+            >
+              Decline
+            </button>
+          </div>
+        )}
+        {offer.isAccepted && (
+          <div style={{ marginTop: 8, padding: '6px 12px', borderRadius: 8, background: '#4CAF5022', color: '#4CAF50', fontSize: '0.85rem', fontWeight: 500, textAlign: 'center' }}>
+            Booking confirmed!
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -231,22 +411,99 @@ export default function Chat() {
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
           {messages.map((m, i) => (
             <div key={i} className="chat-message" style={{ alignSelf: m.isMe ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
-              <div
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 12,
-                  background: m.isMe ? 'var(--gold-soft)' : 'var(--surface-hover)',
-                  color: 'var(--text)',
-                  fontSize: '0.9rem',
-                }}
-              >
-                {m.text}
-              </div>
+              {(() => {
+                const offer = parseOfferText(m.text);
+                if (offer) return renderOfferCard(m, offer);
+                return (
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      background: m.isMe ? 'var(--gold-soft)' : 'var(--surface-hover)',
+                      color: 'var(--text)',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    {m.text}
+                  </div>
+                );
+              })()}
               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>{m.time}</div>
             </div>
           ))}
           <div ref={endRef} />
         </div>
+        {user.role === 'provider' && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            <button
+              type="button"
+              onClick={() => {
+                const info = detectTourFromChat(messages, selected.id);
+                if (info) {
+                  setOfferDate(info.date);
+                  setOfferGroupSize(info.groupSize);
+                  setOfferTourName(info.tourName);
+                }
+                setShowOfferForm(true);
+              }}
+              style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--gold,#C9A84C)', background: 'var(--gold,#C9A84C)22', color: 'var(--gold,#C9A84C)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500, whiteSpace: 'nowrap' }}
+            >
+              💰 Send Offer
+            </button>
+          </div>
+        )}
+        {showOfferForm && (
+          <div style={{ padding: 14, borderRadius: 12, border: '1px solid var(--gold,#C9A84C)', background: 'var(--surface)', margin: '8px 0' }}>
+            <div style={{ fontSize: '0.95rem', fontWeight: 500, marginBottom: 10 }}>Send a price offer</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Price (₾)</label>
+                <input type="number" placeholder="200" value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text)', fontSize: '1rem' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Date</label>
+                <input type="date" value={offerDate} onChange={(e) => setOfferDate(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text)' }} />
+              </div>
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Group size</label>
+              <input type="number" min="1" value={offerGroupSize} onChange={(e) => setOfferGroupSize(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text)' }} />
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>What's included? (optional)</label>
+              <textarea value={offerDetails} onChange={(e) => setOfferDetails(e.target.value)} rows={2} placeholder="Transport, lunch, entrance fees..." style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text)', resize: 'vertical' }} />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!offerPrice) {
+                    alert('Enter a price');
+                    return;
+                  }
+                  const { data: tours } = await supabase
+                    .from('services')
+                    .select('id')
+                    .eq('provider_id', user.id)
+                    .ilike('name', '%' + (offerTourName || '') + '%')
+                    .limit(1);
+                  const tourId = tours?.[0]?.id || '';
+                  const offerText = `[OFFER]|${offerPrice}|${offerDate}|${offerGroupSize}|${tourId}|${offerTourName || 'Tour'}|${offerDetails || 'Standard tour'}`;
+                  await supabase.from('messages').insert({ from_id: user.id, to_id: selected.id, text: offerText });
+                  setShowOfferForm(false);
+                  setOfferPrice('');
+                  setOfferDetails('');
+                }}
+                style={{ flex: 1, padding: '10px', borderRadius: 8, background: 'var(--gold,#C9A84C)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.95rem' }}
+              >
+                Send Offer{offerPrice ? ` — ₾${offerPrice}` : ''}
+              </button>
+              <button type="button" onClick={() => setShowOfferForm(false)} style={{ padding: '10px 16px', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
         <div className="chat-input-row" style={{ display: 'flex', gap: 8 }}>
           <input
             value={input}
