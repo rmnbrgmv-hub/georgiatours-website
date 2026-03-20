@@ -6,6 +6,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { supabase } from './supabase';
 import { mapUserRow, isProviderUser } from './hooks/useAppData';
 
+import UnderConstruction, { checkBypass } from './pages/UnderConstruction';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Layout from './components/Layout';
@@ -110,6 +111,18 @@ export default function App() {
     setUser(null);
     try { sessionStorage.removeItem('tourbid-user'); } catch (_) {}
   };
+
+  const hasAccess = checkBypass();
+
+  if (!hasAccess) {
+    return (
+      <HelmetProvider>
+        <ThemeProvider>
+          <UnderConstruction />
+        </ThemeProvider>
+      </HelmetProvider>
+    );
+  }
 
   return (
     <HelmetProvider>
