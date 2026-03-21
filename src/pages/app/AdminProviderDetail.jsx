@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useOutletContext, Navigate, Link } from 'react-router-dom';
+import { useParams, useOutletContext, Navigate, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import { mapServiceRow, mapBookingRow } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
@@ -15,6 +15,7 @@ function parseGallery(g) {
 
 export default function AdminProviderDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useOutletContext();
   const { t } = useLocale();
   const [provider, setProvider] = useState(null);
@@ -48,7 +49,43 @@ export default function AdminProviderDetail() {
         ← Back to providers
       </Link>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>Provider: {p.name}</h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Profile, tours and jobs.</p>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>Profile, tours and jobs.</p>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 24 }}>
+        <button
+          type="button"
+          onClick={() => navigate('/app/chat', { state: { partnerId: p.id } })}
+          style={{
+            padding: '10px 18px',
+            borderRadius: 8,
+            border: 'none',
+            background: 'var(--gold)',
+            color: 'var(--bg)',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+          }}
+        >
+          💬 Message provider
+        </button>
+        {p.email && (
+          <a
+            href={`mailto:${encodeURIComponent(p.email)}`}
+            style={{
+              padding: '10px 18px',
+              borderRadius: 8,
+              border: '1px solid var(--border)',
+              background: 'var(--surface)',
+              color: 'var(--text)',
+              fontSize: '0.9rem',
+              fontWeight: 500,
+              textDecoration: 'none',
+            }}
+          >
+            ✉️ Email
+          </a>
+        )}
+      </div>
 
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginBottom: 24 }}>
         {p.profile_picture ? (
