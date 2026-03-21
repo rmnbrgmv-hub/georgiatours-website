@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useFavorites } from '../context/FavoritesContext';
 
 /** Get main photo URL/base64 for a tour (main flagged first, fallback to index 0). */
 export function getTourPhoto(tour) {
@@ -16,6 +17,8 @@ function typeLabel(type) {
  * Optional linkTo (whole card links), optional actions (e.g. Edit button; use stopPropagation if inside link).
  */
 export default function TourCard({ tour, linkTo, actions, providerAvailability }) {
+  const { isFav, toggle } = useFavorites();
+  const favorited = isFav(tour.id);
   const photo = getTourPhoto(tour);
   const tags = Array.isArray(tour.tags) ? tour.tags : [];
   const pricingType = tags.includes('per_person')
@@ -28,7 +31,21 @@ export default function TourCard({ tour, linkTo, actions, providerAvailability }
   const isAskForPrice = pricingType === 'ask' || tour.price == null || Number(tour.price) <= 0;
   const content = (
     <>
-      <div style={{ aspectRatio: '16/10', background: 'var(--s2, var(--bg-elevated))', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ aspectRatio: '16/10', background: 'var(--s2, var(--bg-elevated))', borderRadius: 12, overflow: 'hidden', position: 'relative' }}>
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(tour.id); }}
+          title={favorited ? 'Remove from wishlist' : 'Add to wishlist'}
+          style={{
+            position: 'absolute', top: 10, right: 10, zIndex: 2,
+            background: 'rgba(0,0,0,0.45)', border: 'none', borderRadius: '50%',
+            width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1,
+            color: favorited ? '#f43f5e' : '#fff',
+            transition: 'transform 0.15s',
+          }}
+        >
+          {favorited ? '♥' : '♡'}
+        </button>
         {photo ? (
           <img
             src={photo}

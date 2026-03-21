@@ -5,6 +5,7 @@ import { useLocale } from '../context/LocaleContext';
 import { supabase } from '../supabase';
 import { useServices } from '../hooks/useAppData';
 import TourCard from '../components/TourCard';
+import { SkeletonGrid } from '../components/Skeleton';
 import { getTourCardAvailabilityLine } from '../utils/providerSettings';
 
 export default function Explore() {
@@ -20,6 +21,7 @@ export default function Explore() {
       return () => clearTimeout(id);
     }
   }, [error]);
+  const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('');
   const [priceFilter, setPriceFilter] = useState(500);
@@ -52,6 +54,14 @@ export default function Explore() {
   }, [priceMax]);
 
   const filtered = tours.filter((tour) => {
+    if (search) {
+      const q = search.toLowerCase();
+      const match = (tour.name || '').toLowerCase().includes(q)
+        || (tour.provider || '').toLowerCase().includes(q)
+        || (tour.region || '').toLowerCase().includes(q)
+        || (tour.desc || '').toLowerCase().includes(q);
+      if (!match) return false;
+    }
     if (typeFilter !== 'all' && tour.type !== typeFilter) return false;
     if (regionFilter && tour.region !== regionFilter && tour.area !== regionFilter) return false;
     if ((Number(tour.price) || 0) > priceFilter) return false;
@@ -78,6 +88,22 @@ export default function Explore() {
       <p style={{ color: 'var(--text-muted)', marginBottom: 28 }}>{t('explore.subtitle')}</p>
 
       <div className="explore-filters" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 32 }}>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search tours, guides, regions…"
+          style={{
+            padding: '10px 16px',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
+            color: 'var(--text)',
+            fontSize: '0.9rem',
+            minWidth: 220,
+            flex: '1 1 220px',
+          }}
+        />
         <button
           onClick={() => setTypeFilter('all')}
           style={{
@@ -141,7 +167,7 @@ export default function Explore() {
       </div>
 
       {loading ? (
-        <div style={{ color: 'var(--text-muted)', padding: 60 }}>Loading…</div>
+        <SkeletonGrid count={6} />
       ) : (
         <div className="explore-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
           {filtered.map((t) => (

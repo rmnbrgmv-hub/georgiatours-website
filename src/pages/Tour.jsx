@@ -235,7 +235,8 @@ export default function Tour(props) {
       }
 
       setBooking(false);
-      navigate('/app/bookings');
+      const confirmParams = new URLSearchParams({ tour: tour.name, date: bookingDate, price: String(totalPrice) });
+      navigate(`/app/booking-confirmed?${confirmParams.toString()}`);
     } catch (err) {
       setBooking(false);
       setBookError(err?.message || 'Booking failed');

@@ -3,8 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { LocaleProvider } from './context/LocaleContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
+import { FavoritesProvider } from './context/FavoritesContext';
 import { supabase } from './supabase';
 import { mapUserRow, isProviderUser } from './hooks/useAppData';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import UnderConstruction, { checkBypass } from './pages/UnderConstruction';
 import Landing from './pages/Landing';
@@ -21,6 +24,7 @@ import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Tour from './pages/Tour';
 import Provider from './pages/Provider';
+import Favorites from './pages/Favorites';
 
 import ProviderDashboard from './pages/app/ProviderDashboard';
 import ProviderTours from './pages/app/ProviderTours';
@@ -35,6 +39,7 @@ import AdminProviderDetail from './pages/app/AdminProviderDetail';
 import AdminTours from './pages/app/AdminTours';
 import AdminApprovals from './pages/app/AdminApprovals';
 import AdminMessages from './pages/app/AdminMessages';
+import BookingConfirmation from './pages/app/BookingConfirmation';
 
 function AppRedirectWithUser({ user }) {
   return <AppRedirect user={user} />;
@@ -128,6 +133,9 @@ export default function App() {
     <HelmetProvider>
       <ThemeProvider>
         <LocaleProvider>
+          <ToastProvider>
+          <FavoritesProvider>
+          <ErrorBoundary>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={user ? <Navigate to="/app" replace /> : <Landing />} />
@@ -142,6 +150,7 @@ export default function App() {
                 <Route path="map" element={<Map />} />
                 <Route path="requests" element={<RequestsSwitch />} />
                 <Route path="bookings" element={<Bookings />} />
+                <Route path="favorites" element={<Favorites />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="tour/:id" element={<Tour />} />
@@ -157,11 +166,15 @@ export default function App() {
                 <Route path="admin-tours" element={<AdminTours />} />
                 <Route path="admin-approvals" element={<AdminApprovals />} />
                 <Route path="messages" element={<AdminMessages />} />
+                <Route path="booking-confirmed" element={<BookingConfirmation />} />
               </Route>
 
               <Route path="*" element={<Navigate to={user ? '/app' : '/'} replace />} />
             </Routes>
           </BrowserRouter>
+          </ErrorBoundary>
+          </FavoritesProvider>
+          </ToastProvider>
         </LocaleProvider>
       </ThemeProvider>
     </HelmetProvider>

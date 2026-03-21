@@ -58,6 +58,7 @@ export default function AppLayout({ user, setUser, onLogout }) {
     { to: '/app/map', label: t('nav.map'), icon: '🗺️' },
     { to: '/app/requests', label: t('nav.requests'), icon: '📢' },
     { to: '/app/bookings', label: t('nav.bookings'), icon: '📅' },
+    { to: '/app/favorites', label: 'Wishlist', icon: '♥' },
     { to: '/app/chat', label: t('nav.chat'), icon: '💬' },
     { to: '/app/profile', label: t('nav.profile'), icon: '👤' },
   ];

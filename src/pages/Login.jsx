@@ -106,6 +106,7 @@ export default function Login({ onLogin }) {
   roleRef.current = role;
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [vehicleStep, setVehicleStep] = useState(false);
   const [pendingUser, setPendingUser] = useState(null);
   const [providerMode, setProviderMode] = useState('individual');
@@ -558,6 +559,26 @@ export default function Login({ onLogin }) {
         >
           {loading ? (mode === 'signup' ? 'Creating…' : t('login.signingIn')) : mode === 'signup' ? 'Create account' : t('login.signIn')}
         </button>
+        {mode === 'login' && (
+          <button
+            type="button"
+            onClick={async () => {
+              if (!email.trim()) { setError('Enter your email first'); return; }
+              setLoading(true);
+              const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+                redirectTo: window.location.origin + '/login',
+              });
+              setLoading(false);
+              if (err) { setError(err.message); return; }
+              setError('');
+              setResetSent(true);
+            }}
+            style={{ width: '100%', marginTop: 12, padding: '10px', background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.9rem', cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            Forgot password?
+          </button>
+        )}
+        {resetSent && <p style={{ color: '#4CAF50', fontSize: '0.9rem', marginTop: 12 }}>Password reset email sent. Check your inbox.</p>}
       </form>
     </div>
   );
