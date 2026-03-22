@@ -20,6 +20,7 @@ export default function Chat() {
   const navigate = useNavigate();
   const [partners, setPartners] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [cameFromOutside, setCameFromOutside] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
@@ -111,12 +112,14 @@ export default function Chat() {
       const supportUser = partners.find((p) => p.isSupport);
       if (supportUser) {
         setSelected(supportUser);
+        setCameFromOutside(true);
         navigate('/app/chat', { replace: true, state: {} });
       }
-    } else if (partnerId && user?.role === 'admin') {
+    } else if (partnerId) {
       const p = partners.find((x) => String(x.id) === String(partnerId));
       if (p) {
         setSelected(p);
+        setCameFromOutside(true);
         navigate('/app/chat', { replace: true, state: {} });
       }
     }
@@ -383,7 +386,7 @@ export default function Chat() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
           <button
             type="button"
-            onClick={() => setSelected(null)}
+            onClick={() => { if (cameFromOutside) { navigate(-1); } else { setSelected(null); } }}
             style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}
           >
             ←
