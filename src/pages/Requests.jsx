@@ -10,6 +10,7 @@ import {
   newRequestInsertPayload,
 } from '../utils/supabaseMappers';
 import ExpandableItem from '../components/ExpandableItem';
+import ViewControls, { loadViewPrefs, saveViewPref } from '../components/ViewControls';
 
 export default function Requests() {
   const { user } = useOutletContext();
@@ -20,6 +21,9 @@ export default function Requests() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '' });
   const [toast, setToast] = useState('');
+  const rSavedViews = loadViewPrefs();
+  const [viewMode, setViewMode] = useState(rSavedViews.requests || 'list');
+  const [sortMode, setSortMode] = useState('new');
   useEffect(() => {
     if (requestsError) {
       setToast('Could not load requests. Try again.');
@@ -131,6 +135,8 @@ export default function Requests() {
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.8rem', marginBottom: 4 }}>{t('requests.title')}</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>{t('requests.subtitle')}</p>
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <ViewControls view={viewMode} setView={(v) => { setViewMode(v); saveViewPref('requests', v); }} sort={sortMode} setSort={setSortMode} />
         <button
           type="button"
           onClick={() => setShowForm(true)}
@@ -147,6 +153,7 @@ export default function Requests() {
         >
           {t('requests.newRequest')}
         </button>
+        </div>
       </div>
 
       {showForm && (
@@ -217,7 +224,7 @@ export default function Requests() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {requests.map((r) => (
+          {[...requests].sort((a, b) => sortMode === 'new' ? new Date(b.createdAt || 0) - new Date(a.createdAt || 0) : new Date(a.createdAt || 0) - new Date(b.createdAt || 0)).map((r) => (
             <ExpandableItem
               key={r.id}
               summary={

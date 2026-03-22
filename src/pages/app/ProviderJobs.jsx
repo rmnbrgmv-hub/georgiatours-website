@@ -4,12 +4,16 @@ import { supabase } from '../../supabase';
 import { mapBookingRow, isProviderUser } from '../../hooks/useAppData';
 import { useLocale } from '../../context/LocaleContext';
 import ExpandableItem from '../../components/ExpandableItem';
+import ViewControls, { loadViewPrefs, saveViewPref } from '../../components/ViewControls';
 
 export default function ProviderJobs() {
   const { user } = useOutletContext();
   const { t } = useLocale();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const jSavedViews = loadViewPrefs();
+  const [viewMode, setViewMode] = useState(jSavedViews.p_jobs || 'list');
+  const [sortMode, setSortMode] = useState('new');
 
   useEffect(() => {
     if (!user?.id) return;
@@ -58,7 +62,8 @@ export default function ProviderJobs() {
   return (
     <div style={{ maxWidth: 800 }}>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('nav.jobs')}</h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Bookings assigned to you.</p>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>Bookings assigned to you.</p>
+      <ViewControls view={viewMode} setView={(v) => { setViewMode(v); saveViewPref('p_jobs', v); }} sort={sortMode} setSort={setSortMode} />
 
       {jobs.length === 0 ? (
         <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -66,7 +71,7 @@ export default function ProviderJobs() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {jobs.map((j) => (
+          {[...jobs].sort((a, b) => sortMode === 'new' ? new Date(b.date || 0) - new Date(a.date || 0) : new Date(a.date || 0) - new Date(b.date || 0)).map((j) => (
             <ExpandableItem
               key={j.id}
               summary={

@@ -5,6 +5,7 @@ import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import { isProviderUser } from '../hooks/useAppData';
 import { buildBadgesWithSettings, getUserSettingsFromBadges } from '../utils/providerSettings';
+import ViewControls, { loadViewPrefs, saveViewPref } from '../components/ViewControls';
 
 function fmtTime(ts) {
   if (!ts) return '';
@@ -25,6 +26,9 @@ export default function Chat() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const endRef = useRef(null);
+  const cSavedViews = loadViewPrefs();
+  const [chatView, setChatView] = useState(cSavedViews.chat || 'list');
+  const [chatSort, setChatSort] = useState('new');
   const [showOfferForm, setShowOfferForm] = useState(false);
   const [offerPrice, setOfferPrice] = useState('');
   const [offerDate, setOfferDate] = useState('');
@@ -530,7 +534,8 @@ export default function Chat() {
   return (
     <div style={{ padding: '40px 24px 80px', maxWidth: 600, margin: '0 auto' }}>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.8rem', marginBottom: 4 }}>{t('chat.title')}</h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>{t('chat.subtitle')}</p>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>{t('chat.subtitle')}</p>
+      <ViewControls view={chatView} setView={(v) => { setChatView(v); saveViewPref('chat', v); }} sort={chatSort} setSort={setChatSort} />
       {loading ? (
         <div style={{ color: 'var(--text-muted)' }}>Loading…</div>
       ) : partners.length === 0 ? (
@@ -539,45 +544,48 @@ export default function Chat() {
           <Link to="/app/bookings" style={{ color: 'var(--gold)', marginTop: 12, display: 'inline-block' }}>{t('nav.bookings')}</Link>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {partners.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => setSelected(p)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: 16,
-                borderRadius: 'var(--radius)',
-                border: '1px solid var(--border)',
-                background: 'var(--surface)',
-                color: 'var(--text)',
-                cursor: 'pointer',
-                textAlign: 'left',
-                width: '100%',
-              }}
-            >
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: '50%',
-                  background: p.color || 'var(--gold)',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                }}
-              >
-                {(p.avatar || p.name || '').slice(0, 2).toUpperCase()}
-              </div>
-              <span style={{ fontWeight: 600 }}>{p.name}</span>
-            </button>
-          ))}
+        <div style={chatView === 'grid' ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 } : { display: 'flex', flexDirection: 'column', gap: chatView === 'compact' ? 2 : 8 }}>
+          {partners.map((p) => {
+            if (chatView === 'grid') {
+              return (
+                <button key={p.id} type="button" onClick={() => setSelected(p)}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', transition: 'all 0.15s' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: p.color || 'var(--gold)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '1rem' }}>
+                    {(p.avatar || p.name || '').slice(0, 2).toUpperCase()}
+                  </div>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem', textAlign: 'center' }}>{p.name}</span>
+                  {p.isSupport && <span style={{ fontSize: '0.65rem', background: 'var(--gold-soft)', color: 'var(--gold)', padding: '2px 6px', borderRadius: 20, fontWeight: 600 }}>Support</span>}
+                </button>
+              );
+            }
+            if (chatView === 'compact') {
+              return (
+                <button key={p.id} type="button" onClick={() => setSelected(p)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10, border: 'none', background: 'transparent', color: 'var(--text)', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'background 0.12s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-hover, var(--surface))'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: p.color || 'var(--gold)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.7rem', flexShrink: 0 }}>
+                    {(p.avatar || p.name || '').slice(0, 2).toUpperCase()}
+                  </div>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem', flex: 1 }}>{p.name}{p.isSupport ? ' ★' : ''}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>›</span>
+                </button>
+              );
+            }
+            return (
+              <button key={p.id} type="button" onClick={() => setSelected(p)}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: p.color || 'var(--gold)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '1rem' }}>
+                  {(p.avatar || p.name || '').slice(0, 2).toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontWeight: 600 }}>{p.name}</span>
+                  {p.isSupport && <span style={{ marginLeft: 8, fontSize: '0.7rem', background: 'var(--gold-soft)', color: 'var(--gold)', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Support</span>}
+                </div>
+                <span style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>›</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

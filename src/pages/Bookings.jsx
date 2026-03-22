@@ -4,6 +4,7 @@ import { supabase } from '../supabase';
 import { Link } from 'react-router-dom';
 import { mapBookingRow } from '../hooks/useAppData';
 import ExpandableItem from '../components/ExpandableItem';
+import ViewControls, { loadViewPrefs, saveViewPref } from '../components/ViewControls';
 
 const statusRank = { completed: 4, tourist_done: 3, provider_done: 3, confirmed: 2, active: 2, cancelled: 0 };
 
@@ -38,6 +39,9 @@ export default function Bookings() {
   const [loading, setLoading] = useState(true);
   const [reviewTarget, setReviewTarget] = useState(null);
   const completedBookingIds = useRef(new Set());
+  const savedViews = loadViewPrefs();
+  const [viewMode, setViewMode] = useState(savedViews.bookings || 'list');
+  const [sortMode, setSortMode] = useState('new');
 
   useEffect(() => {
     if (!user?.id) return;
@@ -110,7 +114,8 @@ export default function Bookings() {
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.8rem', marginBottom: 8 }}>
         Your bookings
       </h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>Same data as in the app.</p>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>Same data as in the app.</p>
+      <ViewControls view={viewMode} setView={(v) => { setViewMode(v); saveViewPref('bookings', v); }} sort={sortMode} setSort={setSortMode} />
       {loading ? (
         <div style={{ color: 'var(--text-muted)' }}>Loading…</div>
       ) : bookings.length === 0 ? (
@@ -120,7 +125,7 @@ export default function Bookings() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {bookings.map((b) => (
+          {[...bookings].sort((a, b) => sortMode === 'new' ? new Date(b.date || 0) - new Date(a.date || 0) : new Date(a.date || 0) - new Date(b.date || 0)).map((b) => (
             <ExpandableItem
               key={b.id}
               summary={

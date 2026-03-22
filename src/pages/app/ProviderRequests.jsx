@@ -4,6 +4,7 @@ import { supabase } from '../../supabase';
 import { mapRequestRow, isProviderUser } from '../../hooks/useAppData';
 import { providerOfferInsertPayload } from '../../utils/supabaseMappers';
 import { useLocale } from '../../context/LocaleContext';
+import ViewControls, { loadViewPrefs, saveViewPref } from '../../components/ViewControls';
 
 export default function ProviderRequests() {
   const { user } = useOutletContext();
@@ -13,6 +14,9 @@ export default function ProviderRequests() {
   const [loading, setLoading] = useState(true);
   const [offerModal, setOfferModal] = useState(null);
   const [offerForm, setOfferForm] = useState({ price: '', msg: '' });
+  const prSavedViews = loadViewPrefs();
+  const [viewMode, setViewMode] = useState(prSavedViews.p_requests || 'list');
+  const [sortMode, setSortMode] = useState('new');
 
   const providerType = user?.type || user?.provider_type;
 
@@ -59,7 +63,8 @@ export default function ProviderRequests() {
   return (
     <div style={{ maxWidth: 800 }}>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('nav.requests')}</h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Open trip requests — send an offer.</p>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>Open trip requests — send an offer.</p>
+      <ViewControls view={viewMode} setView={(v) => { setViewMode(v); saveViewPref('p_requests', v); }} sort={sortMode} setSort={setSortMode} />
 
       {activeJobOffers.length > 0 && (
         <div style={{ marginBottom: 32 }}>
@@ -87,7 +92,7 @@ export default function ProviderRequests() {
         <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>No open requests matching your type.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {openRequests.map((r) => (
+          {[...openRequests].sort((a, b) => sortMode === 'new' ? new Date(b.createdAt || 0) - new Date(a.createdAt || 0) : new Date(a.createdAt || 0) - new Date(b.createdAt || 0)).map((r) => (
             <div key={r.id} className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
                 <div>

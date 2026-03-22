@@ -3,6 +3,7 @@ import { useOutletContext, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import { useLocale } from '../../context/LocaleContext';
 import CollapsibleSection from '../../components/CollapsibleSection';
+import ViewControls, { loadViewPrefs, saveViewPref } from '../../components/ViewControls';
 
 export default function AdminMessages() {
   const { user } = useOutletContext();
@@ -11,6 +12,9 @@ export default function AdminMessages() {
   const [users, setUsers] = useState([]);
   const [lastMessageByUserId, setLastMessageByUserId] = useState({});
   const [loading, setLoading] = useState(true);
+  const amSavedViews = loadViewPrefs();
+  const [viewMode, setViewMode] = useState(amSavedViews.a_messages || 'grid');
+  const [sortMode, setSortMode] = useState('new');
 
   useEffect(() => {
     supabase
@@ -63,6 +67,20 @@ export default function AdminMessages() {
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
+  const sortUsers = (arr) => {
+    return [...arr].sort((a, b) => {
+      const ta = lastMessageByUserId[a.id]?.created_at || '';
+      const tb = lastMessageByUserId[b.id]?.created_at || '';
+      return sortMode === 'new' ? tb.localeCompare(ta) : ta.localeCompare(tb);
+    });
+  };
+
+  const gridStyle = viewMode === 'list'
+    ? { display: 'flex', flexDirection: 'column', gap: 8 }
+    : viewMode === 'compact'
+      ? { display: 'flex', flexDirection: 'column', gap: 4 }
+      : { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 };
+
   const UserCard = ({ u }) => (
     <div key={u.id} className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
@@ -107,14 +125,15 @@ export default function AdminMessages() {
   return (
     <div>
       <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.75rem', marginBottom: 8 }}>{t('nav.messages')}</h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Open a chat with any user.</p>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>Open a chat with any user.</p>
+      <ViewControls view={viewMode} setView={(v) => { setViewMode(v); saveViewPref('a_messages', v); }} sort={sortMode} setSort={setSortMode} />
 
       <CollapsibleSection title={`Tourists (${tourists.length})`} icon="🧳" defaultOpen={true}>
         {tourists.length === 0 ? (
           <div className="glass" style={{ padding: 24, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No tourists.</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-            {tourists.map((u) => <UserCard key={u.id} u={u} />)}
+          <div style={gridStyle}>
+            {sortUsers(tourists).map((u) => <UserCard key={u.id} u={u} />)}
           </div>
         )}
       </CollapsibleSection>
@@ -123,8 +142,8 @@ export default function AdminMessages() {
         {guides.length === 0 ? (
           <div className="glass" style={{ padding: 24, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No guides.</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-            {guides.map((u) => <UserCard key={u.id} u={u} />)}
+          <div style={gridStyle}>
+            {sortUsers(guides).map((u) => <UserCard key={u.id} u={u} />)}
           </div>
         )}
       </CollapsibleSection>
@@ -133,8 +152,8 @@ export default function AdminMessages() {
         {drivers.length === 0 ? (
           <div className="glass" style={{ padding: 24, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No drivers.</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-            {drivers.map((u) => <UserCard key={u.id} u={u} />)}
+          <div style={gridStyle}>
+            {sortUsers(drivers).map((u) => <UserCard key={u.id} u={u} />)}
           </div>
         )}
       </CollapsibleSection>
