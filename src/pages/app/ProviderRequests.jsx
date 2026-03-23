@@ -89,21 +89,51 @@ export default function ProviderRequests() {
 
       <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 12 }}>Open requests</h2>
       {openRequests.length === 0 ? (
-        <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>No open requests matching your type.</div>
+        <div style={{textAlign:'center',padding:'60px 20px',color:'var(--text-muted)'}}>
+          <div style={{fontSize:'2.5rem',marginBottom:12}}>📩</div>
+          <div style={{fontSize:'1rem',fontWeight:500,marginBottom:6}}>No requests yet</div>
+          <div style={{fontSize:'0.85rem'}}>Tourist requests matching your tours will appear here</div>
+        </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {[...openRequests].sort((a, b) => sortMode === 'new' ? new Date(b.createdAt || 0) - new Date(a.createdAt || 0) : new Date(a.createdAt || 0) - new Date(b.createdAt || 0)).map((r) => (
-            <div key={r.id} className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-                <div>
-                  <div style={{ fontWeight: 600, marginBottom: 4 }}>{r.title}</div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{r.tourist} · {r.region} · {r.type} · {r.date} · Budget ₾{r.budget}</div>
-                  {r.desc && <p style={{ marginTop: 8, fontSize: '0.9rem', color: 'var(--text-dim)' }}>{r.desc}</p>}
+        <div style={viewMode === 'grid' ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 } : { display: 'flex', flexDirection: 'column', gap: viewMode === 'compact' ? 4 : 12 }}>
+          {[...openRequests].sort((a, b) => sortMode === 'new' ? new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0) : new Date(a.createdAt || a.created_at || 0) - new Date(b.createdAt || b.created_at || 0)).map((r) => {
+            if (viewMode === 'compact') {
+              return (
+                <div key={r.id} className="glass" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem', flex: 1 }}>{r.title}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{r.region} · {r.type}</span>
+                  <span style={{ color: 'var(--gold)', fontSize: '0.82rem' }}>₾{r.budget}</span>
+                  <button type="button" onClick={() => setOfferModal(r)} style={{ padding: '4px 12px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>Offer</button>
                 </div>
-                <button type="button" onClick={() => setOfferModal(r)} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, cursor: 'pointer' }}>Send offer</button>
+              );
+            }
+
+            if (viewMode === 'grid') {
+              return (
+                <div key={r.id} className="glass" style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                  <div style={{ fontWeight: 600, marginBottom: 6 }}>{r.title}</div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 4 }}>{r.tourist} · {r.region} · {r.type}</div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 6 }}>{r.date}</div>
+                  <div style={{ fontFamily: 'var(--font-classic)', fontSize: '1.15rem', color: 'var(--gold)', marginBottom: 8 }}>₾{r.budget}</div>
+                  {r.desc && <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: 8 }}>{r.desc}</p>}
+                  <button type="button" onClick={() => setOfferModal(r)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', width: '100%' }}>Send offer</button>
+                </div>
+              );
+            }
+
+            return (
+              <div key={r.id} className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>{r.title}</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{r.tourist} · {r.region} · {r.type} · {r.date} · Budget ₾{r.budget}</div>
+                    {r.desc && <p style={{ marginTop: 8, fontSize: '0.9rem', color: 'var(--text-dim)' }}>{r.desc}</p>}
+                  </div>
+                  <button type="button" onClick={() => setOfferModal(r)} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, cursor: 'pointer' }}>Send offer</button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

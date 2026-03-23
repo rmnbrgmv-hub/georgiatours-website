@@ -14,6 +14,13 @@ function fmtTime(ts) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
+function saveLastChatPreview(text) {
+  try { localStorage.setItem('tourbid-last-chat-msg', text || ''); } catch {}
+}
+export function getLastChatPreview() {
+  try { return localStorage.getItem('tourbid-last-chat-msg') || ''; } catch { return ''; }
+}
+
 export default function Chat() {
   const { user } = useOutletContext();
   const { t } = useLocale();
@@ -145,8 +152,7 @@ export default function Chat() {
         setMessages([]);
         return;
       }
-      setMessages(
-        (data || []).map((r) => ({
+      const mapped = (data || []).map((r) => ({
           id: r.id,
           from: r.from_id,
           from_id: r.from_id,
@@ -154,8 +160,9 @@ export default function Chat() {
           text: r.text,
           time: fmtTime(r.created_at),
           isMe: String(r.from_id) === String(uid),
-        }))
-      );
+        }));
+      setMessages(mapped);
+      if (mapped.length > 0) saveLastChatPreview(mapped[mapped.length - 1].text);
     })();
     return () => {
       alive = false;
@@ -176,10 +183,9 @@ export default function Chat() {
           if (!r) return;
           if (String(r.from_id) !== String(pid) && String(r.from_id) !== String(uid)) return;
           if (String(r.to_id) !== String(uid) && String(r.to_id) !== String(pid)) return;
-          setMessages((prev) => [
-            ...prev,
-            { id: r.id, from: r.from_id, from_id: r.from_id, to_id: r.to_id, text: r.text, time: fmtTime(r.created_at), isMe: String(r.from_id) === String(uid) },
-          ]);
+          const newMsg = { id: r.id, from: r.from_id, from_id: r.from_id, to_id: r.to_id, text: r.text, time: fmtTime(r.created_at), isMe: String(r.from_id) === String(uid) };
+          setMessages((prev) => [...prev, newMsg]);
+          saveLastChatPreview(r.text);
         }
       )
       .subscribe();

@@ -27,7 +27,7 @@ export default function Profile() {
           unavailable_dates: [],
           working_days: [1, 2, 3, 4, 5],
           max_bookings_per_day: 1,
-          notice_hours: 24,
+          notice_hours: 0,
         }
   );
   const fileInputRef = useRef(null);

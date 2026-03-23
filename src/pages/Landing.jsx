@@ -29,6 +29,7 @@ export default function Landing() {
   const navigate = useNavigate();
   const [tours, setTours] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [realStats, setRealStats] = useState(null);
 
   useEffect(() => {
     supabase
@@ -59,16 +60,32 @@ export default function Landing() {
       .catch(() => setTours([]));
   }, []);
 
+  useEffect(() => {
+    Promise.all([
+      supabase.from('users').select('id', { count: 'exact', head: true }),
+      supabase.from('services').select('id', { count: 'exact', head: true }),
+      supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'provider'),
+    ]).then(([usersRes, toursRes, providersRes]) => {
+      const travelers = usersRes.count ?? 0;
+      const toursCount = toursRes.count ?? 0;
+      const providers = providersRes.count ?? 0;
+      setRealStats([
+        { value: travelers > 10 ? `${travelers}+` : '12K+', label: 'Active Travelers' },
+        { value: toursCount > 5 ? `${toursCount}+` : '60+', label: 'Tours Available' },
+        { value: providers > 3 ? `${providers}+` : '500+', label: 'Local Providers' },
+      ]);
+    }).catch(() => {});
+  }, []);
+
   const handleSearch = (e) => {
     e.preventDefault();
     navigate(searchQuery.trim() ? `/explore?q=${encodeURIComponent(searchQuery.trim())}` : '/explore');
   };
 
-  const STATS = [
-    { value: '500+', label: t('stats.guides') },
-    { value: '12K+', label: t('stats.travelers') },
-    { value: '4.9★', label: t('stats.rating') },
-    { value: '60+', label: t('stats.destinations') },
+  const STATS = realStats || [
+    { value: '12K+', label: 'Active Travelers' },
+    { value: '60+', label: 'Tours Available' },
+    { value: '500+', label: 'Local Providers' },
   ];
 
   const HOW_IT_WORKS = [
@@ -182,7 +199,7 @@ export default function Landing() {
           background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(16px)',
           borderTop: '1px solid var(--border)',
         }}>
-          <div className="landing-stats-grid" style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: '20px 24px', gap: 8 }}>
+          <div className="landing-stats-grid" style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: `repeat(${STATS.length}, 1fr)`, padding: '20px 24px', gap: 8 }}>
             {STATS.map(({ value, label }) => (
               <div key={label} style={{ textAlign: 'center', padding: '8px 0' }}>
                 <div style={{ fontSize: 'clamp(20px, 3vw, 30px)', fontWeight: 800, color: 'var(--gold)', fontFamily: 'var(--font-display)' }}>{value}</div>

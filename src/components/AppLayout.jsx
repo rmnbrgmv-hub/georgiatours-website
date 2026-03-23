@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useLocale } from '../context/LocaleContext';
 import { useTheme } from '../context/ThemeContext';
 import { isProviderUser } from '../hooks/useAppData';
+import { getLastChatPreview } from '../pages/Chat';
 
 function useMediaQuery(query) {
   const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
@@ -103,13 +104,15 @@ export default function AppLayout({ user, setUser, onLogout }) {
       <aside
         className={`app-layout-sidebar ${isMobile && sidebarOpen ? 'mobile-open' : ''}`}
         style={{
-          width: sidebarOpen ? 260 : 72,
+          width: isMobile ? (sidebarOpen ? 260 : 0) : (sidebarOpen ? 260 : 72),
           flexShrink: 0,
           background: 'var(--bg-elevated)',
-          borderRight: '1px solid var(--border)',
+          borderRight: isMobile && !sidebarOpen ? 'none' : '1px solid var(--border)',
           display: 'flex',
           flexDirection: 'column',
           transition: 'width 0.2s ease',
+          overflow: isMobile && !sidebarOpen ? 'hidden' : undefined,
+          ...(isMobile && sidebarOpen ? { position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100 } : {}),
         }}
       >
         <div style={{ padding: '20px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -187,16 +190,28 @@ export default function AppLayout({ user, setUser, onLogout }) {
               </NavLink>
             ))
           ) : (
-            nav?.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                style={({ isActive }) => ({ ...linkStyle(isActive), marginBottom: 4 })}
-              >
-                <span>{item.icon}</span>
-                {sidebarOpen && <span>{item.label}</span>}
-              </NavLink>
-            ))
+            nav?.map((item) => {
+              const isChat = item.to === '/app/chat' || item.to === '/app/messages';
+              const chatPreview = isChat ? getLastChatPreview() : '';
+              const isChatPage = location.pathname.startsWith('/app/chat') || location.pathname.startsWith('/app/messages');
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  style={({ isActive }) => ({ ...linkStyle(isActive), marginBottom: 4, flexDirection: sidebarOpen ? 'row' : 'column' })}
+                >
+                  <span>{item.icon}</span>
+                  {sidebarOpen && (
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                      <span>{item.label}</span>
+                      {isChat && chatPreview && !isChatPage && (
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140, marginTop: 2 }}>{chatPreview}</span>
+                      )}
+                    </div>
+                  )}
+                </NavLink>
+              );
+            })
           )}
         </div>
       </aside>

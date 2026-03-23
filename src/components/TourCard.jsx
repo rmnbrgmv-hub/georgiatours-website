@@ -59,9 +59,12 @@ export default function TourCard({ tour, linkTo, actions, providerAvailability }
             }}
           />
         ) : (
-          <span style={{ fontSize: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            {tour.emoji || '🗺️'}
-          </span>
+          <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #1D9E75 0%, #0F6E56 50%, #C9A84C 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: 4 }}>{tour.type === 'transfer' || tour.type === 'van' ? '🚐' : '🏔️'}</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 500, letterSpacing: 1, opacity: 0.9 }}>{tour.region || 'Georgia'}</div>
+            </div>
+          </div>
         )}
       </div>
       <div style={{ padding: 20 }}>
@@ -77,15 +80,22 @@ export default function TourCard({ tour, linkTo, actions, providerAvailability }
         >
           {typeLabel(tour.type)}
         </span>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.05rem', marginTop: 10, marginBottom: 6 }}>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.05rem', marginTop: 10, marginBottom: 2 }}>
           {tour.name}
         </h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: actions ? 12 : 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4, flexWrap: 'wrap' }}>
+          {tour.verified && <span style={{ color: '#4CAF50' }}>✓ Verified</span>}
+          {tour.total_bookings > 0 && <span>{tour.total_bookings} bookings</span>}
+        </div>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: 0 }}>
           {tour.region} · {tour.duration} · ⭐ {tour.rating || '—'}
+        </p>
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0', lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+          {tour.description || tour.desc || `Explore the beauty of ${tour.region || 'Georgia'}`}
         </p>
         <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.35rem', color: 'var(--gold)' }}>
           {isAskForPrice ? (
-            <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)', fontSize: '0.95rem' }}>
+            <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 6, background: 'var(--cyan, #1D9E75)', color: '#fff', border: 'none', fontSize: '0.85rem', fontWeight: 500 }}>
               Ask for price
             </span>
           ) : (

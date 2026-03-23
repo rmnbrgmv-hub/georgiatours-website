@@ -223,65 +223,86 @@ export default function Requests() {
           <p style={{ color: 'var(--text-muted)', marginBottom: 0 }}>{t('requests.noRequests')}</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {[...requests].sort((a, b) => sortMode === 'new' ? new Date(b.createdAt || 0) - new Date(a.createdAt || 0) : new Date(a.createdAt || 0) - new Date(b.createdAt || 0)).map((r) => (
-            <ExpandableItem
-              key={r.id}
-              summary={
-                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
-                  <span style={{ fontWeight: 600 }}>{r.title}</span>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{r.region} · {r.type} · {r.date || '—'}</span>
-                  <span style={{ color: 'var(--gold)' }}>₾{r.budget || '—'}</span>
-                  <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, background: r.status === 'completed' ? 'var(--cyan-soft)' : r.status === 'booked' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: r.status === 'completed' ? 'var(--cyan)' : r.status === 'booked' ? 'var(--cyan)' : 'var(--gold)' }}>
-                    {r.status}
-                  </span>
-                  {(offersByRequestId[r.id] || []).length > 0 && (
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({(offersByRequestId[r.id] || []).length} offers)</span>
+        <div style={viewMode === 'grid' ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 } : { display: 'flex', flexDirection: 'column', gap: viewMode === 'compact' ? 4 : 8 }}>
+          {[...requests].sort((a, b) => sortMode === 'new' ? new Date(b.createdAt || 0) - new Date(a.createdAt || 0) : new Date(a.createdAt || 0) - new Date(b.createdAt || 0)).map((r) => {
+            const offerCount = (offersByRequestId[r.id] || []).length;
+            const statusBadge = (
+              <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, background: r.status === 'completed' ? 'var(--cyan-soft)' : r.status === 'booked' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: r.status === 'completed' ? 'var(--cyan)' : r.status === 'booked' ? 'var(--cyan)' : 'var(--gold)' }}>{r.status}</span>
+            );
+
+            if (viewMode === 'compact') {
+              return (
+                <div key={r.id} className="glass" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{r.title}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{r.region} · {r.type}</span>
+                  <span style={{ color: 'var(--gold)', fontSize: '0.82rem' }}>₾{r.budget || '—'}</span>
+                  {statusBadge}
+                  {offerCount > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({offerCount})</span>}
+                </div>
+              );
+            }
+
+            if (viewMode === 'grid') {
+              return (
+                <div key={r.id} className="glass" style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.title}</div>
+                    {statusBadge}
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 4 }}>{r.region} · {r.type} · {r.date || '—'}</div>
+                  <div style={{ fontFamily: 'var(--font-classic)', fontSize: '1.15rem', color: 'var(--gold)', marginBottom: 6 }}>₾{r.budget || '—'}</div>
+                  {r.desc && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 6 }}>{r.desc}</p>}
+                  {offerCount > 0 && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{offerCount} offer{offerCount !== 1 ? 's' : ''} received</div>}
+                  {r.status === 'booked' && (offersByRequestId[r.id] || []).some((o) => o.status === 'provider_confirmed') && (
+                    <button type="button" onClick={() => confirmRequestCompleted(r.id)} style={{ marginTop: 8, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}>Confirm completed</button>
                   )}
-                </span>
-              }
-            >
-              {r.desc && <p style={{ margin: '0 0 12px', fontSize: '0.9rem' }}>{r.desc}</p>}
-              {(offersByRequestId[r.id] || []).length > 0 ? (
-                <div style={{ marginTop: 8 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: 8 }}>{t('requests.offers')}</div>
-                  {(offersByRequestId[r.id] || []).map((o) => (
-                    <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--surface-hover)', borderRadius: 8, marginBottom: 8 }}>
-                      <div>
-                        <span style={{ fontWeight: 500 }}>{o.provider}</span>
-                        <span style={{ color: 'var(--gold)', marginLeft: 8 }}>₾{o.price}</span>
-                        {o.description && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 4 }}>{o.description}</p>}
+                </div>
+              );
+            }
+
+            return (
+              <ExpandableItem
+                key={r.id}
+                summary={
+                  <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+                    <span style={{ fontWeight: 600 }}>{r.title}</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{r.region} · {r.type} · {r.date || '—'}</span>
+                    <span style={{ color: 'var(--gold)' }}>₾{r.budget || '—'}</span>
+                    {statusBadge}
+                    {offerCount > 0 && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({offerCount} offers)</span>}
+                  </span>
+                }
+              >
+                {r.desc && <p style={{ margin: '0 0 12px', fontSize: '0.9rem' }}>{r.desc}</p>}
+                {offerCount > 0 ? (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: 8 }}>{t('requests.offers')}</div>
+                    {(offersByRequestId[r.id] || []).map((o) => (
+                      <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--surface-hover)', borderRadius: 8, marginBottom: 8 }}>
+                        <div>
+                          <span style={{ fontWeight: 500 }}>{o.provider}</span>
+                          <span style={{ color: 'var(--gold)', marginLeft: 8 }}>₾{o.price}</span>
+                          {o.description && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 4 }}>{o.description}</p>}
+                        </div>
+                        {r.status === 'open' && o.status !== 'accepted' && (
+                          <button type="button" onClick={() => acceptOffer(r.id, o)} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>{t('requests.acceptOffer')}</button>
+                        )}
+                        {o.status === 'accepted' && <span style={{ fontSize: '0.8rem', color: 'var(--cyan)' }}>Accepted</span>}
+                        {o.status === 'provider_confirmed' && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Provider marked done</span>}
                       </div>
-                      {r.status === 'open' && o.status !== 'accepted' && (
-                        <button
-                          type="button"
-                          onClick={() => acceptOffer(r.id, o)}
-                          style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
-                        >
-                          {t('requests.acceptOffer')}
-                        </button>
-                      )}
-                      {o.status === 'accepted' && <span style={{ fontSize: '0.8rem', color: 'var(--cyan)' }}>Accepted</span>}
-                      {o.status === 'provider_confirmed' && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Provider marked done</span>}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>No offers yet.</p>
-              )}
-              {r.status === 'booked' && (offersByRequestId[r.id] || []).some((o) => o.status === 'provider_confirmed') && (
-                <div style={{ marginTop: 12 }}>
-                  <button
-                    type="button"
-                    onClick={() => confirmRequestCompleted(r.id)}
-                    style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}
-                  >
-                    Confirm completed
-                  </button>
-                </div>
-              )}
-            </ExpandableItem>
-          ))}
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>No offers yet.</p>
+                )}
+                {r.status === 'booked' && (offersByRequestId[r.id] || []).some((o) => o.status === 'provider_confirmed') && (
+                  <div style={{ marginTop: 12 }}>
+                    <button type="button" onClick={() => confirmRequestCompleted(r.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>Confirm completed</button>
+                  </div>
+                )}
+              </ExpandableItem>
+            );
+          })}
         </div>
       )}
     </div>

@@ -66,57 +66,94 @@ export default function ProviderJobs() {
       <ViewControls view={viewMode} setView={(v) => { setViewMode(v); saveViewPref('p_jobs', v); }} sort={sortMode} setSort={setSortMode} />
 
       {jobs.length === 0 ? (
-        <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center', color: 'var(--text-muted)' }}>
-          No jobs yet — tourists will book you after you respond to their requests
+        <div style={{textAlign:'center',padding:'60px 20px',color:'var(--text-muted)'}}>
+          <div style={{fontSize:'2.5rem',marginBottom:12}}>🗂️</div>
+          <div style={{fontSize:'1rem',fontWeight:500,marginBottom:6}}>No jobs yet</div>
+          <div style={{fontSize:'0.85rem'}}>Accepted bookings and active jobs appear here</div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {[...jobs].sort((a, b) => sortMode === 'new' ? new Date(b.date || 0) - new Date(a.date || 0) : new Date(a.date || 0) - new Date(b.date || 0)).map((j) => (
-            <ExpandableItem
-              key={j.id}
-              summary={
-                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
-                  <span style={{ fontWeight: 600 }}>{j.service}</span>
-                  <span style={{ color: 'var(--text-muted)' }}>{j.tourist} · {j.date}</span>
-                  {j.group_size != null && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>👥 {j.group_size}</span>}
-                  <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{j.total_price ?? j.amount}</span>
-                  <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, background: j.status === 'completed' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: j.status === 'completed' ? 'var(--cyan)' : 'var(--gold)' }}>{j.status}</span>
-                  {isStuck48h(j) && <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: 8, background: 'rgba(201,168,76,0.2)', color: 'var(--gold)', fontWeight: 600 }}>⚠️ Awaiting confirmation 48h+</span>}
-                </span>
-              }
-            >
-              <p style={{ margin: '0 0 8px' }}><strong>Tourist:</strong> {j.tourist}</p>
-              <p style={{ margin: '0 0 8px' }}>
-                <strong>Date:</strong> {j.date}
-                {' · '}
-                <strong>Group:</strong> {j.group_size ?? 1}
-                {' · '}
-                <strong>Total:</strong> ₾{j.total_price ?? j.amount}
-              </p>
-              <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+        <div style={viewMode === 'grid' ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 } : { display: 'flex', flexDirection: 'column', gap: viewMode === 'compact' ? 4 : 8 }}>
+          {[...jobs].sort((a, b) => sortMode === 'new' ? new Date(b.date || b.created_at || 0) - new Date(a.date || a.created_at || 0) : new Date(a.date || a.created_at || 0) - new Date(b.date || b.created_at || 0)).map((j) => {
+            const statusBadge = (
+              <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, background: j.status === 'completed' ? 'var(--cyan-soft)' : 'var(--gold-soft)', color: j.status === 'completed' ? 'var(--cyan)' : 'var(--gold)' }}>{j.status}</span>
+            );
+            const actions = (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
                 {j.status === 'pending' && (
                   <>
-                    <button type="button" onClick={() => accept(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Accept</button>
-                    <button type="button" onClick={() => decline(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer' }}>Decline</button>
+                    <button type="button" onClick={() => accept(j.id)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>Accept</button>
+                    <button type="button" onClick={() => decline(j.id)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', fontSize: '0.8rem', cursor: 'pointer' }}>Decline</button>
                   </>
                 )}
-                {j.status !== 'cancelled' && j.status !== 'completed' && (
-                  <button type="button" onClick={() => decline(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                    Cancel
-                  </button>
+                {j.status !== 'cancelled' && j.status !== 'completed' && j.status !== 'pending' && (
+                  <button type="button" onClick={() => decline(j.id)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', fontSize: '0.8rem', cursor: 'pointer' }}>Cancel</button>
                 )}
                 {j.status === 'confirmed' && (
-                  <button type="button" onClick={() => startJob(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Start job</button>
+                  <button type="button" onClick={() => startJob(j.id)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>Start job</button>
                 )}
                 {j.status === 'active' && (
-                  <button type="button" onClick={() => markDone(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, cursor: 'pointer' }}>Mark done</button>
+                  <button type="button" onClick={() => markDone(j.id)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>Mark done</button>
                 )}
                 {(j.status === 'provider_done' || j.status === 'tourist_done') && (
-                  <button type="button" onClick={() => complete(j.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Complete</button>
+                  <button type="button" onClick={() => complete(j.id)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>Complete</button>
                 )}
               </div>
-            </ExpandableItem>
-          ))}
+            );
+
+            if (viewMode === 'compact') {
+              return (
+                <div key={j.id} className="glass" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{j.service}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{j.tourist} · {j.date}</span>
+                  <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)', fontSize: '0.85rem' }}>₾{j.total_price ?? j.amount}</span>
+                  {statusBadge}
+                  {isStuck48h(j) && <span style={{ fontSize: '0.7rem', color: 'var(--gold)', fontWeight: 600 }}>⚠️ 48h+</span>}
+                </div>
+              );
+            }
+
+            if (viewMode === 'grid') {
+              return (
+                <div key={j.id} className="glass" style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{j.service}</div>
+                    {statusBadge}
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 4 }}>{j.tourist} · {j.date}</div>
+                  {j.group_size != null && <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 4 }}>👥 {j.group_size}</div>}
+                  <div style={{ fontFamily: 'var(--font-classic)', fontSize: '1.15rem', color: 'var(--gold)', marginBottom: 4 }}>₾{j.total_price ?? j.amount}</div>
+                  {isStuck48h(j) && <div style={{ fontSize: '0.7rem', color: 'var(--gold)', fontWeight: 600, marginBottom: 4 }}>⚠️ Awaiting confirmation 48h+</div>}
+                  {actions}
+                </div>
+              );
+            }
+
+            return (
+              <ExpandableItem
+                key={j.id}
+                summary={
+                  <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+                    <span style={{ fontWeight: 600 }}>{j.service}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{j.tourist} · {j.date}</span>
+                    {j.group_size != null && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>👥 {j.group_size}</span>}
+                    <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{j.total_price ?? j.amount}</span>
+                    {statusBadge}
+                    {isStuck48h(j) && <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: 8, background: 'rgba(201,168,76,0.2)', color: 'var(--gold)', fontWeight: 600 }}>⚠️ Awaiting confirmation 48h+</span>}
+                  </span>
+                }
+              >
+                <p style={{ margin: '0 0 8px' }}><strong>Tourist:</strong> {j.tourist}</p>
+                <p style={{ margin: '0 0 8px' }}>
+                  <strong>Date:</strong> {j.date}
+                  {' · '}
+                  <strong>Group:</strong> {j.group_size ?? 1}
+                  {' · '}
+                  <strong>Total:</strong> ₾{j.total_price ?? j.amount}
+                </p>
+                {actions}
+              </ExpandableItem>
+            );
+          })}
         </div>
       )}
     </div>

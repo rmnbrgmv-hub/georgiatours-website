@@ -21,6 +21,7 @@ export default function Explore() {
       return () => clearTimeout(id);
     }
   }, [error]);
+  const [showWelcome, setShowWelcome] = useState(!localStorage.getItem('tourbid-welcome-dismissed'));
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('');
@@ -76,6 +77,25 @@ export default function Explore() {
         <div style={{ marginBottom: 16, padding: 12, borderRadius: 8, background: 'rgba(224,92,92,.1)', border: '1px solid rgba(224,92,92,.3)', color: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <span>{toast}</span>
           <button type="button" onClick={() => { refetch(); setToast(''); }} style={{ padding: '6px 12px', borderRadius: 6, border: 'none', background: 'var(--surface)', cursor: 'pointer', fontSize: '0.85rem' }}>Retry</button>
+        </div>
+      )}
+      {showWelcome && (
+        <div style={{
+          background: 'linear-gradient(135deg, #1D9E75, #0F6E56)',
+          color: '#fff',
+          borderRadius: 12,
+          padding: 20,
+          marginBottom: 16,
+          position: 'relative',
+        }}>
+          <button
+            type="button"
+            onClick={() => { localStorage.setItem('tourbid-welcome-dismissed', '1'); setShowWelcome(false); }}
+            style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', color: '#fff', fontSize: '1.3rem', cursor: 'pointer', lineHeight: 1, opacity: 0.8 }}
+            aria-label="Dismiss"
+          >&times;</button>
+          <div style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 6 }}>Welcome to TourBid! 🎉</div>
+          <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Browse tours, request custom trips, and chat with local providers.</div>
         </div>
       )}
       <Helmet>

@@ -119,64 +119,77 @@ export default function Bookings() {
       {loading ? (
         <div style={{ color: 'var(--text-muted)' }}>Loading…</div>
       ) : bookings.length === 0 ? (
-        <div className="glass" style={{ padding: 40, borderRadius: 'var(--radius)', textAlign: 'center' }}>
-          <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>No bookings yet.</p>
-          <Link to="/app/explore" style={{ color: 'var(--gold)', fontWeight: 500 }}>Explore tours</Link>
+        <div style={{textAlign:'center',padding:'60px 20px',color:'var(--text-muted)'}}>
+          <div style={{fontSize:'2.5rem',marginBottom:12}}>📋</div>
+          <div style={{fontSize:'1rem',fontWeight:500,marginBottom:6}}>No bookings yet</div>
+          <div style={{fontSize:'0.85rem'}}>Your confirmed trips will appear here</div>
+          <Link to="/app/explore" style={{ color: 'var(--gold)', fontWeight: 500, display: 'inline-block', marginTop: 16 }}>Explore tours</Link>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {[...bookings].sort((a, b) => sortMode === 'new' ? new Date(b.date || 0) - new Date(a.date || 0) : new Date(a.date || 0) - new Date(b.date || 0)).map((b) => (
-            <ExpandableItem
-              key={b.id}
-              summary={
-                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
-                  <span style={{ fontWeight: 600 }}>{b.service}</span>
-                  <span style={{ color: 'var(--text-muted)' }}>{b.date}</span>
-                  <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{b.amount}</span>
-                  <span
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: 20,
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      background: b.status === 'completed' ? 'var(--cyan-soft)' : b.status === 'tourist_done' ? 'var(--surface-hover)' : 'var(--gold-soft)',
-                      color: b.status === 'completed' ? 'var(--cyan)' : b.status === 'tourist_done' ? 'var(--text-muted)' : 'var(--gold)',
-                    }}
-                  >
-                    {b.status}
-                  </span>
-                </span>
-              }
-            >
-              <p style={{ margin: '0 0 12px', color: 'var(--text-muted)' }}><strong>Provider:</strong> {b.provider}</p>
-              <p style={{ margin: '0 0 12px' }}><strong>Date:</strong> {b.date} · <strong>Amount:</strong> ₾{b.amount}</p>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+        <div style={viewMode === 'grid' ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 } : { display: 'flex', flexDirection: 'column', gap: viewMode === 'compact' ? 4 : 8 }}>
+          {[...bookings].sort((a, b) => sortMode === 'new' ? new Date(b.date || 0) - new Date(a.date || 0) : new Date(a.date || 0) - new Date(b.date || 0)).map((b) => {
+            const statusBadge = (
+              <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, background: b.status === 'completed' ? 'var(--cyan-soft)' : b.status === 'tourist_done' ? 'var(--surface-hover)' : 'var(--gold-soft)', color: b.status === 'completed' ? 'var(--cyan)' : b.status === 'tourist_done' ? 'var(--text-muted)' : 'var(--gold)' }}>{b.status}</span>
+            );
+            const actions = (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
                 {['confirmed', 'active'].includes(b.status) && (
-                  <button
-                    type="button"
-                    onClick={() => handleMarkComplete(b.id)}
-                    style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.85rem', cursor: 'pointer' }}
-                  >
-                    Mark complete
-                  </button>
+                  <button type="button" onClick={() => handleMarkComplete(b.id)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '0.8rem', cursor: 'pointer' }}>Mark complete</button>
                 )}
                 {b.status === 'provider_done' && (
-                  <button
-                    type="button"
-                    onClick={() => handleConfirmCompletion(b.id)}
-                    style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    Confirm completion
-                  </button>
+                  <button type="button" onClick={() => handleConfirmCompletion(b.id)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Confirm completion</button>
                 )}
                 {(b.status === 'completed' || b.status === 'tourist_done') && !b.reviewed && (
-                  <button type="button" onClick={() => setReviewTarget(b)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--gold)', background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.85rem', cursor: 'pointer' }}>★ Leave a Review</button>
+                  <button type="button" onClick={() => setReviewTarget(b)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--gold)', background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.8rem', cursor: 'pointer' }}>★ Review</button>
                 )}
-                {(b.status === 'completed' || b.status === 'tourist_done') && b.reviewed && <span style={{ fontSize: '0.85rem', color: 'var(--cyan)' }}>✓ Reviewed</span>}
-                <Link to="/app/chat" style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.85rem', textDecoration: 'none' }}>Chat with provider</Link>
+                {(b.status === 'completed' || b.status === 'tourist_done') && b.reviewed && <span style={{ fontSize: '0.8rem', color: 'var(--cyan)' }}>✓ Reviewed</span>}
+                <Link to="/app/chat" style={{ padding: '6px 12px', borderRadius: 8, background: 'var(--gold-soft)', color: 'var(--gold)', fontSize: '0.8rem', textDecoration: 'none' }}>Chat</Link>
               </div>
-            </ExpandableItem>
-          ))}
+            );
+
+            if (viewMode === 'compact') {
+              return (
+                <div key={b.id} className="glass" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{b.service}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{b.date}</span>
+                  <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)', fontSize: '0.85rem' }}>₾{b.amount}</span>
+                  {statusBadge}
+                </div>
+              );
+            }
+
+            if (viewMode === 'grid') {
+              return (
+                <div key={b.id} className="glass" style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{b.service}</div>
+                    {statusBadge}
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 4 }}>{b.provider} · {b.date}</div>
+                  <div style={{ fontFamily: 'var(--font-classic)', fontSize: '1.15rem', color: 'var(--gold)', marginBottom: 4 }}>₾{b.amount}</div>
+                  {actions}
+                </div>
+              );
+            }
+
+            return (
+              <ExpandableItem
+                key={b.id}
+                summary={
+                  <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+                    <span style={{ fontWeight: 600 }}>{b.service}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{b.date}</span>
+                    <span style={{ fontFamily: 'var(--font-classic)', color: 'var(--gold)' }}>₾{b.amount}</span>
+                    {statusBadge}
+                  </span>
+                }
+              >
+                <p style={{ margin: '0 0 12px', color: 'var(--text-muted)' }}><strong>Provider:</strong> {b.provider}</p>
+                <p style={{ margin: '0 0 12px' }}><strong>Date:</strong> {b.date} · <strong>Amount:</strong> ₾{b.amount}</p>
+                {actions}
+              </ExpandableItem>
+            );
+          })}
         </div>
       )}
       {reviewTarget && <ReviewModal booking={reviewTarget} onSubmit={(stars, text) => handleReview(reviewTarget, stars, text)} onClose={() => setReviewTarget(null)} />}
