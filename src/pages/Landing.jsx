@@ -4,10 +4,8 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../supabase';
 import { useLocale } from '../context/LocaleContext';
 import Layout from '../components/Layout';
-import { serviceRowHeroThumb } from '../utils/supabaseMappers';
-
-const HERO_IMAGES = 30;
-const imageSrcs = Array.from({ length: HERO_IMAGES }, (_, i) => `/geoimages/${i + 1}.jpg`);
+import TourCard from '../components/TourCard';
+import { mapServiceRow } from '../hooks/useAppData';
 
 const REGIONS = [
   { name: 'Tbilisi', emoji: '🏙️', desc: 'Old Town & Wine' },
@@ -37,25 +35,18 @@ export default function Landing() {
       .select('*')
       .limit(6)
       .then(({ data, error }) => {
-        if (error) {
-          setTours([]);
-          return;
-        }
+        if (error) { setTours([]); return; }
         const rows = (data || []).filter((row) => row.suspended !== true);
         const byRating = (a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0);
-        setTours(
-          rows.sort(byRating).slice(0, 6).map((row) => ({
-            id: row.id,
-            name: row.name,
-            region: row.region,
-            price: row.price,
-            duration: row.duration,
-            type: row.type,
-            emoji: row.emoji,
-            rating: row.rating,
-            photo: serviceRowHeroThumb(row),
-          }))
-        );
+        setTours(rows.sort(byRating).slice(0, 6).map((row) => mapServiceRow ? mapServiceRow(row) : ({
+          id: row.id, name: row.name, region: row.region, price: row.price,
+          duration: row.duration, type: row.type, emoji: row.emoji, rating: row.rating,
+          reviews: row.reviews, total_bookings: row.total_bookings,
+          provider_name: row.provider_name || row.provider, provider: row.provider_name || row.provider,
+          description: row.description, photos: row.photos ? JSON.parse(row.photos) : [],
+          tags: row.tags ? JSON.parse(row.tags) : [], verified: row.verified,
+          created_at: row.created_at,
+        })));
       })
       .catch(() => setTours([]));
   }, []);
@@ -102,108 +93,105 @@ export default function Landing() {
       </Helmet>
 
       {/* ─── HERO ─── */}
-      <section className="landing-hero" style={{ minHeight: '92vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-        {/* Static hero image background */}
-        <div aria-hidden style={{ position: 'absolute', inset: 0 }}>
-          <img
-            src="/images/hero-landscape-1200.jpg"
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-          <div className="landing-hero-fade landing-hero-fade-t" />
-          <div className="landing-hero-fade landing-hero-fade-b" />
-          <div className="landing-hero-fade landing-hero-fade-l" />
-          <div className="landing-hero-fade landing-hero-fade-r" />
-        </div>
+      <section style={{
+        position: 'relative', minHeight: '85vh',
+        display: 'flex', alignItems: 'center', overflow: 'hidden',
+      }}>
+        {/* Background photo */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'url(/images/hero-landscape-1200.jpg)',
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          filter: 'brightness(0.55)',
+        }} />
 
-        <div className="landing-hero-content" style={{ position: 'relative', zIndex: 2, padding: '100px 24px 160px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
-          <div style={{ maxWidth: 680 }} className="animate-fade-up">
-            {/* Badge */}
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'var(--gold-soft)', border: '1px solid var(--gold)',
-              color: 'var(--gold)', padding: '6px 16px', borderRadius: 100,
-              fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 28,
-              backdropFilter: 'blur(8px)',
-            }}>
-              🇬🇪 {t('hero.badge')}
-            </div>
+        {/* Content overlay */}
+        <div style={{
+          position: 'relative', zIndex: 1,
+          maxWidth: 700, margin: '0 auto',
+          textAlign: 'center', padding: '0 24px', color: '#fff',
+        }}>
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+            fontWeight: 400, lineHeight: 1.15,
+            marginBottom: 16,
+          }}>
+            Discover Georgia with local guides
+          </h1>
+          <p style={{
+            fontSize: '1.15rem', opacity: 0.9,
+            marginBottom: 32, lineHeight: 1.6,
+          }}>
+            Book verified local guides and drivers. Private tours, wine tastings, mountain adventures — all at fair local prices.
+          </p>
 
-            <h1 style={{
-              fontFamily: 'var(--font-display)', fontSize: 'clamp(38px, 6vw, 74px)',
-              fontWeight: 700, color: 'var(--text)', lineHeight: 1.08, marginBottom: 24,
-              textShadow: '0 2px 24px rgba(0,0,0,0.5)',
+          {/* Search bar */}
+          <form onSubmit={handleSearch} style={{
+            display: 'flex', gap: 0,
+            background: '#fff', borderRadius: 50,
+            padding: 6, maxWidth: 560, margin: '0 auto',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          }}>
+            <input
+              type="text"
+              placeholder="Where do you want to go?"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                flex: 1, border: 'none', outline: 'none',
+                padding: '14px 24px', fontSize: '1rem',
+                borderRadius: '44px 0 0 44px',
+                color: '#1A1A2E', background: 'transparent',
+              }}
+            />
+            <button type="submit" style={{
+              padding: '14px 32px', borderRadius: 44,
+              background: 'var(--accent, #0D9373)', color: '#fff',
+              border: 'none', fontWeight: 600, fontSize: '1rem',
+              cursor: 'pointer', whiteSpace: 'nowrap',
+              transition: 'background 0.15s',
+              fontFamily: 'var(--font-body)',
             }}>
-              {t('hero.headline1')}{' '}
-              <span style={{ color: 'var(--gold)' }}>{t('hero.headline2')}</span>
-              <br />{t('hero.headline3')}
-            </h1>
+              Search
+            </button>
+          </form>
 
-            <p style={{
-              fontSize: 'clamp(15px, 2vw, 18px)', color: 'var(--text-muted)',
-              lineHeight: 1.75, marginBottom: 44, maxWidth: 520,
-              textShadow: '0 1px 10px rgba(0,0,0,0.4)',
-            }}>
-              {t('hero.sub')}
-            </p>
-
-            {/* Search bar */}
-            <form onSubmit={handleSearch} style={{
-              display: 'flex', gap: 8, background: 'var(--bg-elevated)',
-              borderRadius: 'var(--radius)', padding: 8,
-              boxShadow: '0 24px 60px rgba(0,0,0,0.35)', maxWidth: 560,
-              border: '1px solid var(--border)',
-            }}>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '4px 12px' }}>
-                <span style={{ fontSize: 18, flexShrink: 0 }}>🔍</span>
-                <input
-                  type="text"
-                  placeholder={t('hero.search')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, color: 'var(--text)', background: 'transparent' }}
-                />
-              </div>
-              <button type="submit" className="layout-btn-primary" style={{ borderRadius: 12, padding: '11px 22px' }}>
-                {t('hero.searchBtn')}
+          {/* Quick filters */}
+          <div style={{
+            display: 'flex', justifyContent: 'center', gap: 12,
+            marginTop: 20, flexWrap: 'wrap',
+          }}>
+            {['🗺️ Guided tours', '🚐 Day trips', '🍷 Wine tours', '🏔️ Mountains'].map((f) => (
+              <button key={f} onClick={() => navigate('/explore')} style={{
+                padding: '8px 16px', borderRadius: 20,
+                background: 'rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(4px)',
+                color: '#fff', border: '1px solid rgba(255,255,255,0.25)',
+                fontSize: '0.85rem', cursor: 'pointer',
+                transition: 'background 0.15s',
+                fontFamily: 'var(--font-body)',
+              }}>
+                {f}
               </button>
-            </form>
-
-            {/* Quick filters */}
-            <div className="landing-hero-quick-filters" style={{ display: 'flex', gap: 10, marginTop: 20, flexWrap: 'wrap' }}>
-              {[
-                { label: t('hero.guided'), type: 'guide' },
-                { label: t('hero.van'), type: 'van' },
-                { label: t('hero.transfer'), type: 'transfer' },
-              ].map(({ label, type }) => (
-                <button
-                  key={type}
-                  onClick={() => navigate(`/explore?type=${type}`)}
-                  style={{
-                    padding: '9px 18px', borderRadius: 100,
-                    background: 'var(--surface)', border: '1px solid var(--border)',
-                    color: 'var(--text-muted)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
 
         {/* Stats bar */}
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(16px)',
-          borderTop: '1px solid var(--border)',
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(16px)',
         }}>
-          <div className="landing-stats-grid" style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: `repeat(${STATS.length}, 1fr)`, padding: '20px 24px', gap: 8 }}>
+          <div className="landing-stats-grid" style={{
+            maxWidth: 1200, margin: '0 auto',
+            display: 'grid', gridTemplateColumns: `repeat(${STATS.length}, 1fr)`,
+            padding: '20px 24px', gap: 8,
+          }}>
             {STATS.map(({ value, label }) => (
               <div key={label} style={{ textAlign: 'center', padding: '8px 0' }}>
-                <div style={{ fontSize: 'clamp(20px, 3vw, 30px)', fontWeight: 800, color: 'var(--gold)', fontFamily: 'var(--font-display)' }}>{value}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{label}</div>
+                <div style={{ fontSize: 'clamp(20px, 3vw, 30px)', fontWeight: 700, color: '#fff', fontFamily: 'var(--font-display)' }}>{value}</div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 4, fontFamily: 'var(--font-body)' }}>{label}</div>
               </div>
             ))}
           </div>
@@ -211,47 +199,37 @@ export default function Landing() {
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section style={{ padding: '80px 24px', background: 'var(--bg-elevated)' }}>
+      <section style={{ padding: '80px 24px', background: 'var(--bg-secondary, var(--bg-elevated))' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>{t('howItWorks.label')}</div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(24px, 4vw, 38px)' }}>{t('howItWorks.title')}</h2>
-            <p style={{ color: 'var(--text-muted)', marginTop: 16, maxWidth: 500, margin: '16px auto 0' }}>{t('howItWorks.sub')}</p>
+            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent, var(--gold))', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'var(--font-body)' }}>{t('howItWorks.label')}</div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'clamp(24px, 4vw, 2.2rem)' }}>{t('howItWorks.title')}</h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: 16, maxWidth: 500, margin: '16px auto 0', fontSize: '0.95rem' }}>{t('howItWorks.sub')}</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 28 }}>
             {HOW_IT_WORKS.map(({ step, icon, title, desc }) => (
-              <div key={step} className="glass" style={{
-                padding: '36px 32px', borderRadius: 'var(--radius)', position: 'relative', overflow: 'hidden',
-                transition: 'transform 0.25s, box-shadow 0.25s',
-              }}>
-                <div style={{ position: 'absolute', top: -8, right: -8, fontSize: 88, fontWeight: 900, color: 'var(--surface)', fontFamily: 'var(--font-display)', lineHeight: 1, userSelect: 'none' }}>{step}</div>
+              <div key={step} style={{
+                padding: '36px 32px', borderRadius: 'var(--radius)',
+                position: 'relative', overflow: 'hidden',
+                background: 'var(--bg-elevated, var(--surface))',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
+              >
+                <div style={{ position: 'absolute', top: -8, right: -8, fontSize: 88, fontWeight: 900, color: 'var(--border-light, var(--surface))', fontFamily: 'var(--font-display)', lineHeight: 1, userSelect: 'none', opacity: 0.3 }}>{step}</div>
                 <div style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 16,
-                  background: 'var(--gold-soft)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 20,
-                  overflow: 'hidden',
+                  width: 60, height: 60, borderRadius: 16,
+                  background: 'var(--accent-light, var(--gold-soft))',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: 20, overflow: 'hidden',
                 }}>
-                  <img
-                    src={icon}
-                    alt=""
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      background: '#ffffff',
-                      borderRadius: 16,
-                      padding: 4,
-                      objectFit: 'cover',
-                      opacity: 0.9,
-                    }}
-                  />
+                  <img src={icon} alt="" style={{ width: '100%', height: '100%', background: '#fff', borderRadius: 16, padding: 4, objectFit: 'cover', opacity: 0.9 }} />
                 </div>
-                <h3 style={{ fontSize: 19, fontWeight: 700, marginBottom: 12 }}>{title}</h3>
-                <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.65 }}>{desc}</p>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 12, fontFamily: 'var(--font-body)' }}>{title}</h3>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.65 }}>{desc}</p>
               </div>
             ))}
           </div>
@@ -263,75 +241,54 @@ export default function Landing() {
         <section style={{ padding: '80px 24px', maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 44, flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>{t('home.tagline')}</div>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(24px, 4vw, 38px)' }}>{t('home.featured')}</h2>
+              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent, var(--gold))', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'var(--font-body)' }}>{t('home.tagline')}</div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'clamp(24px, 4vw, 2.2rem)' }}>{t('home.featured')}</h2>
             </div>
-            <Link to="/explore" className="layout-btn-outline" style={{ padding: '12px 24px' }}>{t('home.viewAll')} →</Link>
+            <Link to="/explore" style={{
+              padding: '12px 24px', borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border)', background: 'var(--surface)',
+              color: 'var(--text-muted)', fontSize: '0.85rem', textDecoration: 'none',
+              transition: 'background 0.15s, color 0.15s',
+              fontFamily: 'var(--font-body)',
+            }}>{t('home.viewAll')} →</Link>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
-            {tours.map((tour, i) => (
-              <Link
-                key={tour.id}
-                to={`/tour/${tour.id}`}
-                className="animate-fade-up"
-                style={{
-                  animationDelay: `${i * 0.08}s`, display: 'block',
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)', overflow: 'hidden', transition: 'var(--transition)',
-                }}
-              >
-                <div style={{ aspectRatio: '16/10', background: 'var(--bg-elevated)', position: 'relative' }}>
-                  {tour.photo ? (
-                    <img src={tour.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <span style={{ fontSize: '3rem', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>{tour.emoji || '🗺️'}</span>
-                  )}
-                  <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--gold-soft)', color: 'var(--gold)', padding: '4px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, backdropFilter: 'blur(8px)' }}>
-                    {tour.type === 'van' ? '🚐 Van' : tour.type === 'guide' ? '🗺️ Guide' : '✈️ Transfer'}
-                  </span>
-                </div>
-                <div style={{ padding: 20 }}>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.1rem', marginBottom: 6 }}>{tour.name}</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: 12 }}>{tour.region} · {tour.duration} · ⭐ {tour.rating || '—'}</p>
-                  <p style={{ fontFamily: 'var(--font-classic)', fontSize: '1.4rem', color: 'var(--gold)' }}>
-                    {tour.price == null || Number(tour.price) <= 0 ? (
-                      <span style={{ fontStyle: 'italic', color: 'var(--cyan, #22d3ee)', fontSize: '0.95rem' }}>
-                        Ask for price
-                      </span>
-                    ) : (
-                      <>₾{tour.price}</>
-                    )}
-                  </p>
-                </div>
-              </Link>
+            {tours.map((tour) => (
+              <TourCard key={tour.id} tour={tour} linkTo={`/tour/${tour.id}`} />
             ))}
           </div>
         </section>
       )}
 
       {/* ─── EXPLORE REGIONS ─── */}
-      <section style={{ padding: '80px 24px', background: 'var(--bg-elevated)' }}>
+      <section style={{ padding: '80px 24px', background: 'var(--bg-secondary, var(--bg-elevated))' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 52 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>{t('regions.label')}</div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(24px, 4vw, 38px)' }}>{t('regions.title')}</h2>
-            <p style={{ color: 'var(--text-muted)', marginTop: 16, maxWidth: 500, margin: '16px auto 0' }}>{t('regions.sub')}</p>
+            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent, var(--gold))', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'var(--font-body)' }}>{t('regions.label')}</div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'clamp(24px, 4vw, 2.2rem)' }}>{t('regions.title')}</h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: 16, maxWidth: 500, margin: '16px auto 0', fontSize: '0.95rem' }}>{t('regions.sub')}</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
             {REGIONS.map(({ name, emoji, desc }) => (
-              <Link key={name} to={`/explore?region=${encodeURIComponent(name)}`}>
-                <div className="glass" style={{
+              <Link key={name} to={`/explore?region=${encodeURIComponent(name)}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{
                   padding: '22px 20px', borderRadius: 'var(--radius-sm)',
                   display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
-                  transition: 'transform 0.25s, box-shadow 0.25s',
-                }}>
+                  background: 'var(--bg-elevated, var(--surface))',
+                  border: '1px solid var(--border)',
+                  boxShadow: 'var(--shadow-sm)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
+                >
                   <div style={{
-                    width: 50, height: 50, borderRadius: 14, background: 'var(--gold-soft)',
+                    width: 50, height: 50, borderRadius: 14, background: 'var(--accent-light, var(--gold-soft))',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0,
                   }}>{emoji}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 16 }}>{name}</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{desc}</div>
+                    <div style={{ fontWeight: 600, fontSize: '1rem', fontFamily: 'var(--font-body)' }}>{name}</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 2 }}>{desc}</div>
                   </div>
                   <div style={{ fontSize: 18, color: 'var(--text-dim)', flexShrink: 0 }}>→</div>
                 </div>
@@ -344,20 +301,30 @@ export default function Landing() {
       {/* ─── TESTIMONIALS ─── */}
       <section style={{ padding: '80px 24px', maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 52 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>{t('testimonials.label')}</div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(24px, 4vw, 38px)' }}>{t('testimonials.title')}</h2>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent, var(--gold))', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'var(--font-body)' }}>{t('testimonials.label')}</div>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'clamp(24px, 4vw, 2.2rem)' }}>{t('testimonials.title')}</h2>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
           {TESTIMONIALS.map(({ name, flag, text, rating, tour }) => (
-            <div key={name} className="glass" style={{ padding: 30, borderRadius: 'var(--radius)', position: 'relative', transition: 'transform 0.25s' }}>
-              <div style={{ position: 'absolute', top: 20, right: 24, fontSize: 64, lineHeight: 1, fontFamily: 'Georgia, serif', color: 'var(--gold-soft)', fontWeight: 700 }}>"</div>
-              <div style={{ fontSize: 18, marginBottom: 14, color: 'var(--gold)' }}>{'★'.repeat(rating)}</div>
-              <p style={{ fontSize: 14, lineHeight: 1.75, color: 'var(--text)', marginBottom: 22, fontStyle: 'italic' }}>"{text}"</p>
+            <div key={name} style={{
+              padding: 30, borderRadius: 'var(--radius)',
+              position: 'relative',
+              background: 'var(--bg-elevated, var(--surface))',
+              border: '1px solid var(--border)',
+              boxShadow: 'var(--shadow-sm)',
+              transition: 'transform 0.2s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              <div style={{ position: 'absolute', top: 20, right: 24, fontSize: 64, lineHeight: 1, fontFamily: 'Georgia, serif', color: 'var(--border-light, var(--gold-soft))', fontWeight: 700, opacity: 0.3 }}>"</div>
+              <div style={{ fontSize: 18, marginBottom: 14, color: '#F59E0B' }}>{'★'.repeat(rating)}</div>
+              <p style={{ fontSize: '0.9rem', lineHeight: 1.75, color: 'var(--text)', marginBottom: 22, fontStyle: 'italic' }}>"{text}"</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-                <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--gold-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{flag}</div>
+                <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--accent-light, var(--gold-soft))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{flag}</div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{tour}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', fontFamily: 'var(--font-body)' }}>{name}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2 }}>{tour}</div>
                 </div>
               </div>
             </div>
@@ -367,25 +334,44 @@ export default function Landing() {
 
       {/* ─── PROVIDER CTA ─── */}
       <section style={{ padding: '88px 24px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, var(--bg) 0%, var(--bg-elevated) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, var(--bg) 0%, var(--bg-secondary, var(--bg-elevated)) 100%)' }} />
         <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ fontSize: 52, marginBottom: 20 }}>🧭</div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(26px, 4vw, 44px)', fontWeight: 700, marginBottom: 16, lineHeight: 1.2 }}>{t('providerCta.title')}</h2>
-          <p style={{ fontSize: 17, color: 'var(--text-muted)', maxWidth: 500, margin: '0 auto 36px', lineHeight: 1.65 }}>{t('providerCta.sub')}</p>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(26px, 4vw, 2.5rem)', fontWeight: 400, marginBottom: 16, lineHeight: 1.2 }}>{t('providerCta.title')}</h2>
+          <p style={{ fontSize: '1rem', color: 'var(--text-muted)', maxWidth: 500, margin: '0 auto 36px', lineHeight: 1.65 }}>{t('providerCta.sub')}</p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/contact" className="layout-btn-primary" style={{ padding: '15px 32px', fontSize: 15 }}>{t('providerCta.apply')}</Link>
-            <Link to="/explore" className="layout-btn-outline" style={{ padding: '15px 32px', fontSize: 15 }}>{t('providerCta.learn')}</Link>
+            <Link to="/contact" style={{
+              padding: '15px 32px', fontSize: '1rem', borderRadius: 'var(--radius-sm)',
+              background: 'var(--accent, var(--gold))', color: '#fff', textDecoration: 'none',
+              fontWeight: 600, fontFamily: 'var(--font-body)',
+              transition: 'transform 0.15s, box-shadow 0.2s',
+            }}>{t('providerCta.apply')}</Link>
+            <Link to="/explore" style={{
+              padding: '15px 32px', fontSize: '1rem', borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border)', background: 'var(--surface)',
+              color: 'var(--text-muted)', textDecoration: 'none',
+              fontFamily: 'var(--font-body)',
+            }}>{t('providerCta.learn')}</Link>
           </div>
         </div>
       </section>
 
       {/* ─── FINAL CTA ─── */}
-      <section style={{ padding: '72px 24px', background: 'var(--bg-elevated)', textAlign: 'center' }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(24px, 4vw, 38px)', marginBottom: 14 }}>{t('finalCta.title')}</h2>
-        <p style={{ color: 'var(--text-muted)', maxWidth: 400, margin: '0 auto 32px' }}>{t('finalCta.sub')}</p>
+      <section style={{ padding: '72px 24px', background: 'var(--bg-secondary, var(--bg-elevated))', textAlign: 'center' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'clamp(24px, 4vw, 2.2rem)', marginBottom: 14 }}>{t('finalCta.title')}</h2>
+        <p style={{ color: 'var(--text-muted)', maxWidth: 400, margin: '0 auto 32px', fontSize: '0.95rem' }}>{t('finalCta.sub')}</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link to="/explore" className="layout-btn-primary" style={{ padding: '14px 32px' }}>{t('finalCta.browse')}</Link>
-          <Link to="/login" className="layout-btn-outline" style={{ padding: '14px 32px' }}>{t('finalCta.create')}</Link>
+          <Link to="/explore" style={{
+            padding: '14px 32px', borderRadius: 'var(--radius-sm)',
+            background: 'var(--accent, var(--gold))', color: '#fff', textDecoration: 'none',
+            fontWeight: 600, fontFamily: 'var(--font-body)',
+          }}>{t('finalCta.browse')}</Link>
+          <Link to="/login" style={{
+            padding: '14px 32px', borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border)', background: 'var(--surface)',
+            color: 'var(--text-muted)', textDecoration: 'none',
+            fontFamily: 'var(--font-body)',
+          }}>{t('finalCta.create')}</Link>
         </div>
       </section>
     </Layout>

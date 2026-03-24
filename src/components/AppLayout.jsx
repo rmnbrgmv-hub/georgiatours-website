@@ -298,10 +298,53 @@ export default function AppLayout({ user, setUser, onLogout }) {
             )}
           </div>
         </header>
-        <main style={{ flex: 1, overflow: 'auto', padding: 24 }}>
+        <main className="animate-fade-in" style={{ flex: 1, overflow: 'auto', padding: 24, paddingBottom: isMobile ? 80 : 24 }}>
           <Outlet context={{ user, setUser }} />
         </main>
       </div>
+
+      {/* Mobile bottom tab bar */}
+      {isMobile && !isAdmin && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          display: 'flex', justifyContent: 'space-around',
+          padding: '8px 0 calc(8px + env(safe-area-inset-bottom))',
+          background: 'var(--bg-elevated)',
+          borderTop: '1px solid var(--border)',
+          zIndex: 100,
+        }}>
+          {(isProvider
+            ? [
+                { icon: '📊', label: 'Dashboard', path: '/app/dashboard' },
+                { icon: '🗺️', label: 'Tours', path: '/app/tours' },
+                { icon: '💬', label: 'Chat', path: '/app/chat' },
+                { icon: '👤', label: 'Profile', path: '/app/profile' },
+              ]
+            : [
+                { icon: '🧭', label: 'Explore', path: '/app/explore' },
+                { icon: '📅', label: 'Bookings', path: '/app/bookings' },
+                { icon: '💬', label: 'Chat', path: '/app/chat' },
+                { icon: '👤', label: 'Profile', path: '/app/profile' },
+              ]
+          ).map((item) => {
+            const isActive = location.pathname.startsWith(item.path);
+            return (
+              <button key={item.path} onClick={() => navigate(item.path)}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  gap: 2, background: 'none', border: 'none', cursor: 'pointer',
+                  color: isActive ? 'var(--accent, var(--gold))' : 'var(--text-muted)',
+                  fontSize: '0.65rem', fontWeight: 500,
+                  fontFamily: 'var(--font-body)',
+                  transition: 'color 0.15s',
+                }}>
+                <span style={{ fontSize: '1.3rem' }}>{item.icon}</span>
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

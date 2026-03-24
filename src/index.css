@@ -1,41 +1,64 @@
-/* TourBid Website — Modern futuristic design, nod to original app (gold, Explore Georgia with TourBid) */
+/* TourBid Website — Professional travel marketplace (light-first) */
 :root,
-[data-theme="dark"] {
-  --bg: #06060a;
-  --bg-elevated: #0c0c12;
-  --surface: rgba(255, 255, 255, 0.03);
-  --surface-hover: rgba(255, 255, 255, 0.06);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.12);
-  --gold: #c9a84c;
-  --gold-soft: rgba(201, 168, 76, 0.2);
-  --cyan: #22d3ee;
-  --cyan-soft: rgba(34, 211, 238, 0.15);
-  --text: #f4f4f5;
-  --text-muted: #a1a1aa;
-  --text-dim: #71717a;
-  --font-display: 'Syne', sans-serif;
+[data-theme="light"] {
+  --bg: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-secondary: #F8F9FA;
+  --surface: rgba(0, 0, 0, 0.03);
+  --surface-hover: rgba(0, 0, 0, 0.06);
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --border-light: #F1F5F9;
+  --gold: #C9A84C;
+  --gold-soft: rgba(201, 168, 76, 0.12);
+  --cyan: #0D9373;
+  --cyan-soft: rgba(13, 147, 115, 0.08);
+  --accent: #0D9373;
+  --accent-hover: #0B7A60;
+  --accent-light: #E6F7F2;
+  --cta: #E07A5F;
+  --cta-hover: #C96A50;
+  --text: #1A1A2E;
+  --text-muted: #64748B;
+  --text-dim: #94A3B8;
+  --font-display: 'DM Serif Display', serif;
   --font-classic: 'Cormorant Garamond', serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
   --radius: 16px;
   --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
   --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-[data-theme="light"] {
-  --bg: #f2f3f6;
-  --bg-elevated: #ffffff;
-  --surface: rgba(0, 0, 0, 0.04);
-  --surface-hover: rgba(0, 0, 0, 0.08);
-  --border: rgba(0, 0, 0, 0.1);
-  --border-strong: rgba(0, 0, 0, 0.15);
-  --gold: #b8942e;
-  --gold-soft: rgba(184, 148, 46, 0.2);
-  --cyan: #0891b2;
-  --cyan-soft: rgba(8, 145, 178, 0.15);
-  --text: #18181b;
-  --text-muted: #52525b;
-  --text-dim: #71717a;
+[data-theme="dark"] {
+  --bg: #0A0A0F;
+  --bg-elevated: #12121A;
+  --bg-secondary: #1A1A2E;
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --border: #2D2D3F;
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --border-light: #1E1E2E;
+  --gold: #C9A84C;
+  --gold-soft: rgba(201, 168, 76, 0.2);
+  --cyan: #1D9E75;
+  --cyan-soft: rgba(29, 158, 117, 0.15);
+  --accent: #1D9E75;
+  --accent-hover: #22B07A;
+  --accent-light: rgba(29, 158, 117, 0.12);
+  --cta: #E07A5F;
+  --cta-hover: #C96A50;
+  --text: #F1F5F9;
+  --text-muted: #94A3B8;
+  --text-dim: #64748B;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.4);
 }
 
 * {
@@ -61,15 +84,15 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, var(--cyan-soft), transparent),
-    radial-gradient(ellipse 60% 40% at 80% 50%, var(--gold-soft), transparent 50%);
   pointer-events: none;
   z-index: 0;
+  background: none;
 }
 
-[data-theme="light"] body::before {
-  opacity: 0.85;
+[data-theme="dark"] body::before {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, var(--cyan-soft), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 50%, var(--gold-soft), transparent 50%);
 }
 
 #root {
@@ -93,19 +116,39 @@ button {
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .animate-fade-up {
   animation: fadeUp 0.6s var(--transition) both;
 }
 
+.animate-fade-in {
+  animation: fadeIn 0.15s ease;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-secondary, var(--surface)) 25%, var(--border-light, var(--border)) 50%, var(--bg-secondary, var(--surface)) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
 .glass {
-  background: var(--surface);
+  background: var(--bg-elevated, var(--surface));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
+}
+
+[data-theme="dark"] .glass {
+  background: var(--surface);
 }
 
 /* Landing hero collage: wave tile grid + edge fades */
@@ -288,7 +331,7 @@ button {
 }
 
 .layout-nav-link.active {
-  color: var(--gold);
+  color: var(--accent, var(--gold));
 }
 
 .layout-nav-underline {
@@ -297,7 +340,7 @@ button {
   left: 50%;
   width: 0;
   height: 2px;
-  background: var(--gold);
+  background: var(--accent, var(--gold));
   border-radius: 1px;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -391,18 +434,24 @@ button {
   padding: 10px 20px;
   border-radius: var(--radius-sm);
   border: none;
-  background: var(--gold);
-  color: var(--bg);
+  background: var(--accent, var(--gold));
+  color: #fff;
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.2s;
+  transition: transform 0.15s, box-shadow 0.2s, background 0.15s;
   text-decoration: none;
+  font-family: var(--font-body);
 }
 
 .layout-btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(201, 168, 76, 0.35);
+  box-shadow: var(--shadow-md);
+  filter: brightness(0.95);
+}
+
+.layout-btn-primary:active {
+  transform: scale(0.98);
 }
 
 .layout-btn-outline {

@@ -8,7 +8,7 @@ export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
     try {
       const s = localStorage.getItem(STORAGE_KEY);
-      return s === 'light' || s === 'dark' ? s : 'dark';
+      return s === 'light' || s === 'dark' ? s : 'light';
     } catch (_) {
       return 'dark';
     }

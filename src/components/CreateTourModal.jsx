@@ -117,6 +117,10 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
       setError('Please enter a valid price.');
       return;
     }
+    if (!initialTour && form.photos.length === 0) {
+      setError('Please add at least one photo for your tour. Tours with photos get 5x more bookings!');
+      return;
+    }
     setSaving(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -198,6 +202,53 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
           <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
         </div>
         <form onSubmit={handleSubmit}>
+          {/* Photo upload — prominent at top */}
+          <div style={{ marginBottom: 16, padding: 16, borderRadius: 10, border: '2px dashed var(--border)', background: 'var(--surface)' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Tour photos {!initialTour && <span style={{ color: '#f43f5e' }}>*</span>}</label>
+            <p style={{ fontSize: '0.75rem', color: 'var(--accent, var(--gold))', marginBottom: 10, fontWeight: 500 }}>Tours with photos get 5x more bookings</p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: 'none' }}
+              onChange={async (e) => {
+                const raw = e.target.files?.[0];
+                if (!raw) return;
+                e.target.value = '';
+                const file = await compressImage(raw, { maxWidth: 1200, maxHeight: 800, maxSizeKB: 60 });
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const base64 = reader.result;
+                  if (!base64) return;
+                  const next = [...form.photos, { id: Math.random().toString(36).slice(2), base64, isMain: form.photos.length === 0 }].slice(0, MAX_PHOTOS);
+                  setForm((f) => ({ ...f, photos: next }));
+                };
+                reader.readAsDataURL(file);
+              }}
+            />
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {[0, 1, 2, 3].map((i) => {
+                const photo = form.photos[i];
+                return (
+                  <div key={i} style={{ width: 100, height: 76, borderRadius: 10, border: '2px dashed var(--border)', overflow: 'hidden', position: 'relative', flexShrink: 0, background: photo ? 'var(--surface-hover)' : 'transparent' }}>
+                    {photo ? (
+                      <>
+                        <img src={photo.base64} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 10, background: 'var(--bg-secondary, #1a1a2e)', display: 'block' }} />
+                        {photo.isMain && <span style={{ position: 'absolute', top: 4, left: 4, fontSize: '0.65rem', background: 'var(--gold)', color: '#fff', padding: '2px 5px', borderRadius: 6, fontWeight: 700 }}>Main</span>}
+                        <button type="button" onClick={(ev) => { ev.stopPropagation(); const next = form.photos.filter((_, j) => j !== i); if (next.length && !next.some((p) => p.isMain)) next[0] = { ...next[0], isMain: true }; setForm((f) => ({ ...f, photos: next })); }}
+                          style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: '#e11d48', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.75rem', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                        <button type="button" onClick={() => setForm((f) => { const photos = [...(f.photos || [])]; if (!photos[i]) return f; const [main] = photos.splice(i, 1); return { ...f, photos: [{ ...main, isMain: true }, ...photos.map((p) => ({ ...p, isMain: false }))] }; })}
+                          style={{ position: 'absolute', bottom: 4, left: 4, right: 4, fontSize: '0.6rem', padding: '3px 6px', borderRadius: 6, background: 'rgba(0,0,0,0.6)', color: 'var(--gold)', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Set main</button>
+                      </>
+                    ) : (
+                      <button type="button" onClick={() => fileInputRef.current?.click()} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.5rem' }}>+</button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4 }}>Name</label>
           <input
             value={form.name}
@@ -274,75 +325,11 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
             placeholder="Short description"
             style={{ ...inputStyle, marginBottom: 12, resize: 'vertical' }}
           />
-          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4 }}>Tour photos (up to {MAX_PHOTOS})</label>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            style={{ display: 'none' }}
-            onChange={async (e) => {
-              const raw = e.target.files?.[0];
-              if (!raw) return;
-              e.target.value = '';
-              const file = await compressImage(raw, { maxWidth: 1200, maxHeight: 800, maxSizeKB: 60 });
-              const reader = new FileReader();
-              reader.onload = () => {
-                const base64 = reader.result;
-                if (!base64) return;
-                const next = [...form.photos, { id: Math.random().toString(36).slice(2), base64, isMain: form.photos.length === 0 }].slice(0, MAX_PHOTOS);
-                setForm((f) => ({ ...f, photos: next }));
-              };
-              reader.readAsDataURL(file);
-            }}
-          />
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
-            {[0, 1, 2, 3].map((i) => {
-              const photo = form.photos[i];
-              return (
-                <div key={i} style={{ width: 100, height: 76, borderRadius: 10, border: '2px dashed var(--border)', overflow: 'hidden', position: 'relative', flexShrink: 0, background: photo ? 'var(--surface-hover)' : 'transparent' }}>
-                  {photo ? (
-                    <>
-                      <img src={photo.base64} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 10, background: 'var(--s2, #1a1a2e)', display: 'block' }} />
-                      {photo.isMain && <span style={{ position: 'absolute', top: 4, left: 4, fontSize: '0.65rem', background: 'var(--gold)', color: 'var(--bg)', padding: '2px 5px', borderRadius: 6, fontWeight: 700 }}>Main</span>}
-                      <button
-                        type="button"
-                        onClick={(ev) => {
-                          ev.stopPropagation();
-                          const next = form.photos.filter((_, j) => j !== i);
-                          if (next.length && !next.some((p) => p.isMain)) next[0] = { ...next[0], isMain: true };
-                          setForm((f) => ({ ...f, photos: next }));
-                        }}
-                        style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: '#e11d48', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.75rem', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        ×
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setForm((f) => {
-                            const photos = Array.isArray(f.photos) ? [...f.photos] : [];
-                            if (!photos[i]) return f;
-                            const [main] = photos.splice(i, 1);
-                            const reordered = [{ ...main, isMain: true }, ...photos.map((p) => ({ ...p, isMain: false }))];
-                            return { ...f, photos: reordered };
-                          })
-                        }
-                        style={{ position: 'absolute', bottom: 4, left: 4, right: 4, fontSize: '0.6rem', padding: '3px 6px', borderRadius: 6, background: 'rgba(0,0,0,0.6)', color: 'var(--gold)', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-                      >
-                        Set main
-                      </button>
-                    </>
-                  ) : (
-                    <button type="button" onClick={() => fileInputRef.current?.click()} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.5rem' }}>+</button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          {/* Photos section moved to top of form */}
           {error && <p style={{ color: '#f87171', fontSize: '0.85rem', marginBottom: 12 }}>{error}</p>}
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
             <button type="button" onClick={onClose} style={{ padding: '10px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', cursor: 'pointer' }}>Cancel</button>
-            <button type="submit" disabled={saving} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, cursor: saving ? 'wait' : 'pointer' }}>{saving ? 'Saving…' : initialTour ? 'Update' : 'Create'}</button>
+            <button type="submit" disabled={saving || (!initialTour && form.photos.length === 0)} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: (saving || (!initialTour && form.photos.length === 0)) ? 'var(--text-dim)' : 'var(--gold)', color: '#fff', fontWeight: 600, cursor: saving ? 'wait' : (!initialTour && form.photos.length === 0) ? 'not-allowed' : 'pointer', opacity: (!initialTour && form.photos.length === 0) ? 0.6 : 1 }}>{saving ? 'Saving…' : initialTour ? 'Update' : 'Create'}</button>
           </div>
         </form>
       </div>
