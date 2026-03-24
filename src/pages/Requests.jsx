@@ -22,6 +22,7 @@ export default function Requests() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '', lat: null, lng: null });
   const [toast, setToast] = useState('');
+  const [expandedRequest, setExpandedRequest] = useState(null);
   const rSavedViews = loadViewPrefs();
   const [viewMode, setViewMode] = useState(rSavedViews.requests || 'list');
   const [sortMode, setSortMode] = useState('new');
@@ -112,6 +113,14 @@ export default function Requests() {
     await supabase.from('requests').update({ status: 'booked' }).eq('id', requestId);
     refetchRequests();
     setOffersByRequestId((prev) => ({ ...prev, [requestId]: (prev[requestId] || []).map((o) => (o.id === offer.id ? { ...o, status: 'accepted' } : { ...o, status: 'declined' })) }));
+  };
+
+  const declineOffer = async (requestId, offer) => {
+    await supabase.from('offers').update({ status: 'declined' }).eq('id', offer.id);
+    setOffersByRequestId((prev) => ({
+      ...prev,
+      [requestId]: (prev[requestId] || []).map((o) => (o.id === offer.id ? { ...o, status: 'declined' } : o)),
+    }));
   };
 
   if (!user) {
@@ -238,19 +247,37 @@ export default function Requests() {
 
             if (viewMode === 'compact') {
               return (
-                <div key={r.id} className="glass" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+                <div key={r.id} className="glass" onClick={() => setExpandedRequest((x) => (x === r.id ? null : r.id))} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--border)', flexWrap: 'wrap', cursor: 'pointer' }}>
                   <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{r.title}</span>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{r.region} · {r.type}</span>
                   <span style={{ color: 'var(--gold)', fontSize: '0.82rem' }}>₾{r.budget || '—'}</span>
                   {statusBadge}
                   {offerCount > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({offerCount})</span>}
+                  <span style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>{expandedRequest === r.id ? '▲' : '▼'}</span>
+                  {expandedRequest === r.id && (
+                    <div style={{ width: '100%', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                      <p style={{ margin: '0 0 8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{r.desc || 'No description provided'}</p>
+                      {(offersByRequestId[r.id] || []).length === 0 ? <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.8rem' }}>No offers yet.</p> : (offersByRequestId[r.id] || []).map((o) => (
+                        <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, background: 'var(--surface-hover)', borderRadius: 8, border: '1px solid var(--border)', padding: '8px 10px', marginBottom: 6 }}>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '0.82rem' }}>{o.provider || 'Provider'} {Number.isFinite(Number(o.rating)) ? `· ⭐ ${Number(o.rating).toFixed(1)}` : ''}</div>
+                            {o.description && <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{o.description}</div>}
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--gold)' }}>₾{o.price}</div>
+                            {r.status === 'open' && o.status !== 'accepted' && o.status !== 'declined' && <div style={{ display: 'flex', gap: 6, marginTop: 4 }}><button type="button" onClick={(e) => { e.stopPropagation(); acceptOffer(r.id, o); }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '0.75rem' }}>{t('requests.acceptOffer')}</button><button type="button" onClick={(e) => { e.stopPropagation(); declineOffer(r.id, o); }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem' }}>Decline</button></div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             }
 
             if (viewMode === 'grid') {
               return (
-                <div key={r.id} className="glass" style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div key={r.id} className="glass" onClick={() => setExpandedRequest((x) => (x === r.id ? null : r.id))} style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)', cursor: 'pointer' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                     <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.title}</div>
                     {statusBadge}
@@ -259,6 +286,20 @@ export default function Requests() {
                   <div style={{ fontFamily: 'var(--font-classic)', fontSize: '1.15rem', color: 'var(--gold)', marginBottom: 6 }}>₾{r.budget || '—'}</div>
                   {r.desc && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 6 }}>{r.desc}</p>}
                   {offerCount > 0 && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{offerCount} offer{offerCount !== 1 ? 's' : ''} received</div>}
+                  {expandedRequest === r.id && (
+                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+                      <p style={{ margin: '0 0 8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{r.desc || 'No description provided'}</p>
+                      {(offersByRequestId[r.id] || []).map((o) => (
+                        <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, background: 'var(--surface-hover)', borderRadius: 8, padding: '8px 10px', marginBottom: 6 }}>
+                          <span style={{ fontSize: '0.82rem' }}>{o.provider || 'Provider'}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ color: 'var(--gold)', fontWeight: 700 }}>₾{o.price}</span>
+                            {r.status === 'open' && o.status !== 'accepted' && o.status !== 'declined' && <><button type="button" onClick={(e) => { e.stopPropagation(); acceptOffer(r.id, o); }} style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '0.75rem' }}>Accept</button><button type="button" onClick={(e) => { e.stopPropagation(); declineOffer(r.id, o); }} style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem' }}>Decline</button></>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {r.status === 'booked' && (offersByRequestId[r.id] || []).some((o) => o.status === 'provider_confirmed') && (
                     <button type="button" onClick={() => confirmRequestCompleted(r.id)} style={{ marginTop: 8, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--cyan)', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}>Confirm completed</button>
                   )}
@@ -290,8 +331,11 @@ export default function Requests() {
                           <span style={{ color: 'var(--gold)', marginLeft: 8 }}>₾{o.price}</span>
                           {o.description && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 4 }}>{o.description}</p>}
                         </div>
-                        {r.status === 'open' && o.status !== 'accepted' && (
-                          <button type="button" onClick={() => acceptOffer(r.id, o)} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>{t('requests.acceptOffer')}</button>
+                        {r.status === 'open' && o.status !== 'accepted' && o.status !== 'declined' && (
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button type="button" onClick={() => acceptOffer(r.id, o)} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>{t('requests.acceptOffer')}</button>
+                            <button type="button" onClick={() => declineOffer(r.id, o)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>Decline</button>
+                          </div>
                         )}
                         {o.status === 'accepted' && <span style={{ fontSize: '0.8rem', color: 'var(--cyan)' }}>Accepted</span>}
                         {o.status === 'provider_confirmed' && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Provider marked done</span>}

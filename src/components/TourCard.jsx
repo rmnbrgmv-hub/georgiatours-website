@@ -250,6 +250,11 @@ export default function TourCard({ tour, linkTo, actions, providerAvailability }
             {providerAvailability.text}
           </p>
         )}
+        {Number.isFinite(Number(tour.lat)) && Number.isFinite(Number(tour.lng)) && (
+          <p style={{ fontSize: '0.78rem', marginTop: 6, marginBottom: 0, color: 'var(--accent, #0D9373)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            📍 View on map
+          </p>
+        )}
         {actions && (
           <div style={{ marginTop: 12 }} onClick={(e) => e.stopPropagation()}>
             {actions}

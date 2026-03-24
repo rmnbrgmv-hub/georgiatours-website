@@ -14,6 +14,7 @@ export default function ProviderRequests() {
   const [loading, setLoading] = useState(true);
   const [offerModal, setOfferModal] = useState(null);
   const [offerForm, setOfferForm] = useState({ price: '', msg: '' });
+  const [expandedRequest, setExpandedRequest] = useState(null);
   const prSavedViews = loadViewPrefs();
   const [viewMode, setViewMode] = useState(prSavedViews.p_requests || 'list');
   const [sortMode, setSortMode] = useState('new');
@@ -99,35 +100,39 @@ export default function ProviderRequests() {
           {[...openRequests].sort((a, b) => sortMode === 'new' ? new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0) : new Date(a.createdAt || a.created_at || 0) - new Date(b.createdAt || b.created_at || 0)).map((r) => {
             if (viewMode === 'compact') {
               return (
-                <div key={r.id} className="glass" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+                <div key={r.id} className="glass" onClick={() => setExpandedRequest((x) => (x === r.id ? null : r.id))} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--border)', flexWrap: 'wrap', cursor: 'pointer' }}>
                   <span style={{ fontWeight: 600, fontSize: '0.85rem', flex: 1 }}>{r.title}</span>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{r.region} · {r.type}</span>
                   <span style={{ color: 'var(--gold)', fontSize: '0.82rem' }}>₾{r.budget}</span>
                   <button type="button" onClick={() => setOfferModal(r)} style={{ padding: '4px 12px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>Offer</button>
+                  <span style={{ color: 'var(--text-muted)' }}>{expandedRequest === r.id ? '▲' : '▼'}</span>
+                  {expandedRequest === r.id && <div style={{ width: '100%', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>{r.desc || 'No additional details provided'}<div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}><div>📅 {r.date || 'Flexible'}</div><div>👥 {r.groupSize || 1} people</div><div>💰 ₾{r.budget || 'Flexible'}</div><div>📍 {r.region || '—'}</div></div></div>}
                 </div>
               );
             }
 
             if (viewMode === 'grid') {
               return (
-                <div key={r.id} className="glass" style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div key={r.id} className="glass" onClick={() => setExpandedRequest((x) => (x === r.id ? null : r.id))} style={{ padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)', cursor: 'pointer' }}>
                   <div style={{ fontWeight: 600, marginBottom: 6 }}>{r.title}</div>
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 4 }}>{r.tourist} · {r.region} · {r.type}</div>
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 6 }}>{r.date}</div>
                   <div style={{ fontFamily: 'var(--font-classic)', fontSize: '1.15rem', color: 'var(--gold)', marginBottom: 8 }}>₾{r.budget}</div>
                   {r.desc && <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: 8 }}>{r.desc}</p>}
                   <button type="button" onClick={() => setOfferModal(r)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', width: '100%' }}>Send offer</button>
+                  {expandedRequest === r.id && <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>📅 {r.date || 'Flexible'} · 👥 {r.groupSize || 1} · 💰 ₾{r.budget || 'Flexible'}</div>}
                 </div>
               );
             }
 
             return (
-              <div key={r.id} className="glass" style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+              <div key={r.id} className="glass" onClick={() => setExpandedRequest((x) => (x === r.id ? null : r.id))} style={{ padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
                   <div>
                     <div style={{ fontWeight: 600, marginBottom: 4 }}>{r.title}</div>
                     <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{r.tourist} · {r.region} · {r.type} · {r.date} · Budget ₾{r.budget}</div>
-                    {r.desc && <p style={{ marginTop: 8, fontSize: '0.9rem', color: 'var(--text-dim)' }}>{r.desc}</p>}
+                    {expandedRequest === r.id && r.desc && <p style={{ marginTop: 8, fontSize: '0.9rem', color: 'var(--text-dim)' }}>{r.desc}</p>}
+                    {expandedRequest !== r.id && <p style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--text-muted)' }}>Click to view details</p>}
                   </div>
                   <button type="button" onClick={() => setOfferModal(r)} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--gold)', color: 'var(--bg)', fontWeight: 600, cursor: 'pointer' }}>Send offer</button>
                 </div>
