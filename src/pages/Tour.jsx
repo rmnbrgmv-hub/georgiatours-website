@@ -6,6 +6,8 @@ import { useLocale } from '../context/LocaleContext';
 import { mapServiceRow } from '../hooks/useAppData';
 import { bookingInsertFromTour, photoUrl } from '../utils/supabaseMappers';
 import BookingCalendar from '../components/BookingCalendar';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { REGION_COORDS, getTourCoords, getMarkerIcon } from '../components/MapUtils';
 import {
   getUserSettingsFromBadges,
   getAvailabilityStatusForDate,
@@ -364,6 +366,24 @@ export default function Tour(props) {
         </div>
       </div>
       <p style={{ color: 'var(--text)', lineHeight: 1.7, marginBottom: 24 }}>{description}</p>
+
+      {/* Meeting point map */}
+      <div style={{ marginBottom: 24 }}>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.1rem', marginBottom: 12 }}>Meeting point</h3>
+        <div style={{ height: 250, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}>
+          <MapContainer center={getTourCoords(tour)} zoom={13} style={{ height: '100%', width: '100%' }}>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
+            <Marker position={getTourCoords(tour)} icon={getMarkerIcon(tour.type)}>
+              <Popup>{tour.name}<br />{tour.region}</Popup>
+            </Marker>
+          </MapContainer>
+        </div>
+        {tour.lat && tour.lng && (
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 6 }}>
+            📍 {Number(tour.lat).toFixed(4)}, {Number(tour.lng).toFixed(4)}
+          </p>
+        )}
+      </div>
 
       {(tour.providerId ?? tour.provider_id) && (
         <p style={{ marginBottom: 16 }}>

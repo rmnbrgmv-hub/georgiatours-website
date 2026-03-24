@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase, compressImage } from '../supabase';
 import { toServicesRow } from '../hooks/useAppData';
 import AvailabilityCalendar from './AvailabilityCalendar';
+import { LocationPicker, REGION_COORDS } from './MapUtils';
 import { buildBadgesWithSettings, getUserSettingsFromBadges } from '../utils/providerSettings';
 
 const MAX_PHOTOS = 4;
@@ -39,6 +40,8 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
     available: [],
     tags: [],
     photos: [],
+    lat: null,
+    lng: null,
   });
   const [tourUnavailableDates, setTourUnavailableDates] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -75,6 +78,8 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
         available: Array.isArray(initialTour.available) ? initialTour.available : [],
         tags: Array.isArray(initialTour.tags) ? initialTour.tags : [],
         photos: mappedPhotos,
+        lat: initialTour.lat ?? null,
+        lng: initialTour.lng ?? null,
       });
     }
   }, [initialTour, isGuide]);
@@ -150,6 +155,8 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
         total_bookings: initialTour?.total_bookings ?? 0,
         photos: photosNorm,
         tags: Array.from(new Set([pricingTag, ...(Array.isArray(form.tags) ? form.tags : [])])),
+        lat: form.lat || null,
+        lng: form.lng || null,
       };
       if (initialTour?.id) {
         const payload = { ...toServicesRow(base, user), updated_at: new Date().toISOString() };
@@ -325,7 +332,11 @@ export default function CreateTourModal({ user, initialTour, onSave, onClose }) 
             placeholder="Short description"
             style={{ ...inputStyle, marginBottom: 12, resize: 'vertical' }}
           />
-          {/* Photos section moved to top of form */}
+          <LocationPicker
+            value={form.lat && form.lng ? [form.lat, form.lng] : null}
+            onChange={([lat, lng]) => setForm((f) => ({ ...f, lat, lng }))}
+            center={REGION_COORDS[form.region] || REGION_COORDS['Tbilisi']}
+          />
           {error && <p style={{ color: '#f87171', fontSize: '0.85rem', marginBottom: 12 }}>{error}</p>}
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
             <button type="button" onClick={onClose} style={{ padding: '10px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', cursor: 'pointer' }}>Cancel</button>

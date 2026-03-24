@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocale } from '../context/LocaleContext';
 import { supabase } from '../supabase';
@@ -7,6 +7,8 @@ import { useServices } from '../hooks/useAppData';
 import TourCard from '../components/TourCard';
 import { SkeletonGrid } from '../components/Skeleton';
 import { getTourCardAvailabilityLine } from '../utils/providerSettings';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { GEORGIA_CENTER, getTourCoords, getMarkerIcon, TourMapPopup } from '../components/MapUtils';
 
 export default function Explore() {
   const { t } = useLocale();
@@ -26,6 +28,7 @@ export default function Explore() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('');
   const [priceFilter, setPriceFilter] = useState(500);
+  const [viewMode, setViewMode] = useState('list'); // list | map | split
   const [providerAvailById, setProviderAvailById] = useState({});
 
   useEffect(() => {
@@ -184,10 +187,65 @@ export default function Explore() {
           />
           <span>₾{priceFilter}</span>
         </label>
+        <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
+          {['list', 'split', 'map'].map((m) => (
+            <button
+              key={m}
+              onClick={() => setViewMode(m)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border)',
+                background: viewMode === m ? 'var(--accent, var(--gold))' : 'var(--surface)',
+                color: viewMode === m ? '#fff' : 'var(--text-muted)',
+                fontWeight: 500,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+              }}
+            >
+              {m === 'list' ? '☰ List' : m === 'map' ? '🗺 Map' : '⬜ Split'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (
         <SkeletonGrid count={6} />
+      ) : viewMode === 'map' ? (
+        <div style={{ height: 'calc(100vh - 280px)', minHeight: 400, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}>
+          <MapContainer center={GEORGIA_CENTER} zoom={8} style={{ height: '100%', width: '100%' }}>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
+            {filtered.map((tour) => (
+              <Marker key={tour.id} position={getTourCoords(tour)} icon={getMarkerIcon(tour.type)}>
+                <Popup><TourMapPopup tour={tour} /></Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+        </div>
+      ) : viewMode === 'split' ? (
+        <div style={{ display: 'flex', gap: 16, height: 'calc(100vh - 280px)', minHeight: 500 }}>
+          <div style={{ flex: '0 0 380px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {filtered.map((tour) => (
+              <TourCard
+                key={tour.id}
+                tour={tour}
+                linkTo={inApp ? `/app/tour/${tour.id}` : `/tour/${tour.id}`}
+                providerAvailability={tour.providerId ? providerAvailById[tour.providerId] : undefined}
+              />
+            ))}
+            {filtered.length === 0 && <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 40 }}>{t('explore.noMatch')}</div>}
+          </div>
+          <div style={{ flex: 1, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}>
+            <MapContainer center={GEORGIA_CENTER} zoom={8} style={{ height: '100%', width: '100%' }}>
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
+              {filtered.map((tour) => (
+                <Marker key={tour.id} position={getTourCoords(tour)} icon={getMarkerIcon(tour.type)}>
+                  <Popup><TourMapPopup tour={tour} /></Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+        </div>
       ) : (
         <div className="explore-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
           {filtered.map((t) => (
@@ -200,7 +258,7 @@ export default function Explore() {
           ))}
         </div>
       )}
-      {!loading && filtered.length === 0 && (
+      {!loading && filtered.length === 0 && viewMode === 'list' && (
         <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 60 }}>{t('explore.noMatch')}</div>
       )}
     </div>

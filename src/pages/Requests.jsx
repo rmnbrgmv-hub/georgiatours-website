@@ -11,6 +11,7 @@ import {
 } from '../utils/supabaseMappers';
 import ExpandableItem from '../components/ExpandableItem';
 import ViewControls, { loadViewPrefs, saveViewPref } from '../components/ViewControls';
+import { LocationPicker, REGION_COORDS } from '../components/MapUtils';
 
 export default function Requests() {
   const { user } = useOutletContext();
@@ -19,7 +20,7 @@ export default function Requests() {
   const [offersByRequestId, setOffersByRequestId] = useState({});
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '' });
+  const [form, setForm] = useState({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '', lat: null, lng: null });
   const [toast, setToast] = useState('');
   const rSavedViews = loadViewPrefs();
   const [viewMode, setViewMode] = useState(rSavedViews.requests || 'list');
@@ -85,7 +86,7 @@ export default function Requests() {
         return () => clearTimeout(id);
       }
       refetchRequests();
-      setForm({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '' });
+      setForm({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '', lat: null, lng: null });
       setShowForm(false);
     } catch (err) {
       console.error('Exception inserting web request:', err);
@@ -197,12 +198,17 @@ export default function Requests() {
                 <input type="number" value={form.budget} onChange={(e) => setForm((f) => ({ ...f, budget: e.target.value }))} style={{ display: 'block', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', marginTop: 4 }} />
               </div>
             </div>
+            <LocationPicker
+              value={form.lat && form.lng ? [form.lat, form.lng] : null}
+              onChange={([lat, lng]) => setForm((f) => ({ ...f, lat, lng }))}
+              center={REGION_COORDS[form.region] || REGION_COORDS['Tbilisi']}
+            />
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
               <button
                 type="button"
                 onClick={() => {
                   setShowForm(false);
-                  setForm({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '' });
+                  setForm({ title: '', desc: '', region: 'Tbilisi', type: 'guide', date: '', budget: '', lat: null, lng: null });
                 }}
                 style={{ padding: '10px 18px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
               >

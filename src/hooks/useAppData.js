@@ -31,6 +31,8 @@ export function toServicesRow(tour, user) {
     booked_seats: tour.bookedSeats ?? 0,
     total_bookings: tour.total_bookings ?? 0,
     photos: normalizedPhotos.length ? JSON.stringify(normalizedPhotos) : null,
+    lat: tour.lat ?? null,
+    lng: tour.lng ?? null,
   };
 }
 
@@ -57,6 +59,8 @@ export function mapServiceRow(row) {
     photos: parsePhotosColumn(row.photos),
     updatedAt: row.updated_at ?? null,
     suspended: !!row.suspended,
+    lat: row.lat ?? null,
+    lng: row.lng ?? null,
   };
 }
 
