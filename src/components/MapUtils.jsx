@@ -28,8 +28,11 @@ export const REGION_COORDS = {
 };
 
 export function getTourCoords(tour) {
-  if (tour.lat && tour.lng) return [tour.lat, tour.lng];
-  if (tour.region && REGION_COORDS[tour.region]) return REGION_COORDS[tour.region];
+  const lat = Number(tour?.lat);
+  const lng = Number(tour?.lng);
+  if (Number.isFinite(lat) && Number.isFinite(lng)) return [lat, lng];
+  if (tour?.region && REGION_COORDS[tour.region]) return REGION_COORDS[tour.region];
+  if (tour?.area && REGION_COORDS[tour.area]) return REGION_COORDS[tour.area];
   return REGION_COORDS['Tbilisi'];
 }
 
