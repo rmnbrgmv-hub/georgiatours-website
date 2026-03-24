@@ -74,6 +74,7 @@ export default function Explore() {
     if (priceFilter != null && (Number(tour.price) || 0) > priceFilter) return false;
     return true;
   });
+  const mapTours = filtered.length > 0 ? filtered : tours;
 
   const regions = [...new Set(tours.flatMap((tour) => [tour.region, tour.area]).filter(Boolean))].sort();
 
@@ -216,9 +217,21 @@ export default function Explore() {
         <SkeletonGrid count={6} />
       ) : viewMode === 'map' ? (
         <div style={{ height: 'calc(100vh - 280px)', minHeight: 400, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}>
+          <div style={{ padding: '8px 12px', fontSize: '0.82rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Showing {mapTours.length} tour{mapTours.length !== 1 ? 's' : ''} on map</span>
+            {filtered.length === 0 && tours.length > 0 && (
+              <button
+                type="button"
+                onClick={() => { setSearch(''); setTypeFilter('all'); setRegionFilter(''); setPriceFilter(priceMax); }}
+                style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', fontSize: '0.75rem' }}
+              >
+                Reset filters
+              </button>
+            )}
+          </div>
           <MapContainer center={GEORGIA_CENTER} zoom={8} style={{ height: '100%', width: '100%' }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-            {filtered.map((tour) => (
+            {mapTours.map((tour) => (
               <Marker key={tour.id} position={getTourCoords(tour)} icon={getMarkerIcon(tour.type)}>
                 <Popup><TourMapPopup tour={tour} /></Popup>
               </Marker>
@@ -241,7 +254,7 @@ export default function Explore() {
           <div style={{ flex: 1, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}>
             <MapContainer center={GEORGIA_CENTER} zoom={8} style={{ height: '100%', width: '100%' }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-              {filtered.map((tour) => (
+              {mapTours.map((tour) => (
                 <Marker key={tour.id} position={getTourCoords(tour)} icon={getMarkerIcon(tour.type)}>
                   <Popup><TourMapPopup tour={tour} /></Popup>
                 </Marker>
