@@ -7,8 +7,8 @@ import { useServices } from '../hooks/useAppData';
 import TourCard from '../components/TourCard';
 import { SkeletonGrid } from '../components/Skeleton';
 import { getTourCardAvailabilityLine } from '../utils/providerSettings';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { GEORGIA_CENTER, getTourCoords, getMarkerIcon, TourMapPopup } from '../components/MapUtils';
+import { MapContainer, TileLayer, Popup, CircleMarker } from 'react-leaflet';
+import { GEORGIA_CENTER, getTourCoords, TourMapPopup } from '../components/MapUtils';
 
 export default function Explore() {
   const { t } = useLocale();
@@ -231,11 +231,15 @@ export default function Explore() {
           </div>
           <MapContainer center={GEORGIA_CENTER} zoom={8} style={{ height: '100%', width: '100%' }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-            {mapTours.map((tour) => (
-              <Marker key={tour.id} position={getTourCoords(tour)} icon={getMarkerIcon(tour.type)}>
-                <Popup><TourMapPopup tour={tour} /></Popup>
-              </Marker>
-            ))}
+            {mapTours.map((tour) => {
+              const [lat, lng] = getTourCoords(tour);
+              const color = tour.type === 'guide' ? '#0D9373' : tour.type === 'van' ? '#C9A84C' : '#E07A5F';
+              return (
+                <CircleMarker key={tour.id} center={[lat, lng]} radius={9} pathOptions={{ color, fillColor: color, fillOpacity: 0.85, weight: 2 }}>
+                  <Popup><TourMapPopup tour={tour} /></Popup>
+                </CircleMarker>
+              );
+            })}
           </MapContainer>
         </div>
       ) : viewMode === 'split' ? (
@@ -254,11 +258,15 @@ export default function Explore() {
           <div style={{ flex: 1, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}>
             <MapContainer center={GEORGIA_CENTER} zoom={8} style={{ height: '100%', width: '100%' }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-              {mapTours.map((tour) => (
-                <Marker key={tour.id} position={getTourCoords(tour)} icon={getMarkerIcon(tour.type)}>
-                  <Popup><TourMapPopup tour={tour} /></Popup>
-                </Marker>
-              ))}
+              {mapTours.map((tour) => {
+                const [lat, lng] = getTourCoords(tour);
+                const color = tour.type === 'guide' ? '#0D9373' : tour.type === 'van' ? '#C9A84C' : '#E07A5F';
+                return (
+                  <CircleMarker key={tour.id} center={[lat, lng]} radius={8} pathOptions={{ color, fillColor: color, fillOpacity: 0.85, weight: 2 }}>
+                    <Popup><TourMapPopup tour={tour} /></Popup>
+                  </CircleMarker>
+                );
+              })}
             </MapContainer>
           </div>
         </div>
