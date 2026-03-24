@@ -27,7 +27,7 @@ export default function Explore() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('');
-  const [priceFilter, setPriceFilter] = useState(500);
+  const [priceFilter, setPriceFilter] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // list | map | split
   const [providerAvailById, setProviderAvailById] = useState({});
 
@@ -54,7 +54,10 @@ export default function Explore() {
   const tours = services.filter((s) => !s.suspended);
   const priceMax = tours.length ? Math.max(...tours.map((s) => Number(s.price) || 0), 1) : 500;
   useEffect(() => {
-    setPriceFilter((p) => (p > priceMax ? priceMax : p));
+    setPriceFilter((p) => {
+      if (p == null) return priceMax; // show all tours by default once loaded
+      return p > priceMax ? priceMax : p;
+    });
   }, [priceMax]);
 
   const filtered = tours.filter((tour) => {
@@ -68,7 +71,7 @@ export default function Explore() {
     }
     if (typeFilter !== 'all' && tour.type !== typeFilter) return false;
     if (regionFilter && tour.region !== regionFilter && tour.area !== regionFilter) return false;
-    if ((Number(tour.price) || 0) > priceFilter) return false;
+    if (priceFilter != null && (Number(tour.price) || 0) > priceFilter) return false;
     return true;
   });
 
@@ -181,11 +184,11 @@ export default function Explore() {
             type="range"
             min={0}
             max={priceMax}
-            value={priceFilter}
+            value={priceFilter ?? priceMax}
             onChange={(e) => setPriceFilter(Number(e.target.value))}
             style={{ width: 100 }}
           />
-          <span>₾{priceFilter}</span>
+          <span>₾{priceFilter ?? priceMax}</span>
         </label>
         <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
           {['list', 'split', 'map'].map((m) => (
